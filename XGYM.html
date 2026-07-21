@@ -536,17 +536,21 @@ body {
     }
       /* === Redesign: Σήμερα === */
     .today-shell {
-      width: min(680px, 92vw);
-      height: min(760px, calc(100vh - 180px));
-      display: flex;
-      flex-direction: column;
-      background: rgba(10, 14, 20, 0.72);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 20px;
-      backdrop-filter: blur(14px);
-      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-      overflow: hidden;
-    }
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(680px, 92vw);
+  height: min(760px, calc(100vh - 180px));
+  display: flex;
+  flex-direction: column;
+  background: rgba(10, 14, 20, 0.72);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  overflow: hidden;
+}σ
 
     .today-header {
       flex: 0 0 auto;
