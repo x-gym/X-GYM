@@ -32,6 +32,9 @@ const firebaseConfig = {
     useFetchStreams: false
   });
 </script><link href="https://fonts.googleapis.com/css?family=Lato:400,700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;800&family=JetBrains+Mono:wght@300;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/snap.svg/0.5.1/snap.svg-min.js"></script>
 
 <!-- Firebase Realtime Database -->
@@ -1528,6 +1531,245 @@ body {
   pointer-events: none;
 }
 
+    /* Απενεργοποίηση hover-dropdown ΜΟΝΟ για το Ημερολόγιο — αντικαταστάθηκε από το #calendarView */
+    #monthsDropdown:hover .dropdown-content {
+      opacity: 0 !important;
+      visibility: hidden !important;
+    }
+
+    /* === Spectral Vitreous Calendar (πλήρως scoped, δεν επηρεάζει τίποτα άλλο) === */
+    .svc-scope {
+      --svc-bg: #030303;
+      --svc-text: #f5f5f7;
+      --svc-spectral-1: rgba(255, 0, 128, 0.4);
+      --svc-spectral-2: rgba(0, 255, 255, 0.4);
+      --svc-spectral-3: rgba(128, 0, 255, 0.4);
+      --svc-glass: rgba(255, 255, 255, 0.02);
+      --svc-border: rgba(255, 255, 255, 0.1);
+      --svc-mono: 'JetBrains Mono', monospace;
+      --svc-sans: 'Inter', sans-serif;
+
+      background-color: var(--svc-bg);
+      color: var(--svc-text);
+      font-family: var(--svc-sans);
+    }
+
+    .svc-scope * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .svc-diffusion-container {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      z-index: 0;
+      filter: blur(120px);
+      opacity: 0.6;
+      animation: svcPulse 15s infinite alternate ease-in-out;
+      pointer-events: none;
+    }
+
+    .svc-blob {
+      position: absolute;
+      width: 60vw;
+      height: 60vh;
+      border-radius: 50%;
+    }
+
+    .svc-blob-1 { background: var(--svc-spectral-1); top: -10%; left: -10%; animation: svcMove 20s infinite; }
+    .svc-blob-2 { background: var(--svc-spectral-2); bottom: -10%; right: -10%; animation: svcMove 25s infinite reverse; }
+    .svc-blob-3 { background: var(--svc-spectral-3); top: 30%; left: 40%; width: 30vw; height: 30vh; }
+
+    @keyframes svcMove {
+      0% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(10%, 15%) scale(1.1); }
+      100% { transform: translate(0, 0) scale(1); }
+    }
+
+    @keyframes svcPulse {
+      0% { opacity: 0.4; }
+      100% { opacity: 0.8; }
+    }
+
+    .svc-interface {
+      width: 90vw;
+      max-width: 1200px;
+      height: 85vh;
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      backdrop-filter: blur(40px) saturate(150%);
+      background: var(--svc-glass);
+      border: 1px solid var(--svc-border);
+      border-radius: 2px;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.5);
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
+      animation: svcEntry 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes svcEntry {
+      from { opacity: 0; transform: translateY(20px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .svc-interface::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(90deg, transparent 33.3%, var(--svc-border) 33.3%, var(--svc-border) 33.4%, transparent 33.4%);
+      pointer-events: none;
+    }
+
+    .svc-sidebar {
+      padding: 4rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      z-index: 1;
+    }
+
+    .svc-month-name {
+      font-size: 6rem;
+      font-weight: 800;
+      line-height: 0.8;
+      letter-spacing: -0.05em;
+      text-transform: uppercase;
+      background: linear-gradient(to bottom, #fff 40%, rgba(255,255,255,0.2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .svc-year-display {
+      font-family: var(--svc-mono);
+      font-size: 1rem;
+      letter-spacing: 0.5em;
+      color: rgba(255,255,255,0.4);
+      margin-top: 1rem;
+    }
+
+    .svc-event-preview { margin-top: auto; }
+
+    .svc-event-card {
+      padding: 2rem 0;
+      border-top: 1px solid var(--svc-border);
+    }
+
+    .svc-event-time {
+      font-family: var(--svc-mono);
+      font-size: 0.7rem;
+      color: var(--svc-spectral-2);
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+
+    .svc-event-title { font-size: 1.2rem; font-weight: 300; }
+
+    .svc-grid-container {
+      padding: 4rem;
+      display: flex;
+      flex-direction: column;
+      z-index: 1;
+    }
+
+    .svc-calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      height: 100%;
+      gap: 1px;
+      background: var(--svc-border);
+      border: 1px solid var(--svc-border);
+    }
+
+    .svc-day-label {
+      background: transparent;
+      padding: 1rem;
+      font-family: var(--svc-mono);
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.3);
+      text-align: right;
+      border-bottom: 1px solid var(--svc-border);
+    }
+
+    .svc-day-cell {
+      background: var(--svc-bg);
+      padding: 1.5rem;
+      position: relative;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: pointer;
+      overflow: hidden;
+    }
+
+    .svc-day-cell:hover { background: rgba(255,255,255,0.05); }
+
+    .svc-day-cell.svc-active::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      border: 1px solid var(--svc-spectral-2);
+      box-shadow: inset 0 0 20px rgba(0, 255, 255, 0.1);
+    }
+
+    .svc-day-number {
+      font-family: var(--svc-mono);
+      font-size: 1.2rem;
+      font-weight: 300;
+      position: relative;
+      z-index: 2;
+    }
+
+    .svc-day-cell:not(.svc-current-month) .svc-day-number { opacity: 0.15; }
+
+    .svc-cell-glow {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 100px;
+      height: 100px;
+      background: radial-gradient(circle, var(--svc-spectral-3) 0%, transparent 70%);
+      transform: translate(-50%, -50%) scale(0);
+      transition: transform 0.6s ease;
+      pointer-events: none;
+      opacity: 0.4;
+    }
+
+    .svc-day-cell:hover .svc-cell-glow { transform: translate(-50%, -50%) scale(2); }
+
+    .svc-indicator {
+      position: absolute;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      width: 4px;
+      height: 4px;
+      background: var(--svc-spectral-1);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--svc-spectral-1);
+    }
+
+    .svc-noise {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none;
+      opacity: 0.03;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+      z-index: 2;
+    }
+
+    #calendarView {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 2;
+      width: 100%;
+      height: 100%;
+      justify-content: center;
+      align-items: center;
+      animation: fadeIn 0.8s ease-in-out;
+    }
     
   </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -1761,6 +2003,97 @@ body {
 </table>
 </div>
 
+<div id="calendarView" class="content page svc-scope">
+  <div class="svc-diffusion-container">
+    <div class="svc-blob svc-blob-1"></div>
+    <div class="svc-blob svc-blob-2"></div>
+    <div class="svc-blob svc-blob-3"></div>
+  </div>
+  <div class="svc-noise"></div>
+
+  <main class="svc-interface">
+    <section class="svc-sidebar">
+      <header>
+        <div class="svc-year-display">MMXXIV</div>
+        <h1 class="svc-month-name">Oct<br>ober</h1>
+      </header>
+
+      <div class="svc-event-preview">
+        <div class="svc-event-card">
+          <span class="svc-event-time">14:00 — 16:30</span>
+          <h2 class="svc-event-title">Spectral Refraction Study</h2>
+        </div>
+        <div class="svc-event-card">
+          <span class="svc-event-time">21:00 — LATE</span>
+          <h2 class="svc-event-title">Vitreous Diffusion Forum</h2>
+        </div>
+      </div>
+    </section>
+
+    <section class="svc-grid-container">
+      <div class="svc-calendar-grid">
+        <div class="svc-day-label">Mon</div>
+        <div class="svc-day-label">Tue</div>
+        <div class="svc-day-label">Wed</div>
+        <div class="svc-day-label">Thu</div>
+        <div class="svc-day-label">Fri</div>
+        <div class="svc-day-label">Sat</div>
+        <div class="svc-day-label">Sun</div>
+
+        <div class="svc-day-cell"><span class="svc-day-number">30</span><div class="svc-cell-glow"></div></div>
+        <div class="svc-day-cell svc-current-month svc-active">
+          <span class="svc-day-number">01</span>
+          <div class="svc-indicator"></div>
+          <div class="svc-cell-glow"></div>
+        </div>
+        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">02</span><div class="svc-cell-glow"></div></div>
+        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">03</span><div class="svc-cell-glow"></div></div>
+        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">04</span><div class="svc-cell-glow"></div></div>
+        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">05</span><div class="svc-cell-glow"></div></div>
+        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">06</span><div class="svc-cell-glow"></div></div>
+
+        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">07</span><div class="svc-cell-glow"></div></div>
+        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">08</span><div class="svc-cell-glow"></div></div>
+        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">09</span><div class="svc-cell-glow"></div></div>
+        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">10</span><div class="svc-cell-glow"></div></div>
+        <div class="svc-day-cell svc-current-month">
+          <span class="svc-day-number">11</span>
+          <div class="svc-indicator"></div>
+          <div class="svc-cell-glow"></div>
+        </div>
+        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">12</span><div class="svc-cell-glow"></div></div>
+        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">13</span><div class="svc-cell-glow"></div></div>
+
+        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">14</span><div class="svc-cell-glow"></div></div>
+        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">15</span><div class="svc-cell-glow"></div></div>
+        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">16</span><div class="svc-cell-glow"></div></div>
+        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">17</span><div class="svc-cell-glow"></div></div>
+        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">18</span><div class="svc-cell-glow"></div></div>
+        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">19</span><div class="svc-cell-glow"></div></div>
+        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">20</span><div class="svc-cell-glow"></div></div>
+
+        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">21</span><div class="svc-cell-glow"></div></div>
+        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">22</span><div class="svc-cell-glow"></div></div>
+        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">23</span><div class="svc-cell-glow"></div></div>
+        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">24</span><div class="svc-cell-glow"></div></div>
+        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">25</span><div class="svc-cell-glow"></div></div>
+        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">26</span><div class="svc-cell-glow"></div></div>
+        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">27</span><div class="svc-cell-glow"></div></div>
+
+        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">28</span><div class="svc-cell-glow"></div></div>
+        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">29</span><div class="svc-cell-glow"></div></div>
+        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">30</span><div class="svc-cell-glow"></div></div>
+        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">31</span><div class="svc-cell-glow"></div></div>
+        <div class="svc-day-cell"><span class="svc-day-number">01</span><div class="svc-cell-glow"></div></div>
+        <div class="svc-day-cell"><span class="svc-day-number">02</span><div class="svc-cell-glow"></div></div>
+        <div class="svc-day-cell"><span class="svc-day-number">03</span><div class="svc-cell-glow"></div></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- 🔐 Password Modal for Statistics Pages -->
+
 <!-- 🔐 Password Modal for Statistics Pages -->
 <div id="passwordModalOverlay" class="password-modal-overlay">
   <div class="password-modal-container">
@@ -1987,6 +2320,7 @@ input.placeholder = fullText.substring(0, eraseIndex);
   const mainContent = document.getElementById("mainContent");
   const weeksView = document.getElementById("weeksView");
   const todayView = document.getElementById("todayView");
+  const calendarView = document.getElementById("calendarView");
   const selectedMonthTitle = document.getElementById("selectedMonthTitle");
   const todayLog = document.getElementById("todayLog");
   const weeksDetails = document.getElementById("weeksDetails");
@@ -2089,7 +2423,9 @@ dayDiv.innerHTML = `<button class="day-btn" data-date="${d.dateStr}" data-weekda
   }
 
   document.getElementById("monthsToggle").addEventListener("click", () => {
-    dropdown.classList.toggle("open");
+    hideAllViews();
+    document.getElementById("dayLogView").style.display = "none";
+    calendarView.style.display = "flex";
   });
 
   months.forEach(month => {
@@ -4077,6 +4413,26 @@ document.getElementById("secondChartFemaleCount").textContent = femaleCount;
       }, true);
     }
   }
+    // === Spectral Vitreous Calendar: glow στο hover + επιλογή ημέρας ===
+// (στατικό demo προς το παρόν — θα συνδεθεί με πραγματικά δεδομένα παρακολούθησης αργότερα)
+document.querySelectorAll('#calendarView .svc-day-cell').forEach(cell => {
+  cell.addEventListener('mousemove', e => {
+    const rect = cell.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const glow = cell.querySelector('.svc-cell-glow');
+    if (glow) {
+      glow.style.left = `${x}px`;
+      glow.style.top = `${y}px`;
+    }
+  });
+
+  cell.addEventListener('click', () => {
+    document.querySelectorAll('#calendarView .svc-day-cell').forEach(c => c.classList.remove('svc-active'));
+    cell.classList.add('svc-active');
+  });
+});
 </script>
 
 </body>
