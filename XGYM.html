@@ -2519,11 +2519,35 @@ document.getElementById("todayBtn").addEventListener("click", () => {
   renderTodayLog();
 });
 
-// TODO: σύνδεση με πραγματική cached λίστα IDs από το Google Sheet.
-// Προς το παρόν επιστρέφει πάντα true, άρα όλοι εμφανίζονται ως "υπάρχων πελάτης".
-function isKnownCustomer(customerId) {
-  return true;
+const CUSTOMER_LIST_URL = "https://script.google.com/macros/s/AKfycbxo6vyBR-gm7n2664HRqpHEF9dh40slslYBlPPpjdKuIvOx_pS_hEgar-mcAh9RAHG-rQ/exec?listIds=1";
+const CUSTOMER_LIST_REFRESH_MS = 5 * 60 * 1000; // ανανέωση κάθε 5 λεπτά
+
+let knownCustomerIds = null; // null = δεν έχει φορτωθεί ακόμα (ουδέτερη εμφάνιση)
+
+async function refreshKnownCustomerIds() {
+  try {
+    const response = await fetch(CUSTOMER_LIST_URL, { cache: "no-store" });
+    if (!response.ok) {
+      console.error("❌ Αποτυχία λήψης λίστας πελατών:", response.status);
+      return;
+    }
+    const data = await response.json();
+    const ids = Array.isArray(data.ids) ? data.ids : [];
+    knownCustomerIds = new Set(ids.map(id => String(id).trim()));
+    console.log(`✅ Λίστα πελατών ανανεώθηκε: ${knownCustomerIds.size} εγγεγραμμένα ID`);
+  } catch (error) {
+    console.error("❌ Σφάλμα λήψης λίστας πελατών:", error);
+  }
 }
+
+// true = υπάρχων πελάτης, false = νέος πελάτης, null = δεν ξέρουμε ακόμα (η λίστα δεν έχει φορτώσει)
+function isKnownCustomer(customerId) {
+  if (!knownCustomerIds) return null;
+  return knownCustomerIds.has(String(customerId).trim());
+}
+
+refreshKnownCustomerIds();
+setInterval(refreshKnownCustomerIds, CUSTOMER_LIST_REFRESH_MS);
     
 function renderTodayLog() {
   todayLog.innerHTML = "";
@@ -2580,8 +2604,9 @@ function renderTodayLog() {
 
     entries.forEach(entry => {
       const row = document.createElement("div");
-      const customerClass = isKnownCustomer(entry.id) ? "existing-customer" : "new-customer";
-      row.className = `today-entry ${customerClass}`;
+      const customerStatus = isKnownCustomer(entry.id); // true | false | null (άγνωστο ακόμα)
+      const customerClass = customerStatus === true ? "existing-customer" : customerStatus === false ? "new-customer" : "";
+      row.className = `today-entry ${customerClass}`.trim();
 
       const initials = (entry.name || "?")
         .trim()
