@@ -2519,7 +2519,7 @@ document.getElementById("todayBtn").addEventListener("click", () => {
   renderTodayLog();
 });
 
-const CUSTOMER_LIST_URL = "https://script.google.com/macros/s/cbxo6vyBR-gm7n2664HRqpHEF9dh40slslYBlPPpjdKuIvOx_pS_hEgar-mcAh9RAHG-rQ/exec?listIds=1";
+const CUSTOMER_LIST_URL = "https://script.google.com/macros/s/AKfycbzHEgOd1CYIcAH5Xc9cnHjI7-ZRO7tb0eK4v3q27e5yTySmBS421-fQn3YQS2Y4L5-vPw/exec?listIds=1";
 const CUSTOMER_LIST_REFRESH_MS = 5 * 60 * 1000; // ανανέωση κάθε 5 λεπτά
 
 let knownCustomerIds = null; // null = δεν έχει φορτωθεί ακόμα (ουδέτερη εμφάνιση)
@@ -3267,7 +3267,7 @@ async function loadDailyIncome() {
   try {
     // 🔗 Τράβηγμα δεδομένων από Apps Script
     const response = await fetch(
-      "https://script.google.com/macros/s/AKfycbzs8xqneQufSeYP2HrXG7Za0ilwGGAXO-kDgU_zzuz9evnosCD4Nov9RDTE9irtckT35A/exec",
+      "https://script.google.com/macros/s/AKfycbzHEgOd1CYIcAH5Xc9cnHjI7-ZRO7tb0eK4v3q27e5yTySmBS421-fQn3YQS2Y4L5-vPw/exec",
       { cache: "no-store" }
     );
     if (!response.ok) {
