@@ -586,6 +586,30 @@ body {
       color: rgba(255,255,255,0.5);
       text-transform: capitalize;
     }
+      .today-legend {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  margin-top: 14px;
+}
+
+.today-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.5);
+}
+
+.today-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.today-legend-dot.existing { background: #00c8ff; }
+.today-legend-dot.new { background: #ffb84d; }
 
     .today-scroll {
       flex: 1 1 auto;
@@ -645,6 +669,15 @@ body {
       margin-bottom: 6px;
       animation: fadeIn 0.3s ease;
     }
+.today-entry.existing-customer {
+  border-color: rgba(0, 200, 255, 0.25);
+}
+
+.today-entry.new-customer {
+  border-color: rgba(255, 184, 77, 0.55);
+  background: rgba(255, 184, 77, 0.06);
+}
+      
     .today-entry:last-child { margin-bottom: 0; }
 
     .today-entry-avatar {
@@ -660,6 +693,16 @@ body {
       color: #04121a;
       flex-shrink: 0;
     }
+
+      .today-entry-avatar.male {
+  background: linear-gradient(135deg, #00f9ff, #00ff90);
+  color: #04121a;
+}
+
+.today-entry-avatar.female {
+  background: linear-gradient(135deg, #8e2de2, #4a00e0);
+  color: #ffffff;
+}
 
     .today-entry-name {
       flex: 1;
@@ -1978,11 +2021,14 @@ body {
 
   <div class="content page" id="todayView">
     <div class="today-shell">
-      <div class="today-header">
-        <div class="today-eyebrow">Ημερήσιο αρχείο καταγραφών</div>
-        <h2 id="todayTitle">Σήμερα</h2>
-        <div class="today-date" id="todayDateLabel"></div>
-      </div>
+        <div class="today-header">
+  <h2 id="todayTitle">Σήμερα</h2>
+  <div class="today-date" id="todayDateLabel"></div>
+  <div class="today-legend">
+    <span class="today-legend-item"><span class="today-legend-dot existing"></span>Υπάρχων πελάτης</span>
+    <span class="today-legend-item"><span class="today-legend-dot new"></span>Νέος πελάτης</span>
+  </div>
+</div>
       <div class="today-scroll" id="todayLog"></div>
     </div>
   </div>
@@ -2473,6 +2519,12 @@ document.getElementById("todayBtn").addEventListener("click", () => {
   renderTodayLog();
 });
 
+// TODO: σύνδεση με πραγματική cached λίστα IDs από το Google Sheet.
+// Προς το παρόν επιστρέφει πάντα true, άρα όλοι εμφανίζονται ως "υπάρχων πελάτης".
+function isKnownCustomer(customerId) {
+  return true;
+}
+    
 function renderTodayLog() {
   todayLog.innerHTML = "";
 
@@ -2528,7 +2580,8 @@ function renderTodayLog() {
 
     entries.forEach(entry => {
       const row = document.createElement("div");
-      row.className = "today-entry";
+      const customerClass = isKnownCustomer(entry.id) ? "existing-customer" : "new-customer";
+      row.className = `today-entry ${customerClass}`;
 
       const initials = (entry.name || "?")
         .trim()
@@ -2537,8 +2590,10 @@ function renderTodayLog() {
         .map(s => s[0]?.toUpperCase() || "")
         .join("");
 
+      const genderClass = entry.gender === "MALE" ? "male" : entry.gender === "FEMALE" ? "female" : "";
+
       row.innerHTML = `
-        <div class="today-entry-avatar">${initials}</div>
+        <div class="today-entry-avatar ${genderClass}">${initials}</div>
         <div class="today-entry-name">${entry.name}</div>
         <div class="today-entry-time">${entry.time}</div>
       `;
