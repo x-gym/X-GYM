@@ -2240,7 +2240,11 @@ body {
   overflow: auto;
   padding: 20px;
 }
-
+#weeksView,
+#todayView,
+#calendarView {
+  margin-top: 0;
+}
 /* Η περιοχή που περιέχει τις εβδομάδες */
 .weeks-grid {
   display: grid;
@@ -3595,13 +3599,6 @@ setTimeout(() => {
   });
 });
 });
-
-// 3. Συνάρτηση για να κρύβονται όλες οι προβολές
-function hideAllViews() {
-  document.querySelectorAll(".content, .statistics-page").forEach(el => {
-    el.style.display = "none";
-  });
-}
 
 // 4. Συνάρτηση σχεδίασης γραφήματος Ιουλίου
 function drawMonthlyChart(month) {
