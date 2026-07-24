@@ -1441,6 +1441,27 @@ body {
   text-align: center;
   animation: modalScaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   transform: scale(1);
+  position: relative;
+}
+
+.password-close-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 8px;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.password-close-btn:hover {
+  color: #ff4081;
+  background-color: rgba(255, 64, 129, 0.1);
 }
 
 @keyframes modalScaleIn {
@@ -2143,6 +2164,7 @@ body {
 <!-- 🔐 Password Modal for Statistics Pages -->
 <div id="passwordModalOverlay" class="password-modal-overlay">
   <div class="password-modal-container">
+    <button class="password-close-btn" id="passwordCloseBtn" aria-label="Ακύρωση">✕</button>
     <h2>🔐 Κωδικός Πρόσβασης</h2>
     <p>Εισάγετε τον 4-ψήφιο κωδικό για πρόσβαση στα στατιστικά</p>
     
@@ -4194,10 +4216,16 @@ document.getElementById("secondChartFemaleCount").textContent = femaleCount;
       }
 
       // Remove error state when user types
+      // Remove error state when user types
       passwordErrorMessage.classList.remove('show');
       passwordDigits.forEach(d => d.classList.remove('error'));
-    });
 
+      // Αυτόματη υποβολή μόλις συμπληρωθούν και τα 4 ψηφία — χωρίς Enter
+      const allFilled = Array.from(passwordDigits).every(d => d.value.length === 1);
+      if (allFilled) {
+        checkPassword();
+      }
+    });
     // Handle backspace
     input.addEventListener('keydown', (e) => {
       if (e.key === 'Backspace' && !input.value && index > 0) {
@@ -4231,8 +4259,15 @@ document.getElementById("secondChartFemaleCount").textContent = femaleCount;
   });
 
   // Submit button click
+// Submit button click
   passwordSubmitBtn?.addEventListener('click', checkPassword);
 
+  // Κουμπί Χ — ακύρωση και επιστροφή στην αρχική
+  document.getElementById('passwordCloseBtn')?.addEventListener('click', () => {
+    hidePasswordModal();
+    pendingStatsButton = null;
+    document.getElementById('homeButton')?.click();
+  });
   function checkPassword() {
     const enteredPassword = Array.from(passwordDigits)
       .map(input => input.value)
