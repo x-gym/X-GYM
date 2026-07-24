@@ -311,10 +311,6 @@ background-image: url("https://i.postimg.cc/L4BQR5R8/processed-2-DA30989-5818-4-
   }
 }
 
-#dayLogView {
-  animation: showDayLog 0.8s ease-out;
-}
-
 body {
   transition: background-image 0.5s ease-in-out;
 }
@@ -384,7 +380,6 @@ body {
   position: relative;
   z-index: 1;
   padding: 0;
-  animation: fadeIn 0.8s ease-in-out;
   overflow-y: auto !important;
   max-height: 100vh;
   height: auto; 
@@ -508,7 +503,7 @@ body {
   background-color: #333;
 }
     /* Εβδομάδες View */
-    #weeksView {
+   #weeksView {
       display: none;
       position: absolute;
       top: 0;
@@ -520,10 +515,9 @@ body {
       align-items: center;
       flex-direction: column;
       background: url('https://i.postimg.cc/ZnFn6ykY/IMG-4159.jpg') no-repeat center center / cover;
-      animation: fadeIn 0.8s ease-in-out;
     }
 
-    #todayView {
+  #todayView {
       display: none;
       position: absolute;
       top: 0;
@@ -535,7 +529,6 @@ body {
       align-items: center;
       flex-direction: column;
       background: url('https://i.postimg.cc/4NQdC4zX/IMG-4161.jpg') no-repeat center center / cover;
-      animation: fadeIn 0.8s ease-in-out;
     }
       /* === Redesign: Σήμερα === */
     .today-shell {
@@ -553,7 +546,7 @@ body {
   backdrop-filter: blur(14px);
   box-shadow: 0 20px 60px rgba(0,0,0,0.5);
   overflow: hidden;
-}σ
+}
 
     .today-header {
       flex: 0 0 auto;
@@ -954,9 +947,6 @@ body {
   }
 }
 
-.animate-home {
-  animation: fadeSlideIn 0.9s ease;
-}
 body {
   font-family: 'Lato', sans-serif;
   background-color: #24303a;
@@ -1853,7 +1843,30 @@ body {
       height: 100%;
       justify-content: center;
       align-items: center;
-      animation: fadeIn 0.8s ease-in-out;
+    }
+
+    /* === Ενιαίο σύστημα ομαλών μεταβάσεων σελίδας === */
+    #mainContent,
+    #weeksView,
+    #todayView,
+    #dailyStatsPage,
+    #monthlyStatsPage,
+    #dayLogView,
+    #calendarView {
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.28s ease, transform 0.28s ease;
+    }
+
+    #mainContent.view-in,
+    #weeksView.view-in,
+    #todayView.view-in,
+    #dailyStatsPage.view-in,
+    #monthlyStatsPage.view-in,
+    #dayLogView.view-in,
+    #calendarView.view-in {
+      opacity: 1;
+      transform: translateY(0);
     }
     
   </style>
@@ -2397,13 +2410,27 @@ input.placeholder = fullText.substring(0, eraseIndex);
       }, 50);
     }
 
-    // Πρώτο κάλεσμα
-    animatePlaceholder();
+    let placeholderIntervalId = null;
 
-    // Επανάληψη κάθε 8 δευτερόλεπτα
-    setInterval(() => {
+    function startHomeAnimations() {
+      if (placeholderIntervalId) return;
       animatePlaceholder();
-    }, 8000);
+      placeholderIntervalId = setInterval(animatePlaceholder, 8000);
+      startNeonFlicker();
+    }
+
+    function stopHomeAnimations() {
+      if (placeholderIntervalId) {
+        clearInterval(placeholderIntervalId);
+        placeholderIntervalId = null;
+      }
+      stopNeonFlicker();
+    }
+
+    function toggleHomeAnimations(isVisible) {
+      if (isVisible) startHomeAnimations();
+      else stopHomeAnimations();
+    }
   const logContainer = document.getElementById("log");
   const mainContent = document.getElementById("mainContent");
   const weeksView = document.getElementById("weeksView");
@@ -2411,8 +2438,14 @@ input.placeholder = fullText.substring(0, eraseIndex);
   const calendarView = document.getElementById("calendarView");
   const selectedMonthTitle = document.getElementById("selectedMonthTitle");
   const todayLog = document.getElementById("todayLog");
-  const weeksDetails = document.getElementById("weeksDetails");
-
+const weeksDetails = document.getElementById("weeksDetails");
+  weeksDetails.addEventListener("click", function(e) {
+    if (e.target.matches(".day-btn")) {
+      const selectedDate = e.target.dataset.date;
+      const weekday = e.target.dataset.weekday;
+      showDayLog(selectedDate, weekday);
+    }
+  });
   const months = ["Ιανουάριος", "Φεβρουάριος", "Μάρτιος", "Απρίλιος", "Μάιος", "Ιούνιος", "Ιούλιος", "Αύγουστος", "Σεπτέμβριος", "Οκτώβριος", "Νοέμβριος", "Δεκέμβριος"];
   const statsBtn = document.getElementById("Statistics");
 const dropDown = document.getElementById("statsDropdown");
@@ -2447,10 +2480,36 @@ dropDown.addEventListener("click", (e) => {
   return "Άκυρη Ώρα";
 }
 
+const VIEW_DISPLAY = {
+    mainContent: "block",
+    weeksView: "flex",
+    todayView: "flex",
+    dailyStatsPage: "flex",
+    monthlyStatsPage: "flex",
+    dayLogView: "flex",
+    calendarView: "flex"
+  };
+
   function hideAllViews() {
-    mainContent.style.display = "none";
-    weeksView.style.display = "none";
-    todayView.style.display = "none";
+    Object.keys(VIEW_DISPLAY).forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.classList.remove("view-in");
+      el.style.display = "none";
+    });
+  }
+
+  function showView(id) {
+    hideAllViews();
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.display = VIEW_DISPLAY[id];
+    toggleHomeAnimations(id === "mainContent");
+    if (id !== "dailyStatsPage" && id !== "monthlyStatsPage") {
+      passwordVerified = false;
+    }
+    window.scrollTo(0, 0);
+    requestAnimationFrame(() => el.classList.add("view-in"));
   }
 
 
@@ -2510,10 +2569,8 @@ dayDiv.innerHTML = `<button class="day-btn" data-date="${d.dateStr}" data-weekda
     return str.charAt(0).toUpperCase() + str.slice(1);
   }
 
-  document.getElementById("monthsToggle").addEventListener("click", () => {
-    hideAllViews();
-    document.getElementById("dayLogView").style.display = "none";
-    calendarView.style.display = "flex";
+ document.getElementById("monthsToggle").addEventListener("click", () => {
+    showView("calendarView");
   });
 
   months.forEach(month => {
@@ -2522,42 +2579,24 @@ dayDiv.innerHTML = `<button class="day-btn" data-date="${d.dateStr}" data-weekda
     btn.onclick = () => {
       dropdown.classList.remove("open");
       setTimeout(() => {
-        hideAllViews();
-        weeksView.style.display = "flex";
+        showView("weeksView");
         selectedMonthTitle.textContent = `Εβδομάδες - ${month}`;
         renderWeeksWithDates(month);
-weeksDetails.addEventListener("click", function(e) {
-if (e.target.matches(".day-btn")) {
-  const selectedDate = e.target.dataset.date;
-  const weekday = e.target.dataset.weekday;
-  showDayLog(selectedDate, weekday);
-}
-});
       }, 300);
     };
     monthsMenu.appendChild(btn);
   });
 
   document.getElementById("homeButton").addEventListener("click", () => {
-  hideAllViews();
-
-  // Εφαρμόζουμε animation στην αρχική
-  mainContent.classList.remove("animate-home"); // Για να επαναλάβει το animation
-  void mainContent.offsetWidth; // Force reflow
-  mainContent.classList.add("animate-home");
-
-  mainContent.style.display = "block";  // Επιστρέφουμε στο αρχικό μενού
-  qrInput.focus();  // Επιστρέφουμε το focus στο πεδίο εισαγωγής
+  showView("mainContent");
+  qrInput.focus();
 
   document.body.style.backgroundImage = "url('https://i.postimg.cc/L4BQR5R8/processed-2-DA30989-5818-4-DF0-A5-A1-A9-A04-F93091-B.jpg')";
   document.body.classList.remove('show-day-background');
-  dayLogView.style.display = "none";
 });
 
 document.getElementById("todayBtn").addEventListener("click", () => {
-  hideAllViews();
-  todayView.style.display = "flex";
-  document.getElementById("dayLogView").style.display = "none";
+  showView("todayView");
   renderTodayLog();
 });
 
@@ -2804,11 +2843,9 @@ const backToWeeksBtn = document.getElementById("backToWeeksBtn");
 
 
 backToWeeksBtn.addEventListener("click", () => {
-console.log("Πίσω πατήθηκε!"); 
-dayLogView.style.display = "none";
-weeksView.style.display = "flex";
-dayLogTitle.textContent="";
-dayLogTableBody.innerHTML="";
+showView("weeksView");
+dayLogTitle.textContent = "";
+dayLogTableBody.innerHTML = "";
 });
 
   function renderLog() {
@@ -2860,13 +2897,10 @@ setInterval(() => {
 }, 60000);
 
 function showDayLog(dateStr, weekday) {
-  hideAllViews();  // Κρύβουμε όλες τις άλλες προβολές
-
-  // Ορίζουμε το φόντο της σελίδας για την ημέρα
   document.body.style.backgroundImage = "url('https://i.postimg.cc/fTzz0MNw/IMG-4164.jpg')";
   document.body.classList.add('show-day-background');
 
-  dayLogView.style.display = "flex";
+  showView("dayLogView");
   dayLogTitle.textContent = `${capitalizeFirstLetter(weekday)} - ${dateStr}`;
 
   const tbody = dayLogTableBody;
@@ -2938,18 +2972,29 @@ document.getElementById("clearYearBtn").addEventListener("click", () => {
     alert("Όλα τα δεδομένα του έτους έχουν καθαριστεί!");
   }
 });
+
 const letters = document.querySelectorAll("#neonText span");
+let neonFlickerIntervalId = null;
 
-setInterval(() => {
-  const randomIndex = Math.floor(Math.random() * letters.length);
-  const letter = letters[randomIndex];
+function startNeonFlicker() {
+  if (neonFlickerIntervalId) return;
+  neonFlickerIntervalId = setInterval(() => {
+    const randomIndex = Math.floor(Math.random() * letters.length);
+    const letter = letters[randomIndex];
 
-  // Εναλλαγή flicker effect για "χαλασμένο" γράμμα
-  letter.classList.add("flicker-off");
-  setTimeout(() => {
-    letter.classList.remove("flicker-off");
-  }, 800 + Math.random() * 1200);
-}, 300);
+    letter.classList.add("flicker-off");
+    setTimeout(() => {
+      letter.classList.remove("flicker-off");
+    }, 800 + Math.random() * 1200);
+  }, 300);
+}
+
+function stopNeonFlicker() {
+  if (neonFlickerIntervalId) {
+    clearInterval(neonFlickerIntervalId);
+    neonFlickerIntervalId = null;
+  }
+}
 function animateCircleOverlay(circleSelector, percent, parent) {
   const overlay = document.querySelector(circleSelector);
   const fullLength = 2 * Math.PI * 45; // ≈ 282.6
@@ -2991,13 +3036,14 @@ function updateGenderPieCharts(maleCount, femaleCount) {
 }
 
 document.querySelector('[data-view="daily"]').addEventListener("click", () => {
-  // Κλείνουμε το dropdown άμεσα
   dropDown.classList.remove("show");
+  requestPasswordThenShow("dailyStatsPage", () => {
+    renderDailyStatsPage();
+    loadDailyIncome();
+  });
+});
 
-  // Κρύβουμε τις άλλες προβολές
-  hideAllViews();
-  document.getElementById("dailyStatsPage").style.display = "flex";
-
+function renderDailyStatsPage() {
 const labels = [
   "09:00", "10:00", "11:00", "12:00", "13:00", "14:00",
   "15:00", "16:00", "17:00", "18:00", "19:00", "20:00",
@@ -3100,8 +3146,7 @@ const peakEl = document.getElementById("peakHourValue");
   if (peakEl) {
     peakEl.textContent = peakHour;
   }
-
-});
+}
 let peakHour = 0; // ή κάποια λογική default τιμή
 
 // Ενημέρωση του πλαισίου
@@ -3186,65 +3231,7 @@ function updateGenderPercentages() {
   document.querySelector("#circle-1 .circle-overlay").setAttribute("stroke-dashoffset", maleOffset);
 document.querySelector("#circle-2 .circle-overlay").setAttribute("stroke-dashoffset", femaleOffset);
 }
-function showPage(pageId) {
-  const allPages = ["mainContent", "weeksView", "todayView", "dailyStatsPage", "dayLogView", "monthlyStatsPage"];
-  allPages.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.style.display = (id === pageId) ? "block" : "none";
-  });
 
-  // Επαναφορά scroll στην αρχή κάθε σελίδας
-  window.scrollTo(0, 0);
-
-  // ✅ Αν πατήθηκε η ημερήσια στατιστική, τότε φόρτωσε τα ημερήσια έσοδα
-  if (pageId === "dailyStatsPage") {
-  console.log("✅ dailyStatsPage εμφανίστηκε");
-
-  // Περίμενε λίγο να εμφανιστεί το DOM του πίνακα
-  const checkAndLoad = () => {
-    const tbody = document.getElementById("incomeTableBody");
-    if (tbody) {
-      console.log("✅ Πίνακας βρέθηκε - φορτώνουμε τα έσοδα");
-      loadDailyIncome();
-    } else {
-      console.log("⏳ Περιμένουμε να εμφανιστεί ο πίνακας...");
-      setTimeout(checkAndLoad, 200);
-    }
-  };
-
-  checkAndLoad();
-}
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  // 🔘 Κουμπί "Αρχική"
-  const homeBtn = document.getElementById("homeButton");
-  if (homeBtn) homeBtn.addEventListener("click", () => showPage("mainContent"));
-
-  // 🔘 Κουμπί "Σήμερα"
-  const todayBtn = document.getElementById("todayBtn");
-  if (todayBtn) todayBtn.addEventListener("click", () => showPage("todayView"));
-
-  // 🔘 Ημερήσια στατιστικά
-  const statsDailyBtn = document.querySelector('button[data-view="daily"]');
-  if (statsDailyBtn) {
-    statsDailyBtn.addEventListener("click", () => {
-      showPage("dailyStatsPage");
-      loadDailyIncome();
-    });
-  }
-
-  // 🔘 Μήνες => εβδομάδες
-  //const monthsToggle = document.getElementById("monthsToggle");
-  //if (monthsToggle) monthsToggle.addEventListener("click", () => showPage("weeksView"));
-
-  // Αν υπάρχει πίνακας, φόρτωσέ τον
-  const tbody = document.getElementById("incomeTableBody");
-  if (tbody) {
-    console.log("📋 Ο πίνακας incomeTableBody υπάρχει, καλώ loadDailyIncome()");
-    loadDailyIncome();
-  }
-});
 function drawCircle(container, id, progress, parent, strokeColor) {
   const svg = document.querySelector(`${container} svg`);
   const overlay = svg.querySelector('circle.overlay');
@@ -3437,16 +3424,6 @@ function waitForTableAndRender(data) {
   });
 }
 console.log("⚙️ Η σελίδα φορτώθηκε");
-
-  window.addEventListener("DOMContentLoaded", () => {
-    console.log("✅ DOM φορτώθηκε");
-    if (typeof loadDailyIncome === "function") {
-      console.log("📞 Κλήση της loadDailyIncome...");
-      loadDailyIncome();
-    } else {
-      console.warn("❌ Η συνάρτηση loadDailyIncome δεν είναι διαθέσιμη");
-    }
-  });
   // ✅ Επιτήρηση scroll για εμφάνιση των πίτων
 let hasAnimated = false;
 
@@ -3585,10 +3562,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // ✅ Φόρτωσε το δεύτερο γράφημα ΜΟΝΟ μία φορά
   let secondChartDrawn = false;
 
-  statsMonthlyBtn?.addEventListener("click", () => {
-  hideAllViews();
-  monthlyStatsPage.style.display = "flex";
-});
+ statsMonthlyBtn?.addEventListener("click", () => {
+    requestPasswordThenShow("monthlyStatsPage");
+  });
 
 // ✅ Trigger τρέχοντος μήνα ΜΟΛΙΣ φορτωθεί όλο
 setTimeout(() => {
@@ -4197,18 +4173,26 @@ document.getElementById("secondChartFemaleCount").textContent = femaleCount;
   }
 
   // 🔐 ======================== PASSWORD PROTECTION LOGIC ========================
+ // 🔐 ======================== PASSWORD PROTECTION LOGIC ========================
   const PASSWORD = "1234"; // Ο κωδικός πρόσβασης
   let passwordVerified = false; // Κατάσταση επαλήθευσης
   const passwordDigits = document.querySelectorAll('.password-digit');
   const passwordModalOverlay = document.getElementById('passwordModalOverlay');
-  const passwordSubmitBtn = document.getElementById('passwordSubmitBtn');
   const passwordErrorMessage = document.getElementById('passwordErrorMessage');
-  
-  // Σημα για αποφυγή διπλής εμφάνισης του modal
-  let modalAlreadyShown = false;
-  
-  // Store which button triggered the password modal
-  let pendingStatsButton = null;
+
+  let pendingView = null;
+  let pendingOnShown = null;
+
+  function requestPasswordThenShow(viewId, onShown) {
+    if (passwordVerified) {
+      showView(viewId);
+      if (onShown) onShown();
+      return;
+    }
+    pendingView = viewId;
+    pendingOnShown = onShown || null;
+    showPasswordModal();
+  }
 
   // Handle password digit inputs
   passwordDigits.forEach((input, index) => {
@@ -4282,11 +4266,14 @@ document.getElementById("secondChartFemaleCount").textContent = femaleCount;
 // Submit button click
 
   // Κουμπί Χ — ακύρωση και επιστροφή στην αρχική
+  // Κουμπί Χ — ακύρωση και επιστροφή στην αρχική
   document.getElementById('passwordCloseBtn')?.addEventListener('click', () => {
     hidePasswordModal();
-    pendingStatsButton = null;
+    pendingView = null;
+    pendingOnShown = null;
     document.getElementById('homeButton')?.click();
   });
+
   function checkPassword() {
     const enteredPassword = Array.from(passwordDigits)
       .map(input => input.value)
@@ -4297,20 +4284,20 @@ document.getElementById("secondChartFemaleCount").textContent = femaleCount;
       return;
     }
 
-    if (enteredPassword === PASSWORD) {
-      // ✅ Password correct
+  if (enteredPassword === PASSWORD) {
       passwordVerified = true;
       hidePasswordModal();
-      
-      // Trigger the pending stats button click after a small delay
-      if (pendingStatsButton) {
-        setTimeout(() => {
-          pendingStatsButton.click();
-          pendingStatsButton = null;
-        }, 300);
+
+      const viewToShow = pendingView;
+      const onShown = pendingOnShown;
+      pendingView = null;
+      pendingOnShown = null;
+
+      if (viewToShow) {
+        showView(viewToShow);
+        if (onShown) onShown();
       }
     } else {
-      // ❌ Password wrong
       showPasswordError();
     }
   }
@@ -4335,13 +4322,7 @@ document.getElementById("secondChartFemaleCount").textContent = femaleCount;
     passwordDigits[0]?.focus();
   }
 
-  function showPasswordModal(triggerButton = null) {
-    if (modalAlreadyShown) return;
-    
-    // Store the button that triggered this modal
-    pendingStatsButton = triggerButton;
-    
-    modalAlreadyShown = true;
+function showPasswordModal() {
     passwordVerified = false;
     passwordModalOverlay.classList.add('active');
     
@@ -4378,83 +4359,9 @@ document.getElementById("secondChartFemaleCount").textContent = femaleCount;
       }
     });
     
-    // Reset the flag after a delay to prevent issues
-    setTimeout(() => {
-      modalAlreadyShown = false;
-    }, 500);
   }
 
-  // Hide modal when navigating away from stats pages
-  function resetPasswordOnNavigation() {
-    const mainContent = document.getElementById('mainContent');
-    const weeksView = document.getElementById('weeksView');
-    const todayView = document.getElementById('todayView');
-    const dayLogView = document.getElementById('dayLogView');
-    
-    const isOnStatsPage = () => {
-      const dailyStats = document.getElementById('dailyStatsPage');
-      const monthlyStats = document.getElementById('monthlyStatsPage');
-      
-      if (!dailyStats || !monthlyStats) return false;
-      
-      const dailyVisible = dailyStats.style.display !== 'none' && getComputedStyle(dailyStats).display !== 'none';
-      const monthlyVisible = monthlyStats.style.display !== 'none' && getComputedStyle(monthlyStats).display !== 'none';
-      
-      return dailyVisible || monthlyVisible;
-    };
 
-    // Monitor page visibility
-    const checkNavigation = () => {
-      // Check if we're navigating away from stats pages
-      const mainVisible = mainContent && mainContent.style.display !== 'none';
-      const weeksVisible = weeksView && weeksView.style.display !== 'none';
-      const todayVisible = todayView && todayView.style.display !== 'none';
-      const dayVisible = dayLogView && dayLogView.style.display !== 'none';
-      
-      if (mainVisible || weeksVisible || todayVisible || dayVisible) {
-        // We're on a non-stats page, so reset password
-        passwordVerified = false;
-        hidePasswordModal();
-      }
-    };
-
-    // Listen to clicks on navigation buttons
-    const navButtons = document.querySelectorAll('[data-view], #homeButton, #todayBtn, #monthsToggle, #backToWeeksBtn');
-    navButtons.forEach(btn => {
-      if (btn) {
-        btn.addEventListener('click', () => {
-          setTimeout(checkNavigation, 100);
-        });
-      }
-    });
-  }
-
-  // Add password gate to daily stats button
-  const dailyStatsBtn = document.querySelector('[data-view="daily"]');
-  if (dailyStatsBtn) {
-    // Replace the handler with password-gated version
-    dailyStatsBtn.addEventListener('click', (e) => {
-      if (!passwordVerified) {
-        e.preventDefault();
-        e.stopPropagation();
-        showPasswordModal(dailyStatsBtn); // Pass the button reference
-        return false;
-      }
-    }, true); // Use capture phase to intercept before other handlers
-  }
-
-  // Add password gate to monthly stats button
-  const monthlyStatsBtn = document.querySelector('[data-view="monthly"]');
-  if (monthlyStatsBtn) {
-    monthlyStatsBtn.addEventListener('click', (e) => {
-      if (!passwordVerified) {
-        e.preventDefault();
-        e.stopPropagation();
-        showPasswordModal(monthlyStatsBtn); // Pass the button reference
-        return false;
-      }
-    }, true); // Use capture phase to intercept before other handlers
-  }
 
   // Initialize password protection on page load
   document.addEventListener('DOMContentLoaded', () => {
@@ -4562,11 +4469,15 @@ document.querySelectorAll('#calendarView .svc-day-cell').forEach(cell => {
     }
   });
 
-  cell.addEventListener('click', () => {
+cell.addEventListener('click', () => {
     document.querySelectorAll('#calendarView .svc-day-cell').forEach(c => c.classList.remove('svc-active'));
     cell.classList.add('svc-active');
   });
 });
+
+// === Αρχικοποίηση σελίδας ===
+showView("mainContent");
+loadDailyIncome();
 </script>
 
 </body>
