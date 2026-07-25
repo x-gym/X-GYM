@@ -533,11 +533,12 @@ body {
       /* === Redesign: Σήμερα === */
     .today-shell {
   position: absolute;
-  top: calc(50% + 40px);
+  top: calc(50% + 55px);
   left: 50%;
   transform: translate(-50%, -50%);
   width: min(680px, 92vw);
-  height: min(760px, calc(100vh - 180px));
+  max-height: min(760px, calc(100vh - 180px));
+  height: auto;
   display: flex;
   flex-direction: column;
   background: rgba(10, 14, 20, 0.72);
