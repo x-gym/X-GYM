@@ -533,7 +533,7 @@ body {
       /* === Redesign: Σήμερα === */
     .today-shell {
   position: absolute;
-  top: 50%;
+  top: calc(50% + 40px);
   left: 50%;
   transform: translate(-50%, -50%);
   width: min(680px, 92vw);
@@ -2244,6 +2244,13 @@ body {
 #todayView,
 #calendarView {
   margin-top: 0;
+  padding-top: 100px;
+  padding-bottom: 20px;
+}
+
+#calendarView {
+  overflow: hidden;
+  max-height: none;
 }
 /* Η περιοχή που περιέχει τις εβδομάδες */
 .weeks-grid {
