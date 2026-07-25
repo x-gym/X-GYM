@@ -1865,10 +1865,40 @@ body {
     #dailyStatsPage.view-in,
     #monthlyStatsPage.view-in,
     #dayLogView.view-in,
-    #calendarView.view-in {
+   #calendarView.view-in {
       opacity: 1;
       transform: translateY(0);
     }
+
+    /* === Σήμερα v2: πλάτος, μεγαλύτερες γραμματοσειρές, στήλη συνδρομής, σύνολο === */
+    .today-shell { width: min(880px, 94vw); }
+    .today-date { font-size: 0.95rem; }
+    .today-legend { gap: 20px; }
+    .today-legend-item { font-size: 0.85rem; }
+    .today-total-count {
+      padding-left: 20px;
+      border-left: 1px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.75);
+    }
+    .today-total-count strong { color: #5ff0ff; font-weight: 700; }
+    .today-period-icon { width: 28px; height: 28px; font-size: 0.95rem; }
+    .today-period-name { font-size: 1.05rem; }
+    .today-period-count { font-size: 0.85rem; }
+    .today-entry { gap: 14px; padding: 12px 14px; }
+    .today-entry-avatar { width: 38px; height: 38px; font-size: 0.88rem; }
+    .today-entry-sub {
+      flex: 0 0 auto;
+      width: 128px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      white-space: nowrap;
+    }
+    .today-entry-sub.sub-active { color: #7ee8a2; }
+    .today-entry-sub.sub-none { color: #ff9090; }
+    .today-entry-sub.sub-unknown { color: rgba(255,255,255,0.35); }
+    .today-entry-name { font-size: 1.05rem; }
+    .today-entry-time { font-size: 0.95rem; }
     
   </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -2083,8 +2113,8 @@ body {
   <div class="today-legend">
     <span class="today-legend-item"><span class="today-legend-dot existing"></span>Υπάρχων πελάτης</span>
     <span class="today-legend-item"><span class="today-legend-dot new"></span>Νέος πελάτης</span>
+    <span class="today-legend-item today-total-count">Σύνολο: <strong id="todayTotalCount">0</strong></span>
   </div>
-</div>
       <div class="today-scroll" id="todayLog"></div>
     </div>
   </div>
@@ -2615,7 +2645,8 @@ document.getElementById("todayBtn").addEventListener("click", () => {
 const CUSTOMER_LIST_URL = "https://script.google.com/macros/s/AKfycby2OyAf_vG3GVccysg97lnEIYJLstC5BJ-dDMBqceQ4c4nGzkoX70PaNOGmJGEewuU/exec?listIds=1";
 const CUSTOMER_LIST_REFRESH_MS = 5 * 60 * 1000; // ανανέωση κάθε 5 λεπτά
 
-let knownCustomerIds = null; // null = δεν έχει φορτωθεί ακόμα (ουδέτερη εμφάνιση)
+let knownCustomerIds = null; // IDs που υπάρχουν στο sheet
+let customerSubscriptions = null; // Map: id -> τύπος συνδρομής (στήλη ΣΥΝΔΡΟΜΗ του sheet)
 
 async function refreshKnownCustomerIds() {
   try {
@@ -2627,16 +2658,60 @@ async function refreshKnownCustomerIds() {
     const data = await response.json();
     const ids = Array.isArray(data.ids) ? data.ids : [];
     knownCustomerIds = new Set(ids.map(id => String(id).trim()));
+
+    const customers = Array.isArray(data.customers) ? data.customers : [];
+    customerSubscriptions = new Map(
+      customers.map(c => [String(c.id).trim(), String(c.sub || "").trim().toUpperCase()])
+    );
+
     console.log(`✅ Λίστα πελατών ανανεώθηκε: ${knownCustomerIds.size} εγγεγραμμένα ID`);
+
+    // Αν η σελίδα Σήμερα είναι ήδη ανοιχτή, ανανέωσε τις στήλες συνδρομής
+    if (todayView && todayView.style.display !== "none") {
+      renderTodayLog();
+    }
   } catch (error) {
     console.error("❌ Σφάλμα λήψης λίστας πελατών:", error);
   }
 }
 
-// true = υπάρχων πελάτης, false = νέος πελάτης, null = δεν ξέρουμε ακόμα (η λίστα δεν έχει φορτώσει)
+// true = υπάρχει στο sheet, false = δεν υπάρχει, null = η λίστα δεν έχει φορτώσει ακόμα
 function isKnownCustomer(customerId) {
   if (!knownCustomerIds) return null;
   return knownCustomerIds.has(String(customerId).trim());
+}
+
+// Ετικέτες συνδρομής για τη στήλη του πίνακα
+const SUBSCRIPTION_LABELS = {
+  "ΜΗΝΙΑΙΟ": "Μηνιαία",
+  "2ΜΗΝΙΑΙΟ": "Δίμηνη",
+  "3ΜΗΝΙΑΙΟ": "Τρίμηνη",
+  "6ΜΗΝΙΑΙΟ": "Εξάμηνη",
+  "ΕΤΗΣΙΟ": "Ετήσια"
+};
+
+function getSubscriptionDisplay(customerId) {
+  if (!customerSubscriptions) return { text: "—", cls: "sub-unknown" }; // η λίστα δεν έχει φορτώσει ακόμα
+  const sub = customerSubscriptions.get(String(customerId).trim());
+  if (sub && SUBSCRIPTION_LABELS[sub]) {
+    return { text: SUBSCRIPTION_LABELS[sub], cls: "sub-active" };
+  }
+  return { text: "Χωρίς συνδρομή", cls: "sub-none" };
+}
+
+// Νέος πελάτης = κάνει ΣΗΜΕΡΑ την πρώτη του προπόνηση (κανένα σκανάρισμα σε προηγούμενη ημέρα)
+function hasScanHistoryBeforeToday(customerId) {
+  const todayStr = new Date().toLocaleDateString("el-GR");
+  const idStr = String(customerId).trim();
+  for (const dateStr in mockData) {
+    if (dateStr === todayStr) continue;
+    const entries = mockData[dateStr] || [];
+    for (const e of entries) {
+      if (e.type === "income") continue;
+      if (String(e.id).trim() === idStr) return true;
+    }
+  }
+  return false;
 }
 
 refreshKnownCustomerIds();
@@ -2645,12 +2720,15 @@ setInterval(refreshKnownCustomerIds, CUSTOMER_LIST_REFRESH_MS);
 function renderTodayLog() {
   todayLog.innerHTML = "";
 
-  const dateLabel = document.getElementById("todayDateLabel");
+ const dateLabel = document.getElementById("todayDateLabel");
   if (dateLabel) {
     dateLabel.textContent = new Date().toLocaleDateString("el-GR", {
       weekday: "long", day: "numeric", month: "long"
     });
   }
+
+  const totalCountEl = document.getElementById("todayTotalCount");
+  if (totalCountEl) totalCountEl.textContent = logToday.entries.length;
 
   const periods = [
     { key: "Πρωί",     icon: "☀️" },
@@ -2695,11 +2773,11 @@ function renderTodayLog() {
     `;
     periodDiv.appendChild(header);
 
-    entries.forEach(entry => {
+entries.forEach(entry => {
       const row = document.createElement("div");
-      const customerStatus = isKnownCustomer(entry.id); // true | false | null (άγνωστο ακόμα)
-      const customerClass = customerStatus === true ? "existing-customer" : customerStatus === false ? "new-customer" : "";
-      row.className = `today-entry ${customerClass}`.trim();
+      const isNewToday = !hasScanHistoryBeforeToday(entry.id);
+      const customerClass = isNewToday ? "new-customer" : "existing-customer";
+      row.className = `today-entry ${customerClass}`;
 
       const initials = (entry.name || "?")
         .trim()
@@ -2710,8 +2788,11 @@ function renderTodayLog() {
 
       const genderClass = entry.gender === "MALE" ? "male" : entry.gender === "FEMALE" ? "female" : "";
 
+     const subInfo = getSubscriptionDisplay(entry.id);
+
       row.innerHTML = `
         <div class="today-entry-avatar ${genderClass}">${initials}</div>
+        <div class="today-entry-sub ${subInfo.cls}">${subInfo.text}</div>
         <div class="today-entry-name">${entry.name}</div>
         <div class="today-entry-time">${entry.time}</div>
       `;
