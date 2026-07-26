@@ -1727,38 +1727,51 @@ body {
     }
 
 /* ‹ › Εναλλαγή μηνών */
-    .svc-header-top {
+    .svc-nav {
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 1rem;
+      gap: 12px;
+      margin-top: 2.2rem;
     }
 
-    .svc-header-top .svc-year-display { margin-top: 0; }
-
-    .svc-nav { display: flex; gap: 6px; }
-
     .svc-nav-btn {
-      width: 34px;
-      height: 34px;
+      width: 54px;
+      height: 54px;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: transparent;
+      background: rgba(255,255,255,0.02);
       border: 1px solid var(--svc-border);
       border-radius: 2px;
-      color: rgba(255,255,255,0.45);
+      color: rgba(255,255,255,0.5);
       cursor: pointer;
-      transition: color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+      user-select: none;
+      -webkit-user-select: none;
+      transition: color 0.3s ease, border-color 0.3s ease,
+                  box-shadow 0.3s ease, background-color 0.3s ease;
     }
+
+    .svc-nav-btn svg { pointer-events: none; }
 
     .svc-nav-btn:hover {
       color: var(--svc-text);
       border-color: var(--svc-spectral-2);
-      box-shadow: inset 0 0 14px rgba(0, 255, 255, 0.08);
+      background: rgba(0,255,255,0.04);
+      box-shadow: inset 0 0 18px rgba(0,255,255,0.10);
     }
 
     .svc-nav-btn:active { transform: translateY(1px); }
+
+    /* 🔒 Καμία λέξη δεν στενεύει πια το ημερολόγιο */
+    .svc-sidebar, .svc-grid-container { min-width: 0; }
+    .svc-month-name {
+      font-size: clamp(3rem, 6vw, 6rem);
+      overflow-wrap: anywhere;
+    }
+
+    /* ✨ Αντανάκλαση κάτω από το όνομα του μήνα */
+    .svc-month-name {
+      -webkit-box-reflect: below 2px linear-gradient(transparent 58%, rgba(255,255,255,0.20));
+    }
 
     .svc-day-cell.svc-today .svc-day-number {
       color: var(--svc-spectral-2);
@@ -2234,20 +2247,17 @@ body {
   <main class="svc-interface">
     <section class="svc-sidebar">
      <header>
-        <div class="svc-header-top">
-          <div class="svc-year-display" id="svcYearDisplay">2026</div>
-          <div class="svc-nav">
-            <button class="svc-nav-btn" id="svcPrevMonth" aria-label="Προηγούμενος μήνας">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 5l-7 7 7 7"/></svg>
-            </button>
-            <button class="svc-nav-btn" id="svcNextMonth" aria-label="Επόμενος μήνας">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5l7 7-7 7"/></svg>
-            </button>
-          </div>
+        <div class="svc-year-display" id="svcYearDisplay">2026</div>
+        <h1 class="svc-month-name" id="svcMonthName">July</h1>
+        <div class="svc-nav">
+          <button class="svc-nav-btn" id="svcPrevMonth" aria-label="Προηγούμενος μήνας">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M15 5l-7 7 7 7"/></svg>
+          </button>
+          <button class="svc-nav-btn" id="svcNextMonth" aria-label="Επόμενος μήνας">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 5l7 7-7 7"/></svg>
+          </button>
         </div>
-        <h1 class="svc-month-name" id="svcMonthName">Ιούλιος</h1>
       </header>
-
       <div class="svc-event-preview">
         <div class="svc-event-card">
           <span class="svc-event-time">14:00 — 16:30</span>
@@ -4631,8 +4641,8 @@ function showPasswordModal() {
     // === Spectral Vitreous Calendar: glow στο hover + επιλογή ημέρας ===
 // (στατικό demo προς το παρόν — θα συνδεθεί με πραγματικά δεδομένα παρακολούθησης αργότερα)
 // === Spectral Vitreous Calendar — δυναμικό πλέγμα ===
-const CAL_MONTHS = ["Ιανουάριος","Φεβρουάριος","Μάρτιος","Απρίλιος","Μάιος","Ιούνιος",
-                    "Ιούλιος","Αύγουστος","Σεπτέμβριος","Οκτώβριος","Νοέμβριος","Δεκέμβριος"];
+const CAL_MONTHS = ["Jan","Feb","March","April","May","June",
+                    "July","Aug","Sept","Oct","Nov","Dec"];
 let calYear = new Date().getFullYear();
 let calMonth = new Date().getMonth();
 let calSelectedKey = null;
