@@ -2775,7 +2775,13 @@ function renderTodayLog() {
 
 entries.forEach(entry => {
       const row = document.createElement("div");
-      const isNewToday = !hasScanHistoryBeforeToday(entry.id);
+      // 🆕 Προτεραιότητα στο σημάδι isNew (Firestore)· fallback στο τοπικό ιστορικό όσο δεν έχει απαντήσει
+      let isNewToday;
+      if (typeof entry.isNew === "boolean") {
+        isNewToday = entry.isNew;
+      } else {
+        isNewToday = !hasScanHistoryBeforeToday(entry.id);
+      }
       const customerClass = isNewToday ? "new-customer" : "existing-customer";
       row.className = `today-entry ${customerClass}`;
 
@@ -2856,7 +2862,27 @@ document.getElementById("qrInput").addEventListener("keydown", (e) => {
     }
 
     // ➕ Καταγραφή για το "Σήμερα"
-    logToday.entries.push({ id, name, gender, period: dayPeriod, time });
+// ➕ Καταγραφή για το "Σήμερα"
+    const newEntry = { id, name, gender, period: dayPeriod, time };
+    logToday.entries.push(newEntry);
+
+    // 🆕 Έλεγχος «νέου πελάτη»: νέος = καμία καταγραφή σε προηγούμενη μέρα (πρώτη του μέρα)
+    if (String(id).trim()) {
+      const dayKeyForCheck = new Date().toISOString().slice(0, 10);
+      db.collection("xgym_scans")
+        .where("id", "==", String(id).trim())
+        .get()
+        .then(snap => {
+          const hadPriorDay = snap.docs.some(d => (d.data().dateKey || "") < dayKeyForCheck);
+          newEntry.isNew = !hadPriorDay;      // true = πρώτη μέρα -> νέος
+          saveLogData();
+          if (todayView && todayView.style.display !== "none") renderTodayLog();
+        })
+        .catch(err => {
+          console.error("❌ Έλεγχος νέου πελάτη απέτυχε:", err);
+          // Άφησε το isNew undefined -> fallback στο υπάρχον ιστορικό (Βήμα 3)
+        });
+    }
     updateTotalEntriesBox();
     updateGenderPercentages();
     saveLogData();
