@@ -1809,6 +1809,59 @@ body {
       background: rgba(0,255,255,0.04);
     }
 
+    /* 📊 Panel ημέρας — chips, gender bar, λίστα */
+    .svc-stats { position: relative; }
+    .svc-sidebar { overflow-y: auto; }
+    .svc-stats-title.day { color: #5ff0ff; }
+
+    .svc-stats-close {
+      position: absolute; top: -6px; right: 0;
+      background: transparent; border: none;
+      color: rgba(255,255,255,0.3); font-size: 14px;
+      cursor: pointer; padding: 4px 6px;
+      transition: color 0.3s ease;
+    }
+    .svc-stats-close:hover { color: var(--svc-spectral-2); }
+
+    .svc-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 1rem; }
+
+    .svc-chip {
+      display: inline-flex; align-items: baseline; gap: 5px;
+      padding: 6px 10px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--svc-border);
+      border-radius: 8px;
+      font-size: 0.7rem; color: rgba(255,255,255,0.5);
+    }
+    .svc-chip b { font-family: var(--svc-mono); font-size: 0.85rem; color: #5ff0ff; font-weight: 500; }
+
+    .svc-gbar { display: flex; height: 6px; border-radius: 4px; overflow: hidden; margin-top: 14px; }
+    .svc-gbar span:first-child { background: #5ff0ff; }
+    .svc-gbar span:last-child  { background: #d4537e; }
+
+    .svc-glegend {
+      display: flex; justify-content: space-between;
+      margin-top: 6px; font-size: 0.65rem; color: rgba(255,255,255,0.35);
+    }
+
+    .svc-plabel {
+      font-family: var(--svc-mono); font-size: 0.6rem;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      color: rgba(255,255,255,0.35); margin: 16px 0 4px;
+    }
+
+    .svc-cal-entry { display: flex; align-items: center; gap: 9px; padding: 5px 0; }
+    .svc-cal-av {
+      width: 24px; height: 24px; border-radius: 50%;
+      background: #1b2530; border: 1px solid var(--svc-border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.55rem; color: #5ff0ff; flex-shrink: 0;
+    }
+    .svc-cal-name { flex: 1; font-size: 0.8rem; color: #e8eef2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .svc-cal-time { font-family: var(--svc-mono); font-size: 0.7rem; color: rgba(255,255,255,0.4); }
+
+    .svc-more { font-size: 0.7rem; color: rgba(255,255,255,0.3); text-align: center; margin-top: 10px; }
+
     /* 🔒 Καμία λέξη δεν στενεύει πια το ημερολόγιο */
     .svc-sidebar, .svc-grid-container { min-width: 0; }
     .svc-month-name {
@@ -2309,7 +2362,8 @@ body {
           </button>
         </div>
       </header>
-     <div class="svc-stats">
+    <div class="svc-stats">
+        <button class="svc-stats-close" id="svcCloseDay" style="display:none;" aria-label="Κλείσιμο">✕</button>
         <div class="svc-stats-title" id="svcStatsTitle">Σύνοψη μήνα</div>
         <div id="svcStatsGrid"></div>
         <button class="svc-stats-btn" id="svcOpenDay" style="display:none;">Άνοιγμα λίστας ημέρας</button>
@@ -4772,64 +4826,108 @@ document.getElementById("svcPrevMonth")?.addEventListener("click", () => shiftMo
 document.getElementById("svcNextMonth")?.addEventListener("click", () => shiftMonth(1));
 
 // 📊 Υπολογισμοί για τον πίνακα δεδομένων
+function svcCollect(entries) {
+  const scans = (entries || []).filter(e => e.type !== "income");
+  const income = (entries || []).reduce((s, e) => e.type === "income" ? s + (parseFloat(e.amount) || 0) : s, 0);
+  let male = 0, female = 0;
+  const ids = new Set();
+  scans.forEach(e => {
+    if (e.id) ids.add(e.id);
+    const g = String(e.gender || "").toLowerCase();
+    if (g === "male" || g === "άνδρας") male++;
+    else if (g === "female" || g === "γυναίκα") female++;
+  });
+  return { scans, income, male, female, unique: ids.size, records: scans.length };
+}
+
 function svcMonthStats() {
-  let records = 0, income = 0, bestCount = 0, bestDay = "—";
-  const ids = new Set(), perDay = {};
+  let all = [];
+  const perDay = {};
   for (const dateStr in mockData) {
     const [d, m, y] = dateStr.split("/").map(Number);
     if (m !== calMonth + 1 || y !== calYear) continue;
-    (mockData[dateStr] || []).forEach(e => {
-      if (e.type === "income") { income += parseFloat(e.amount) || 0; return; }
-      records++;
-      if (e.id) ids.add(e.id);
-      perDay[d] = (perDay[d] || 0) + 1;
-    });
+    const list = mockData[dateStr] || [];
+    all = all.concat(list);
+    perDay[d] = (perDay[d] || 0) + list.filter(e => e.type !== "income").length;
   }
+  const s = svcCollect(all);
+  let bestDay = "—", bestCount = 0;
   for (const d in perDay) if (perDay[d] > bestCount) { bestCount = perDay[d]; bestDay = `${d}/${calMonth + 1}`; }
-  return { records, unique: ids.size, income, bestDay, bestCount };
+  s.bestDay = bestDay; s.bestCount = bestCount;
+  return s;
 }
 
 function svcDayStats(dateKey) {
-  let records = 0, income = 0;
-  const periods = { "Πρωί": 0, "Μεσημέρι": 0, "Βράδυ": 0 };
-  (mockData[dateKey] || []).forEach(e => {
-    if (e.type === "income") { income += parseFloat(e.amount) || 0; return; }
-    records++;
+  const s = svcCollect(mockData[dateKey] || []);
+  const byHour = {};
+  const bucket = h => isNaN(h) ? "Πρωί" : h < 12 ? "Πρωί" : h < 18 ? "Μεσημέρι" : "Βράδυ";
+  s.periods = { "Πρωί": [], "Μεσημέρι": [], "Βράδυ": [] };
+  s.scans.forEach(e => {
     const h = parseInt(String(e.time || "").split(":")[0], 10);
-    const p = getPeriod(isNaN(h) ? -1 : h);
-    if (periods[p] !== undefined) periods[p]++;
+    if (!isNaN(h)) byHour[h] = (byHour[h] || 0) + 1;
+    s.periods[bucket(h)].push(e);
   });
-  return { records, income, periods };
+  let peak = "—", peakN = 0;
+  for (const h in byHour) if (byHour[h] > peakN) { peakN = byHour[h]; peak = `${String(h).padStart(2, "0")}:00`; }
+  s.peak = peak;
+  return s;
 }
 
 function renderCalendarStats() {
   const titleEl = document.getElementById("svcStatsTitle");
   const gridEl = document.getElementById("svcStatsGrid");
   const btn = document.getElementById("svcOpenDay");
+  const closeBtn = document.getElementById("svcCloseDay");
   if (!gridEl) return;
 
-  const row = (l, v, accent) =>
-    `<div class="svc-stats-row"><span class="svc-stats-label">${l}</span>` +
-    `<span class="svc-stats-value${accent ? " accent" : ""}">${v}</span></div>`;
+  const chip = (v, l) => `<span class="svc-chip"><b>${v}</b>${l}</span>`;
+  const gbar = (m, f) => {
+    const t = m + f;
+    if (!t) return "";
+    const mp = Math.round((m / t) * 100);
+    return `<div class="svc-gbar"><span style="width:${mp}%"></span><span style="width:${100 - mp}%"></span></div>
+            <div class="svc-glegend"><span>Άνδρες ${m}</span><span>Γυναίκες ${f}</span></div>`;
+  };
+
+  titleEl.classList.toggle("day", !!calSelectedKey);
 
   if (calSelectedKey) {
     const s = svcDayStats(calSelectedKey);
-    titleEl.textContent = calSelectedKey;
-    gridEl.innerHTML =
-      row("Καταγραφές", s.records, true) +
-      row("Πρωί / Μεσημέρι / Βράδυ",
-          `${s.periods["Πρωί"]} / ${s.periods["Μεσημέρι"]} / ${s.periods["Βράδυ"]}`) +
-      row("Έσοδα", `${s.income.toFixed(2)}€`);
+    const [d, m, y] = calSelectedKey.split("/").map(Number);
+    titleEl.textContent = new Date(y, m - 1, d)
+      .toLocaleDateString("el-GR", { weekday: "long", day: "numeric", month: "short" });
+
+    let html = `<div class="svc-chips">${chip(s.records, "καταγραφές")}${chip(s.unique, "πελάτες")}` +
+               `${chip(s.income.toFixed(0) + "€", "έσοδα")}${chip(s.peak, "αιχμή")}</div>` + gbar(s.male, s.female);
+
+    const MAX = 6;
+    let shown = 0;
+    ["Πρωί", "Μεσημέρι", "Βράδυ"].forEach(p => {
+      const list = s.periods[p];
+      if (!list.length || shown >= MAX) return;
+      html += `<div class="svc-plabel">${p}</div>`;
+      list.slice(0, MAX - shown).forEach(e => {
+        const ini = (e.name || "?").trim().split(/\s+/).slice(0, 2)
+          .map(w => w[0] ? w[0].toUpperCase() : "").join("");
+        html += `<div class="svc-cal-entry"><div class="svc-cal-av">${ini}</div>` +
+                `<div class="svc-cal-name">${e.name || ""}</div>` +
+                `<div class="svc-cal-time">${e.time || ""}</div></div>`;
+        shown++;
+      });
+    });
+    if (s.records > shown) html += `<div class="svc-more">+ ${s.records - shown} ακόμα</div>`;
+
+    gridEl.innerHTML = html;
     btn.style.display = s.records ? "block" : "none";
+    closeBtn.style.display = "block";
   } else {
     const s = svcMonthStats();
     titleEl.textContent = "Σύνοψη μήνα";
-    gridEl.innerHTML =
-      row("Καταγραφές", s.records, true) +
-      row("Μοναδικοί πελάτες", s.unique) +
-      row("Καλύτερη μέρα", s.bestCount ? `${s.bestDay} (${s.bestCount})` : "—") +
-      row("Έσοδα", `${s.income.toFixed(2)}€`);
+    gridEl.innerHTML = `<div class="svc-chips">${chip(s.records, "καταγραφές")}${chip(s.unique, "πελάτες")}` +
+      `${chip(s.income.toFixed(0) + "€", "έσοδα")}${chip(s.bestCount ? s.bestDay : "—", "κορυφαία μέρα")}</div>` +
+      gbar(s.male, s.female);
     btn.style.display = "none";
+    closeBtn.style.display = "none";
   }
 }
 
@@ -4838,6 +4936,12 @@ document.getElementById("svcOpenDay")?.addEventListener("click", () => {
   const [d, m, y] = calSelectedKey.split("/").map(Number);
   const wd = new Date(y, m - 1, d).toLocaleDateString("el-GR", { weekday: "long" });
   showDayLog(calSelectedKey, wd);
+});
+
+document.getElementById("svcCloseDay")?.addEventListener("click", () => {
+  calSelectedKey = null;
+  document.querySelectorAll("#calendarView .svc-day-cell").forEach(c => c.classList.remove("svc-active"));
+  renderCalendarStats();
 });
 // === Αρχικοποίηση σελίδας ===
 showView("mainContent");
