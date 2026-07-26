@@ -2661,6 +2661,7 @@ dayDiv.innerHTML = `<button class="day-btn" data-date="${d.dateStr}" data-weekda
 
  document.getElementById("monthsToggle").addEventListener("click", () => {
     showView("calendarView");
+    if (typeof renderCalendar === "function") renderCalendar();
   });
 
   months.forEach(month => {
@@ -4698,6 +4699,17 @@ if (calGrid) {
 }
 
 renderCalendar();
+
+// ‹ › Εναλλαγή μηνών (με αυτόματη αλλαγή έτους στο πέρασμα Δεκ↔Ιαν)
+function shiftMonth(delta) {
+  calMonth += delta;
+  if (calMonth > 11) { calMonth = 0;  calYear++; }
+  if (calMonth < 0)  { calMonth = 11; calYear--; }
+  renderCalendar();
+}
+
+document.getElementById("svcPrevMonth")?.addEventListener("click", () => shiftMonth(-1));
+document.getElementById("svcNextMonth")?.addEventListener("click", () => shiftMonth(1));
 // === Αρχικοποίηση σελίδας ===
 showView("mainContent");
 loadDailyIncome();
