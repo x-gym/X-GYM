@@ -1899,6 +1899,25 @@ body {
     .today-entry-sub.sub-unknown { color: rgba(255,255,255,0.35); }
     .today-entry-name { font-size: 1.05rem; }
     .today-entry-time { font-size: 0.95rem; }
+
+    /* 🌫️ Θόλωμα στο κάτω μέρος της λίστας — φεύγει στον πάτο */
+    .today-shell::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 64px;
+      pointer-events: none;
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      background: linear-gradient(to bottom, rgba(10,14,20,0), rgba(10,14,20,0.75));
+      -webkit-mask-image: linear-gradient(to bottom, transparent, #000 70%);
+      mask-image: linear-gradient(to bottom, transparent, #000 70%);
+      transition: opacity 0.25s ease;
+    }
+
+    .today-shell.at-bottom::after { opacity: 0; }
     
   </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -2717,6 +2736,16 @@ function hasScanHistoryBeforeToday(customerId) {
 
 refreshKnownCustomerIds();
 setInterval(refreshKnownCustomerIds, CUSTOMER_LIST_REFRESH_MS);
+
+// 🌫️ Εμφανίζει/κρύβει το θόλωμα ανάλογα με τη θέση του scroll
+function updateTodayFade() {
+  const shell = document.querySelector(".today-shell");
+  if (!shell || !todayLog) return;
+  const atBottom = todayLog.scrollHeight - todayLog.scrollTop - todayLog.clientHeight <= 4;
+  const noScroll = todayLog.scrollHeight <= todayLog.clientHeight + 1;
+  shell.classList.toggle("at-bottom", atBottom || noScroll);
+}
+if (todayLog) todayLog.addEventListener("scroll", updateTodayFade);
     
 function renderTodayLog() {
   todayLog.innerHTML = "";
@@ -2755,6 +2784,7 @@ function renderTodayLog() {
       
     `;
     todayLog.appendChild(empty);
+        requestAnimationFrame(updateTodayFade);
     return;
   }
 
@@ -2808,6 +2838,8 @@ entries.forEach(entry => {
 
     todayLog.appendChild(periodDiv);
   });
+    requestAnimationFrame(updateTodayFade);
+
 }
 document.getElementById("qrInput").addEventListener("keydown", (e) => {
   if (e.key === "Enter") {
