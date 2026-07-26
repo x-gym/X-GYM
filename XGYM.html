@@ -2791,9 +2791,9 @@ entries.forEach(entry => {
      const subInfo = getSubscriptionDisplay(entry.id);
 
       row.innerHTML = `
-        <div class="today-entry-avatar ${genderClass}">${initials}</div>
-        <div class="today-entry-sub ${subInfo.cls}">${subInfo.text}</div>
+       <div class="today-entry-avatar ${genderClass}">${initials}</div>
         <div class="today-entry-name">${entry.name}</div>
+        <div class="today-entry-sub ${subInfo.cls}">${subInfo.text}</div>
         <div class="today-entry-time">${entry.time}</div>
       `;
       periodDiv.appendChild(row);
