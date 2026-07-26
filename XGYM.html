@@ -1761,6 +1761,54 @@ body {
 
     .svc-nav-btn:active { transform: translateY(1px); }
 
+    /* 📊 Πίνακας δεδομένων ημερολογίου */
+    .svc-sidebar { justify-content: flex-start; }
+    .svc-stats { margin-top: 2.6rem; }
+
+    .svc-stats-title {
+      font-family: var(--svc-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.35);
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--svc-border);
+    }
+
+    .svc-stats-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 1rem;
+      padding: 0.85rem 0;
+      border-bottom: 1px solid var(--svc-border);
+    }
+
+    .svc-stats-label { font-size: 0.85rem; font-weight: 300; color: rgba(255,255,255,0.5); }
+    .svc-stats-value { font-family: var(--svc-mono); font-size: 1.05rem; color: var(--svc-text); }
+    .svc-stats-value.accent { color: var(--svc-spectral-2); }
+
+    .svc-stats-btn {
+      margin-top: 1.5rem;
+      padding: 0.75rem 1.2rem;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--svc-border);
+      border-radius: 2px;
+      color: rgba(255,255,255,0.6);
+      font-family: var(--svc-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: color 0.3s ease, border-color 0.3s ease, background-color 0.3s ease;
+    }
+
+    .svc-stats-btn:hover {
+      color: var(--svc-text);
+      border-color: var(--svc-spectral-2);
+      background: rgba(0,255,255,0.04);
+    }
+
     /* 🔒 Καμία λέξη δεν στενεύει πια το ημερολόγιο */
     .svc-sidebar, .svc-grid-container { min-width: 0; }
     .svc-month-name {
@@ -1813,14 +1861,17 @@ body {
 
     .svc-day-label {
       background: transparent;
-      padding: 1rem;
+      padding: 1.1rem 0.5rem;
       font-family: var(--svc-mono);
-      font-size: 0.6rem;
+      font-size: 0.8rem;
+      letter-spacing: 0.15em;
       text-transform: uppercase;
-      color: rgba(255,255,255,0.3);
-      text-align: right;
+      color: rgba(255,255,255,0.45);
+      text-align: center;
       border-bottom: 1px solid var(--svc-border);
     }
+
+    .svc-day-cell { text-align: center; }
 
     .svc-day-cell {
       background: var(--svc-bg);
@@ -2258,15 +2309,10 @@ body {
           </button>
         </div>
       </header>
-      <div class="svc-event-preview">
-        <div class="svc-event-card">
-          <span class="svc-event-time">14:00 — 16:30</span>
-          <h2 class="svc-event-title">Spectral Refraction Study</h2>
-        </div>
-        <div class="svc-event-card">
-          <span class="svc-event-time">21:00 — LATE</span>
-          <h2 class="svc-event-title">Vitreous Diffusion Forum</h2>
-        </div>
+     <div class="svc-stats">
+        <div class="svc-stats-title" id="svcStatsTitle">Σύνοψη μήνα</div>
+        <div id="svcStatsGrid"></div>
+        <button class="svc-stats-btn" id="svcOpenDay" style="display:none;">Άνοιγμα λίστας ημέρας</button>
       </div>
     </section>
 
@@ -4641,7 +4687,7 @@ function showPasswordModal() {
     // === Spectral Vitreous Calendar: glow στο hover + επιλογή ημέρας ===
 // (στατικό demo προς το παρόν — θα συνδεθεί με πραγματικά δεδομένα παρακολούθησης αργότερα)
 // === Spectral Vitreous Calendar — δυναμικό πλέγμα ===
-const CAL_MONTHS = ["Jan","Feb","March","April","May","June",
+const CAL_MONTHS = ["Jan","Feb","Mar","April","May","June",
                     "July","Aug","Sept","Oct","Nov","Dec"];
 let calYear = new Date().getFullYear();
 let calMonth = new Date().getMonth();
@@ -4684,6 +4730,8 @@ function renderCalendar() {
              </div>`;
   }
   grid.insertAdjacentHTML("beforeend", html);
+
+  renderCalendarStats();
 }
 
 // Glow στο hover + επιλογή ημέρας (delegation — δουλεύει και στα νέα κελιά)
@@ -4705,6 +4753,7 @@ if (calGrid) {
     calSelectedKey = cell.dataset.date;
     calGrid.querySelectorAll(".svc-day-cell").forEach(c => c.classList.remove("svc-active"));
     cell.classList.add("svc-active");
+    renderCalendarStats();
   });
 }
 
@@ -4713,6 +4762,7 @@ renderCalendar();
 // ‹ › Εναλλαγή μηνών (με αυτόματη αλλαγή έτους στο πέρασμα Δεκ↔Ιαν)
 function shiftMonth(delta) {
   calMonth += delta;
+  calSelectedKey = null;
   if (calMonth > 11) { calMonth = 0;  calYear++; }
   if (calMonth < 0)  { calMonth = 11; calYear--; }
   renderCalendar();
@@ -4720,6 +4770,75 @@ function shiftMonth(delta) {
 
 document.getElementById("svcPrevMonth")?.addEventListener("click", () => shiftMonth(-1));
 document.getElementById("svcNextMonth")?.addEventListener("click", () => shiftMonth(1));
+
+// 📊 Υπολογισμοί για τον πίνακα δεδομένων
+function svcMonthStats() {
+  let records = 0, income = 0, bestCount = 0, bestDay = "—";
+  const ids = new Set(), perDay = {};
+  for (const dateStr in mockData) {
+    const [d, m, y] = dateStr.split("/").map(Number);
+    if (m !== calMonth + 1 || y !== calYear) continue;
+    (mockData[dateStr] || []).forEach(e => {
+      if (e.type === "income") { income += parseFloat(e.amount) || 0; return; }
+      records++;
+      if (e.id) ids.add(e.id);
+      perDay[d] = (perDay[d] || 0) + 1;
+    });
+  }
+  for (const d in perDay) if (perDay[d] > bestCount) { bestCount = perDay[d]; bestDay = `${d}/${calMonth + 1}`; }
+  return { records, unique: ids.size, income, bestDay, bestCount };
+}
+
+function svcDayStats(dateKey) {
+  let records = 0, income = 0;
+  const periods = { "Πρωί": 0, "Μεσημέρι": 0, "Βράδυ": 0 };
+  (mockData[dateKey] || []).forEach(e => {
+    if (e.type === "income") { income += parseFloat(e.amount) || 0; return; }
+    records++;
+    const h = parseInt(String(e.time || "").split(":")[0], 10);
+    const p = getPeriod(isNaN(h) ? -1 : h);
+    if (periods[p] !== undefined) periods[p]++;
+  });
+  return { records, income, periods };
+}
+
+function renderCalendarStats() {
+  const titleEl = document.getElementById("svcStatsTitle");
+  const gridEl = document.getElementById("svcStatsGrid");
+  const btn = document.getElementById("svcOpenDay");
+  if (!gridEl) return;
+
+  const row = (l, v, accent) =>
+    `<div class="svc-stats-row"><span class="svc-stats-label">${l}</span>` +
+    `<span class="svc-stats-value${accent ? " accent" : ""}">${v}</span></div>`;
+
+  if (calSelectedKey) {
+    const s = svcDayStats(calSelectedKey);
+    titleEl.textContent = calSelectedKey;
+    gridEl.innerHTML =
+      row("Καταγραφές", s.records, true) +
+      row("Πρωί / Μεσημέρι / Βράδυ",
+          `${s.periods["Πρωί"]} / ${s.periods["Μεσημέρι"]} / ${s.periods["Βράδυ"]}`) +
+      row("Έσοδα", `${s.income.toFixed(2)}€`);
+    btn.style.display = s.records ? "block" : "none";
+  } else {
+    const s = svcMonthStats();
+    titleEl.textContent = "Σύνοψη μήνα";
+    gridEl.innerHTML =
+      row("Καταγραφές", s.records, true) +
+      row("Μοναδικοί πελάτες", s.unique) +
+      row("Καλύτερη μέρα", s.bestCount ? `${s.bestDay} (${s.bestCount})` : "—") +
+      row("Έσοδα", `${s.income.toFixed(2)}€`);
+    btn.style.display = "none";
+  }
+}
+
+document.getElementById("svcOpenDay")?.addEventListener("click", () => {
+  if (!calSelectedKey) return;
+  const [d, m, y] = calSelectedKey.split("/").map(Number);
+  const wd = new Date(y, m - 1, d).toLocaleDateString("el-GR", { weekday: "long" });
+  showDayLog(calSelectedKey, wd);
+});
 // === Αρχικοποίηση σελίδας ===
 showView("mainContent");
 loadDailyIncome();
