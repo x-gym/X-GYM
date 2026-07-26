@@ -2769,8 +2769,12 @@ dayDiv.innerHTML = `<button class="day-btn" data-date="${d.dateStr}" data-weekda
     return str.charAt(0).toUpperCase() + str.slice(1);
   }
 
- document.getElementById("monthsToggle").addEventListener("click", () => {
+document.getElementById("monthsToggle").addEventListener("click", () => {
     showView("calendarView");
+    const now = new Date();
+    calYear = now.getFullYear();
+    calMonth = now.getMonth();
+    calSelectedKey = now.toLocaleDateString("el-GR");
     if (typeof renderCalendar === "function") renderCalendar();
   });
 
@@ -4745,8 +4749,7 @@ const CAL_MONTHS = ["Jan","Feb","Mar","April","May","June",
                     "July","Aug","Sept","Oct","Nov","Dec"];
 let calYear = new Date().getFullYear();
 let calMonth = new Date().getMonth();
-let calSelectedKey = null;
-
+let calSelectedKey = new Date().toLocaleDateString("el-GR");
 function renderCalendar() {
   const grid = document.querySelector("#calendarView .svc-calendar-grid");
   if (!grid) return;
