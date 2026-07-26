@@ -1726,6 +1726,40 @@ body {
       margin-top: 1rem;
     }
 
+/* ‹ › Εναλλαγή μηνών */
+    .svc-header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .svc-header-top .svc-year-display { margin-top: 0; }
+
+    .svc-nav { display: flex; gap: 6px; }
+
+    .svc-nav-btn {
+      width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: 1px solid var(--svc-border);
+      border-radius: 2px;
+      color: rgba(255,255,255,0.45);
+      cursor: pointer;
+      transition: color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .svc-nav-btn:hover {
+      color: var(--svc-text);
+      border-color: var(--svc-spectral-2);
+      box-shadow: inset 0 0 14px rgba(0, 255, 255, 0.08);
+    }
+
+    .svc-nav-btn:active { transform: translateY(1px); }
+
     .svc-event-preview { margin-top: auto; }
 
     .svc-event-card {
@@ -2194,9 +2228,19 @@ body {
 
   <main class="svc-interface">
     <section class="svc-sidebar">
-      <header>
-        <div class="svc-year-display">MMXXIV</div>
-        <h1 class="svc-month-name">Oct<br>ober</h1>
+     <header>
+        <div class="svc-header-top">
+          <div class="svc-year-display" id="svcYearDisplay">2026</div>
+          <div class="svc-nav">
+            <button class="svc-nav-btn" id="svcPrevMonth" aria-label="Προηγούμενος μήνας">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 5l-7 7 7 7"/></svg>
+            </button>
+            <button class="svc-nav-btn" id="svcNextMonth" aria-label="Επόμενος μήνας">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5l7 7-7 7"/></svg>
+            </button>
+          </div>
+        </div>
+        <h1 class="svc-month-name" id="svcMonthName">Ιούλιος</h1>
       </header>
 
       <div class="svc-event-preview">
