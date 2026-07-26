@@ -1760,6 +1760,11 @@ body {
 
     .svc-nav-btn:active { transform: translateY(1px); }
 
+    .svc-day-cell.svc-today .svc-day-number {
+      color: var(--svc-spectral-2);
+      font-weight: 500;
+    }
+
     .svc-event-preview { margin-top: auto; }
 
     .svc-event-card {
@@ -2257,65 +2262,15 @@ body {
 
     <section class="svc-grid-container">
       <div class="svc-calendar-grid">
-        <div class="svc-day-label">Mon</div>
-        <div class="svc-day-label">Tue</div>
-        <div class="svc-day-label">Wed</div>
-        <div class="svc-day-label">Thu</div>
-        <div class="svc-day-label">Fri</div>
-        <div class="svc-day-label">Sat</div>
-        <div class="svc-day-label">Sun</div>
-
-        <div class="svc-day-cell"><span class="svc-day-number">30</span><div class="svc-cell-glow"></div></div>
-        <div class="svc-day-cell svc-current-month svc-active">
-          <span class="svc-day-number">01</span>
-          <div class="svc-indicator"></div>
-          <div class="svc-cell-glow"></div>
-        </div>
-        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">02</span><div class="svc-cell-glow"></div></div>
-        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">03</span><div class="svc-cell-glow"></div></div>
-        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">04</span><div class="svc-cell-glow"></div></div>
-        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">05</span><div class="svc-cell-glow"></div></div>
-        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">06</span><div class="svc-cell-glow"></div></div>
-
-        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">07</span><div class="svc-cell-glow"></div></div>
-        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">08</span><div class="svc-cell-glow"></div></div>
-        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">09</span><div class="svc-cell-glow"></div></div>
-        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">10</span><div class="svc-cell-glow"></div></div>
-        <div class="svc-day-cell svc-current-month">
-          <span class="svc-day-number">11</span>
-          <div class="svc-indicator"></div>
-          <div class="svc-cell-glow"></div>
-        </div>
-        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">12</span><div class="svc-cell-glow"></div></div>
-        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">13</span><div class="svc-cell-glow"></div></div>
-
-        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">14</span><div class="svc-cell-glow"></div></div>
-        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">15</span><div class="svc-cell-glow"></div></div>
-        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">16</span><div class="svc-cell-glow"></div></div>
-        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">17</span><div class="svc-cell-glow"></div></div>
-        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">18</span><div class="svc-cell-glow"></div></div>
-        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">19</span><div class="svc-cell-glow"></div></div>
-        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">20</span><div class="svc-cell-glow"></div></div>
-
-        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">21</span><div class="svc-cell-glow"></div></div>
-        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">22</span><div class="svc-cell-glow"></div></div>
-        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">23</span><div class="svc-cell-glow"></div></div>
-        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">24</span><div class="svc-cell-glow"></div></div>
-        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">25</span><div class="svc-cell-glow"></div></div>
-        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">26</span><div class="svc-cell-glow"></div></div>
-        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">27</span><div class="svc-cell-glow"></div></div>
-
-        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">28</span><div class="svc-cell-glow"></div></div>
-        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">29</span><div class="svc-cell-glow"></div></div>
-        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">30</span><div class="svc-cell-glow"></div></div>
-        <div class="svc-day-cell svc-current-month"><span class="svc-day-number">31</span><div class="svc-cell-glow"></div></div>
-        <div class="svc-day-cell"><span class="svc-day-number">01</span><div class="svc-cell-glow"></div></div>
-        <div class="svc-day-cell"><span class="svc-day-number">02</span><div class="svc-cell-glow"></div></div>
-        <div class="svc-day-cell"><span class="svc-day-number">03</span><div class="svc-cell-glow"></div></div>
+        <div class="svc-day-label">Δευ</div>
+        <div class="svc-day-label">Τρι</div>
+        <div class="svc-day-label">Τετ</div>
+        <div class="svc-day-label">Πεμ</div>
+        <div class="svc-day-label">Παρ</div>
+        <div class="svc-day-label">Σαβ</div>
+        <div class="svc-day-label">Κυρ</div>
       </div>
     </section>
-  </main>
-</div>
 
 <!-- 🔐 Password Modal for Statistics Pages -->
 
@@ -4674,25 +4629,75 @@ function showPasswordModal() {
   }
     // === Spectral Vitreous Calendar: glow στο hover + επιλογή ημέρας ===
 // (στατικό demo προς το παρόν — θα συνδεθεί με πραγματικά δεδομένα παρακολούθησης αργότερα)
-document.querySelectorAll('#calendarView .svc-day-cell').forEach(cell => {
-  cell.addEventListener('mousemove', e => {
+// === Spectral Vitreous Calendar — δυναμικό πλέγμα ===
+const CAL_MONTHS = ["Ιανουάριος","Φεβρουάριος","Μάρτιος","Απρίλιος","Μάιος","Ιούνιος",
+                    "Ιούλιος","Αύγουστος","Σεπτέμβριος","Οκτώβριος","Νοέμβριος","Δεκέμβριος"];
+let calYear = new Date().getFullYear();
+let calMonth = new Date().getMonth();
+let calSelectedKey = null;
+
+function renderCalendar() {
+  const grid = document.querySelector("#calendarView .svc-calendar-grid");
+  if (!grid) return;
+
+  const monthEl = document.getElementById("svcMonthName");
+  const yearEl = document.getElementById("svcYearDisplay");
+  if (monthEl) monthEl.textContent = CAL_MONTHS[calMonth];
+  if (yearEl) yearEl.textContent = calYear;
+
+  grid.querySelectorAll(".svc-day-cell").forEach(c => c.remove());
+
+  const startOffset = (new Date(calYear, calMonth, 1).getDay() + 6) % 7; // Δευτέρα = 0
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  const daysInPrev  = new Date(calYear, calMonth, 0).getDate();
+  const totalCells  = Math.ceil((startOffset + daysInMonth) / 7) * 7;
+  const todayKey    = new Date().toLocaleDateString("el-GR");
+
+  let html = "";
+  for (let i = 0; i < totalCells; i++) {
+    const n = i - startOffset + 1;
+    const inMonth = n >= 1 && n <= daysInMonth;
+    const dayNum = inMonth ? n : (n < 1 ? daysInPrev + n : n - daysInMonth);
+    const dateKey = inMonth ? `${dayNum}/${calMonth + 1}/${calYear}` : "";
+    const hasData = inMonth && (mockData[dateKey] || []).some(e => e.type !== "income");
+
+    const cls = ["svc-day-cell"];
+    if (inMonth) cls.push("svc-current-month");
+    if (dateKey && dateKey === todayKey) cls.push("svc-today");
+    if (dateKey && dateKey === calSelectedKey) cls.push("svc-active");
+
+    html += `<div class="${cls.join(" ")}"${dateKey ? ` data-date="${dateKey}"` : ""}>
+               <span class="svc-day-number">${String(dayNum).padStart(2, "0")}</span>
+               ${hasData ? '<div class="svc-indicator"></div>' : ""}
+               <div class="svc-cell-glow"></div>
+             </div>`;
+  }
+  grid.insertAdjacentHTML("beforeend", html);
+}
+
+// Glow στο hover + επιλογή ημέρας (delegation — δουλεύει και στα νέα κελιά)
+const calGrid = document.querySelector("#calendarView .svc-calendar-grid");
+if (calGrid) {
+  calGrid.addEventListener("mousemove", e => {
+    const cell = e.target.closest(".svc-day-cell");
+    if (!cell) return;
+    const glow = cell.querySelector(".svc-cell-glow");
+    if (!glow) return;
     const rect = cell.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    const glow = cell.querySelector('.svc-cell-glow');
-    if (glow) {
-      glow.style.left = `${x}px`;
-      glow.style.top = `${y}px`;
-    }
+    glow.style.left = `${e.clientX - rect.left}px`;
+    glow.style.top  = `${e.clientY - rect.top}px`;
   });
 
-cell.addEventListener('click', () => {
-    document.querySelectorAll('#calendarView .svc-day-cell').forEach(c => c.classList.remove('svc-active'));
-    cell.classList.add('svc-active');
+  calGrid.addEventListener("click", e => {
+    const cell = e.target.closest(".svc-day-cell");
+    if (!cell || !cell.dataset.date) return;
+    calSelectedKey = cell.dataset.date;
+    calGrid.querySelectorAll(".svc-day-cell").forEach(c => c.classList.remove("svc-active"));
+    cell.classList.add("svc-active");
   });
-});
+}
 
+renderCalendar();
 // === Αρχικοποίηση σελίδας ===
 showView("mainContent");
 loadDailyIncome();
