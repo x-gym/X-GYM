@@ -4828,7 +4828,49 @@ function shiftMonth(delta) {
 document.getElementById("svcPrevMonth")?.addEventListener("click", () => shiftMonth(-1));
 document.getElementById("svcNextMonth")?.addEventListener("click", () => shiftMonth(1));
 
-// 📊 Υπολογισμοί για τον πίνακα δεδομένων
+// 🆕 «Νέος πελάτης» = η πρώτη μέρα που εμφανίζεται ποτέ αυτό το ID
+function svcParseKey(dateStr) {
+  const [d, m, y] = String(dateStr).split("/").map(Number);
+  return (d && m && y) ? new Date(y, m - 1, d).getTime() : null;
+}
+
+function svcFirstSeen() {
+  const map = new Map();
+  for (const dateStr in mockData) {
+    const t = svcParseKey(dateStr);
+    if (t === null) continue;
+    (mockData[dateStr] || []).forEach(e => {
+      if (e.type === "income" || !e.id) return;
+      const id = String(e.id).trim();
+      const prev = map.get(id);
+      if (prev === undefined || t < prev) map.set(id, t);
+    });
+  }
+  return map;
+}
+
+function svcCountNewDay(dateKey) {
+  const t = svcParseKey(dateKey);
+  if (t === null) return 0;
+  const first = svcFirstSeen();
+  const ids = new Set();
+  (mockData[dateKey] || []).forEach(e => {
+    if (e.type === "income" || !e.id) return;
+    const id = String(e.id).trim();
+    if (first.get(id) === t) ids.add(id);
+  });
+  return ids.size;
+}
+
+function svcCountNewMonth() {
+  const first = svcFirstSeen();
+  const start = new Date(calYear, calMonth, 1).getTime();
+  const end = new Date(calYear, calMonth + 1, 1).getTime();
+  let n = 0;
+  first.forEach(t => { if (t >= start && t < end) n++; });
+  return n;
+}
+
 function svcCollect(entries) {
   const scans = (entries || []).filter(e => e.type !== "income");
   const income = (entries || []).reduce((s, e) => e.type === "income" ? s + (parseFloat(e.amount) || 0) : s, 0);
@@ -4857,6 +4899,7 @@ function svcMonthStats() {
   let bestDay = "—", bestCount = 0;
   for (const d in perDay) if (perDay[d] > bestCount) { bestCount = perDay[d]; bestDay = `${d}/${calMonth + 1}`; }
   s.bestDay = bestDay; s.bestCount = bestCount;
+  s.newCount = svcCountNewMonth();
   return s;
 }
 
@@ -4873,6 +4916,7 @@ function svcDayStats(dateKey) {
   let peak = "—", peakN = 0;
   for (const h in byHour) if (byHour[h] > peakN) { peakN = byHour[h]; peak = `${String(h).padStart(2, "0")}:00`; }
   s.peak = peak;
+  s.newCount = svcCountNewDay(dateKey);
   return s;
 }
 
@@ -4900,7 +4944,7 @@ function renderCalendarStats() {
     titleEl.textContent = new Date(y, m - 1, d)
       .toLocaleDateString("el-GR", { weekday: "long", day: "numeric", month: "short" });
 
-    let html = `<div class="svc-chips">${chip(s.records, "καταγραφές")}${chip(s.unique, "πελάτες")}` +
+    let html = `<div class="svc-chips">${chip(s.records, "καταγραφές")}${chip(s.newCount, "νέοι πελάτες")}` +
                `${chip(s.income.toFixed(0) + "€", "έσοδα")}${chip(s.peak, "αιχμή")}</div>` + gbar(s.male, s.female);
 
     const MAX = 6;
@@ -4926,7 +4970,7 @@ function renderCalendarStats() {
   } else {
     const s = svcMonthStats();
     titleEl.textContent = "Σύνοψη μήνα";
-    gridEl.innerHTML = `<div class="svc-chips">${chip(s.records, "καταγραφές")}${chip(s.unique, "πελάτες")}` +
+    gridEl.innerHTML = `<div class="svc-chips">${chip(s.records, "καταγραφές")}${chip(s.newCount, "νέοι πελάτες")}` +
       `${chip(s.income.toFixed(0) + "€", "έσοδα")}${chip(s.bestCount ? s.bestDay : "—", "κορυφαία μέρα")}</div>` +
       gbar(s.male, s.female);
     btn.style.display = "none";
