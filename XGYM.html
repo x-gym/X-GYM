@@ -5059,40 +5059,48 @@ function svcCountNewMonth() {
   return n;
 }
 
-function svcCollect(entries) {
-  const scans = (entries || []).filter(e => e.type !== "income");
-  const income = (entries || []).reduce((s, e) => e.type === "income" ? s + (parseFloat(e.amount) || 0) : s, 0);
+function svcScansFor(dateKey) {
+  const iso = svcToIso(dateKey);
+  if (fsScansByDay) return fsScansByDay.get(iso) || [];
+  return (mockData[dateKey] || []).filter(e => e.type !== "income");
+}
+
+function svcIncomeFor(dateKey) {
+  return (mockData[dateKey] || []).reduce((s, e) =>
+    e.type === "income" ? s + (parseFloat(e.amount) || 0) : s, 0);
+}
+
+function svcTally(scans) {
   let male = 0, female = 0;
   const ids = new Set();
   scans.forEach(e => {
-    if (e.id) ids.add(e.id);
+    if (e.id) ids.add(String(e.id).trim());
     const g = String(e.gender || "").toLowerCase();
     if (g === "male" || g === "άνδρας") male++;
     else if (g === "female" || g === "γυναίκα") female++;
   });
-  return { scans, income, male, female, unique: ids.size, records: scans.length };
+  return { scans: scans, records: scans.length, male: male, female: female, unique: ids.size };
 }
 
 function svcMonthStats() {
-  let all = [];
-  const perDay = {};
-  for (const dateStr in mockData) {
-    const [d, m, y] = dateStr.split("/").map(Number);
-    if (m !== calMonth + 1 || y !== calYear) continue;
-    const list = mockData[dateStr] || [];
-    all = all.concat(list);
-    perDay[d] = (perDay[d] || 0) + list.filter(e => e.type !== "income").length;
+  const days = new Date(calYear, calMonth + 1, 0).getDate();
+  let all = [], income = 0, bestDay = "—", bestCount = 0;
+  for (let d = 1; d <= days; d++) {
+    const key = `${d}/${calMonth + 1}/${calYear}`;
+    const ds = svcScansFor(key);
+    all = all.concat(ds);
+    income += svcIncomeFor(key);
+    if (ds.length > bestCount) { bestCount = ds.length; bestDay = `${d}/${calMonth + 1}`; }
   }
-  const s = svcCollect(all);
-  let bestDay = "—", bestCount = 0;
-  for (const d in perDay) if (perDay[d] > bestCount) { bestCount = perDay[d]; bestDay = `${d}/${calMonth + 1}`; }
-  s.bestDay = bestDay; s.bestCount = bestCount;
+  const s = svcTally(all);
+  s.income = income; s.bestDay = bestDay; s.bestCount = bestCount;
   s.newCount = svcCountNewMonth();
   return s;
 }
 
 function svcDayStats(dateKey) {
-  const s = svcCollect(mockData[dateKey] || []);
+  const s = svcTally(svcScansFor(dateKey));
+  s.income = svcIncomeFor(dateKey);
   const byHour = {};
   const bucket = h => isNaN(h) ? "Πρωί" : h < 12 ? "Πρωί" : h < 18 ? "Μεσημέρι" : "Βράδυ";
   s.periods = { "Πρωί": [], "Μεσημέρι": [], "Βράδυ": [] };
