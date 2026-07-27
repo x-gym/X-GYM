@@ -1790,6 +1790,8 @@ body {
 
     .svc-stats-btn {
       margin-top: 1.5rem;
+      width: 100%;
+      text-align: center;
       padding: 0.75rem 1.2rem;
       background: rgba(255,255,255,0.02);
       border: 1px solid var(--svc-border);
@@ -1861,6 +1863,69 @@ body {
     .svc-cal-time { font-family: var(--svc-mono); font-size: 0.7rem; color: rgba(255,255,255,0.4); }
 
     .svc-more { font-size: 0.7rem; color: rgba(255,255,255,0.3); text-align: center; margin-top: 10px; }
+    /* 📄 Σελίδα ημέρας */
+    #dayDetailView {
+      display: none; position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%; z-index: 2; overflow-y: auto;
+      background: var(--svc-bg);
+    }
+    .dd-wrap { max-width: 1100px; margin: 0 auto; padding: 110px 40px 60px; }
+
+    .dd-back {
+      background: transparent; border: 1px solid var(--svc-border); border-radius: 2px;
+      color: rgba(255,255,255,0.5); font-family: var(--svc-mono);
+      font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase;
+      padding: 0.7rem 1.1rem; cursor: pointer; margin-bottom: 2.5rem;
+      transition: color 0.3s ease, border-color 0.3s ease, background-color 0.3s ease;
+    }
+    .dd-back:hover { color: #fff; border-color: #5ff0ff; background: rgba(0,255,255,0.05); }
+
+    .dd-eyebrow {
+      font-family: var(--svc-mono); font-size: 0.65rem; letter-spacing: 0.3em;
+      text-transform: uppercase; color: #5ff0ff; margin-bottom: 0.6rem;
+    }
+    .dd-title {
+      font-size: clamp(2rem, 4vw, 3.2rem); font-weight: 300;
+      letter-spacing: -0.02em; color: var(--svc-text); margin-bottom: 2.5rem;
+    }
+
+    .dd-metrics {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 1px; background: var(--svc-border);
+      border: 1px solid var(--svc-border); margin-bottom: 2.5rem;
+    }
+    .dd-metric { background: var(--svc-bg); padding: 1.6rem 1.2rem; text-align: center; }
+    .dd-metric-v { font-family: var(--svc-mono); font-size: 2rem; font-weight: 300; color: #5ff0ff; }
+    .dd-metric-l {
+      font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase;
+      color: rgba(255,255,255,0.35); margin-top: 0.5rem;
+    }
+
+    .dd-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem; }
+    .dd-card { border: 1px solid var(--svc-border); padding: 1.4rem; }
+    .dd-card-title {
+      font-family: var(--svc-mono); font-size: 0.62rem; letter-spacing: 0.25em;
+      text-transform: uppercase; color: rgba(255,255,255,0.35);
+      padding-bottom: 0.9rem; border-bottom: 1px solid var(--svc-border); margin-bottom: 0.5rem;
+    }
+    .dd-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 0.6rem 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .dd-av {
+      width: 26px; height: 26px; border-radius: 50%; background: #1b2530;
+      border: 1px solid var(--svc-border); display: flex; align-items: center;
+      justify-content: center; font-size: 0.55rem; color: #5ff0ff; flex-shrink: 0;
+    }
+    .dd-name { flex: 1; font-size: 0.85rem; color: #e8eef2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .dd-time, .dd-amt { font-family: var(--svc-mono); font-size: 0.75rem; color: rgba(255,255,255,0.4); }
+    .dd-amt { color: #5ff0ff; }
+    .dd-total {
+      display: flex; justify-content: space-between; padding-top: 0.9rem; margin-top: 0.5rem;
+      border-top: 1px solid var(--svc-border); font-family: var(--svc-mono);
+      font-size: 0.8rem; color: #5ff0ff;
+    }
+    .dd-empty { padding: 1.2rem 0; font-size: 0.8rem; color: rgba(255,255,255,0.25); text-align: center; }
 
     /* 🔒 Καμία λέξη δεν στενεύει πια το ημερολόγιο */
     .svc-sidebar, .svc-grid-container { min-width: 0; }
@@ -2403,7 +2468,19 @@ body {
 
 <!-- 🔐 Password Modal for Statistics Pages -->
 
-<!-- 🔐 Password Modal for Statistics Pages -->
+<div id="dayDetailView" class="svc-scope">
+  <div class="dd-wrap">
+    <button class="dd-back" id="ddBack">← Πίσω στο ημερολόγιο</button>
+    <div class="dd-eyebrow" id="ddEyebrow"></div>
+    <h1 class="dd-title" id="ddTitle"></h1>
+    <div class="dd-metrics" id="ddMetrics"></div>
+    <div class="dd-cols">
+      <section class="dd-card"><div class="dd-card-title">Άνδρες</div><div id="ddMen"></div></section>
+      <section class="dd-card"><div class="dd-card-title">Γυναίκες</div><div id="ddWomen"></div></section>
+      <section class="dd-card"><div class="dd-card-title">Πληρωμές ημέρας</div><div id="ddPayments"></div></section>
+    </div>
+  </div>
+</div>
 <div id="passwordModalOverlay" class="password-modal-overlay">
   <div class="password-modal-container">
     <button class="password-close-btn" id="passwordCloseBtn" aria-label="Ακύρωση">✕</button>
@@ -2705,7 +2782,7 @@ const VIEW_DISPLAY = {
     todayView: "flex",
     dailyStatsPage: "flex",
     monthlyStatsPage: "flex",
-    dayLogView: "flex",
+    dayLogView: "flex",dayDetailView: "block",
     calendarView: "flex"
   };
 
@@ -4633,6 +4710,8 @@ document.getElementById("secondChartFemaleCount").textContent = femaleCount;
 
 function showPasswordModal() {
     passwordVerified = false;
+    passwordModalOverlay.style.display = 'flex';
+    void passwordModalOverlay.offsetWidth;   // FIX Safari: εξαναγκασμός repaint
     passwordModalOverlay.classList.add('active');
     
     // Blur the page content - get ALL content containers
@@ -4657,8 +4736,9 @@ function showPasswordModal() {
     }, 100);
   }
 
-  function hidePasswordModal() {
+function hidePasswordModal() {
     passwordModalOverlay.classList.remove('active');
+    passwordModalOverlay.style.display = 'none';
     
     // Remove blur from page content
     const allContent = document.querySelectorAll('.content, .statistics-page, #dailyStatsPage, #monthlyStatsPage, #weeksView, #todayView, #dayLogView');
@@ -5077,11 +5157,46 @@ function renderCalendarStats() {
   }
 }
 
+function renderDayDetail(dateKey) {
+  const s = svcDayStats(dateKey);
+  const [d, m, y] = dateKey.split("/").map(Number);
+  const dt = new Date(y, m - 1, d);
+  document.getElementById("ddEyebrow").textContent = dt.toLocaleDateString("el-GR", { weekday: "long" });
+  document.getElementById("ddTitle").textContent = dt.toLocaleDateString("el-GR", { day: "numeric", month: "long", year: "numeric" });
+
+  const metric = (v, l) => `<div class="dd-metric"><div class="dd-metric-v">${v}</div><div class="dd-metric-l">${l}</div></div>`;
+  document.getElementById("ddMetrics").innerHTML =
+    metric(s.records, "Καταγραφές") + metric(svcCountNewDay(dateKey), "Νέοι πελάτες") +
+    metric(s.male, "Άνδρες") + metric(s.female, "Γυναίκες");
+
+  const g = e => String(e.gender || "").toLowerCase();
+  const row = e => {
+    const ini = (e.name || "?").trim().split(/\s+/).slice(0, 2).map(w => w[0] ? w[0].toUpperCase() : "").join("");
+    return `<div class="dd-row"><span class="dd-av">${ini}</span><span class="dd-name">${e.name || ""}</span><span class="dd-time">${e.time || ""}</span></div>`;
+  };
+  const fill = (id, list) => {
+    document.getElementById(id).innerHTML = list.length ? list.map(row).join("") : `<div class="dd-empty">—</div>`;
+  };
+  fill("ddMen", s.scans.filter(e => g(e) === "male" || g(e) === "άνδρας"));
+  fill("ddWomen", s.scans.filter(e => g(e) === "female" || g(e) === "γυναίκα"));
+
+  const pays = (mockData[dateKey] || []).filter(e => e.type === "income");
+  const total = pays.reduce((t, e) => t + (parseFloat(e.amount) || 0), 0);
+  document.getElementById("ddPayments").innerHTML = pays.length
+    ? pays.map(e => `<div class="dd-row"><span class="dd-name">${e.name || ""}</span><span class="dd-amt">${parseFloat(e.amount) || 0}€</span></div>`).join("") +
+      `<div class="dd-total"><span>Σύνολο</span><span>${total.toFixed(2)}€</span></div>`
+    : `<div class="dd-empty">Καμία πληρωμή</div>`;
+}
+
 document.getElementById("svcOpenDay")?.addEventListener("click", () => {
   if (!calSelectedKey) return;
-  const [d, m, y] = calSelectedKey.split("/").map(Number);
-  const wd = new Date(y, m - 1, d).toLocaleDateString("el-GR", { weekday: "long" });
-  showDayLog(calSelectedKey, wd);
+  showView("dayDetailView");
+  renderDayDetail(calSelectedKey);
+});
+
+document.getElementById("ddBack")?.addEventListener("click", () => {
+  showView("calendarView");
+  renderCalendar();
 });
 
 document.getElementById("svcCloseDay")?.addEventListener("click", () => {
