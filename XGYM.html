@@ -1874,9 +1874,28 @@ body {
       -webkit-box-reflect: below 2px linear-gradient(transparent 58%, rgba(255,255,255,0.20));
     }
 
+    /* ⬤ Σημερινή μέρα — έντονος τονισμός */
+    .svc-day-cell.svc-today {
+      background: rgba(0, 255, 255, 0.05);
+    }
+
     .svc-day-cell.svc-today .svc-day-number {
-      color: var(--svc-spectral-2);
+      color: #5ff0ff;
       font-weight: 500;
+      text-shadow: 0 0 14px rgba(95, 240, 255, 0.6);
+    }
+
+    .svc-day-cell.svc-today::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: 1.1rem;
+      transform: translateX(-50%);
+      width: 20px;
+      height: 2px;
+      border-radius: 2px;
+      background: #5ff0ff;
+      box-shadow: 0 0 10px rgba(95, 240, 255, 0.8);
     }
 
     .svc-event-preview { margin-top: auto; }
