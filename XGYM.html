@@ -1863,6 +1863,18 @@ body {
     .svc-cal-time { font-family: var(--svc-mono); font-size: 0.7rem; color: rgba(255,255,255,0.4); }
 
     .svc-more { font-size: 0.7rem; color: rgba(255,255,255,0.3); text-align: center; margin-top: 10px; }
+
+    /* 🔠 Ελαφρώς μεγαλύτερα γράμματα στη στήλη */
+    .svc-stats-title { font-size: 0.75rem; }
+    .svc-chip { font-size: 0.8rem; padding: 7px 11px; }
+    .svc-chip b { font-size: 0.98rem; }
+    .svc-glegend { font-size: 0.75rem; }
+    .svc-plabel { font-size: 0.7rem; }
+    .svc-cal-name { font-size: 0.95rem; }
+    .svc-cal-time { font-size: 0.82rem; }
+    .svc-cal-av { width: 28px; height: 28px; font-size: 0.62rem; }
+    .svc-more { font-size: 0.8rem; }
+    .svc-stats-btn { font-size: 0.78rem; }
     /* 📄 Σελίδα ημέρας */
     #dayDetailView {
       display: none; position: absolute; top: 0; left: 0;
@@ -5072,29 +5084,48 @@ function svcIncomeFor(dateKey) {
 }
 
 function svcTally(scans) {
-  let male = 0, female = 0;
-  const ids = new Set();
+  const ids = new Set(), maleIds = new Set(), femaleIds = new Set();
   scans.forEach(e => {
-    if (e.id) ids.add(String(e.id).trim());
+    const id = String(e.id || "").trim();
+    if (!id) return;
+    ids.add(id);
     const g = String(e.gender || "").toLowerCase();
-    if (g === "male" || g === "άνδρας") male++;
-    else if (g === "female" || g === "γυναίκα") female++;
+    if (g === "male" || g === "άνδρας") maleIds.add(id);
+    else if (g === "female" || g === "γυναίκα") femaleIds.add(id);
   });
-  return { scans: scans, records: scans.length, male: male, female: female, unique: ids.size };
+  return { scans: scans, records: scans.length, male: maleIds.size, female: femaleIds.size, unique: ids.size };
+}
+
+function svcPeakHourNum(scans) {
+  const byHour = {};
+  scans.forEach(e => {
+    const h = parseInt(String(e.time || "").split(":")[0], 10);
+    if (!isNaN(h)) byHour[h] = (byHour[h] || 0) + 1;
+  });
+  let peak = null, peakN = 0;
+  for (const h in byHour) if (byHour[h] > peakN) { peakN = byHour[h]; peak = Number(h); }
+  return peak;
+}
+
+function svcFmtHour(h) {
+  return (h === null || h === undefined) ? "—" : `${String(h).padStart(2, "0")}:00`;
 }
 
 function svcMonthStats() {
   const days = new Date(calYear, calMonth + 1, 0).getDate();
-  let all = [], income = 0, bestDay = "—", bestCount = 0;
+  let all = [], income = 0, bestDay = "—", bestCount = 0, peakSum = 0, peakDays = 0;
   for (let d = 1; d <= days; d++) {
     const key = `${d}/${calMonth + 1}/${calYear}`;
     const ds = svcScansFor(key);
     all = all.concat(ds);
     income += svcIncomeFor(key);
     if (ds.length > bestCount) { bestCount = ds.length; bestDay = `${d}/${calMonth + 1}`; }
+    const ph = svcPeakHourNum(ds);
+    if (ph !== null) { peakSum += ph; peakDays++; }
   }
   const s = svcTally(all);
   s.income = income; s.bestDay = bestDay; s.bestCount = bestCount;
+  s.peak = peakDays ? svcFmtHour(Math.round(peakSum / peakDays)) : "—";
   s.newCount = svcCountNewMonth();
   return s;
 }
@@ -5102,17 +5133,13 @@ function svcMonthStats() {
 function svcDayStats(dateKey) {
   const s = svcTally(svcScansFor(dateKey));
   s.income = svcIncomeFor(dateKey);
-  const byHour = {};
   const bucket = h => isNaN(h) ? "Πρωί" : h < 12 ? "Πρωί" : h < 18 ? "Μεσημέρι" : "Βράδυ";
   s.periods = { "Πρωί": [], "Μεσημέρι": [], "Βράδυ": [] };
   s.scans.forEach(e => {
     const h = parseInt(String(e.time || "").split(":")[0], 10);
-    if (!isNaN(h)) byHour[h] = (byHour[h] || 0) + 1;
     s.periods[bucket(h)].push(e);
   });
-  let peak = "—", peakN = 0;
-  for (const h in byHour) if (byHour[h] > peakN) { peakN = byHour[h]; peak = `${String(h).padStart(2, "0")}:00`; }
-  s.peak = peak;
+  s.peak = svcFmtHour(svcPeakHourNum(s.scans));
   s.newCount = svcCountNewDay(dateKey);
   return s;
 }
@@ -5141,8 +5168,9 @@ function renderCalendarStats() {
     titleEl.textContent = new Date(y, m - 1, d)
       .toLocaleDateString("el-GR", { weekday: "long", day: "numeric", month: "short" });
 
-    let html = `<div class="svc-chips">${chip(s.records, "καταγραφές")}${chip(s.newCount, "νέοι πελάτες")}` +
-               `${chip(s.income.toFixed(0) + "€", "έσοδα")}${chip(s.peak, "αιχμή")}</div>` + gbar(s.male, s.female);
+    let html = `<div class="svc-chips">${chip(s.records, "καταγραφές")}${chip(s.unique, "σύνολο πελατών")}` +
+               `${chip(s.newCount, "νέοι πελάτες")}${chip(s.income.toFixed(0) + "€", "έσοδα")}` +
+               `${chip(s.peak, "αιχμή")}</div>` + gbar(s.male, s.female);
 
     const MAX = 6;
     let shown = 0;
@@ -5167,8 +5195,9 @@ function renderCalendarStats() {
   } else {
     const s = svcMonthStats();
     titleEl.textContent = "Σύνοψη μήνα";
-    gridEl.innerHTML = `<div class="svc-chips">${chip(s.records, "καταγραφές")}${chip(s.newCount, "νέοι πελάτες")}` +
-      `${chip(s.income.toFixed(0) + "€", "έσοδα")}${chip(s.bestCount ? s.bestDay : "—", "κορυφαία μέρα")}</div>` +
+    gridEl.innerHTML = `<div class="svc-chips">${chip(s.records, "καταγραφές")}${chip(s.unique, "σύνολο πελατών")}` +
+      `${chip(s.newCount, "νέοι πελάτες")}${chip(s.income.toFixed(0) + "€", "έσοδα")}` +
+      `${chip(s.bestCount ? s.bestDay : "—", "κορυφαία μέρα")}${chip(s.peak, "μέση αιχμή")}</div>` +
       gbar(s.male, s.female);
     btn.style.display = "none";
     closeBtn.style.display = "none";
