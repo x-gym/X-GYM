@@ -5168,9 +5168,8 @@ function renderCalendarStats() {
     titleEl.textContent = new Date(y, m - 1, d)
       .toLocaleDateString("el-GR", { weekday: "long", day: "numeric", month: "short" });
 
-    let html = `<div class="svc-chips">${chip(s.records, "καταγραφές")}${chip(s.unique, "σύνολο πελατών")}` +
-               `${chip(s.newCount, "νέοι πελάτες")}${chip(s.income.toFixed(0) + "€", "έσοδα")}` +
-               `${chip(s.peak, "αιχμή")}</div>` + gbar(s.male, s.female);
+    let html = `<div class="svc-chips">${chip(s.records, "καταγραφές")}${chip(s.newCount, "νέοι πελάτες")}` +
+               `${chip(s.income.toFixed(0) + "€", "έσοδα")}${chip(s.peak, "αιχμή")}</div>` + gbar(s.male, s.female);
 
     const MAX = 6;
     let shown = 0;
