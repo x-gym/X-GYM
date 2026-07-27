@@ -4673,6 +4673,18 @@ function showPasswordModal() {
 
 
   // Initialize password protection on page load
+ // Initialize password protection on page load
+  function resetPasswordOnNavigation() {
+    passwordVerified = false;
+    if (typeof passwordDigits !== "undefined" && passwordDigits && passwordDigits.forEach) {
+      passwordDigits.forEach(function (input) {
+        input.value = "";
+        input.classList.remove("filled");
+        input.style.color = "#00c8ff";
+      });
+    }
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     resetPasswordOnNavigation();
   });
@@ -4690,6 +4702,7 @@ function showPasswordModal() {
 
   // 🔐 Function to gate the statistics pages with password protection
   function setupPasswordGatesForStatistics() {
+    return; // FIX: ο capturing gate έκανε stopPropagation και το pendingView έμενε null
     // Get the original click handlers and store them
     const dailyStatsBtn = document.querySelector('[data-view="daily"]');
     const monthlyStatsBtn = document.querySelector('[data-view="monthly"]');
@@ -4850,9 +4863,9 @@ document.getElementById("svcPrevMonth")?.addEventListener("click", () => shiftMo
 document.getElementById("svcNextMonth")?.addEventListener("click", () => shiftMonth(1));
 
 // 🔥 Ιστορικό σκαναρισμάτων από Firestore — πηγή αλήθειας για τους «νέους πελάτες»
-let fsFirstSeen = null;  // Map: id -> πρώτη ημέρα (ISO "YYYY-MM-DD")
-let fsByDay = null;      // Map: ISO ημέρα -> Set από ids
-let fsLoading = null;
+var fsFirstSeen = null;  // Map: id -> πρώτη ημέρα (ISO "YYYY-MM-DD")
+var fsByDay = null;      // Map: ISO ημέρα -> Set από ids
+var fsLoading = null;
 
 function svcToIso(dateLocal) {
   const [d, m, y] = String(dateLocal).split("/").map(Number);
