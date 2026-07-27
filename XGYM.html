@@ -2776,6 +2776,7 @@ document.getElementById("monthsToggle").addEventListener("click", () => {
     calMonth = now.getMonth();
     calSelectedKey = now.toLocaleDateString("el-GR");
     if (typeof renderCalendar === "function") renderCalendar();
+    loadScanHistory().then(() => renderCalendarStats());
   });
 
   months.forEach(month => {
@@ -3050,7 +3051,8 @@ document.getElementById("qrInput").addEventListener("keydown", (e) => {
         .get()
         .then(snap => {
           const hadPriorDay = snap.docs.some(d => (d.data().dateKey || "") < dayKeyForCheck);
-          newEntry.isNew = !hadPriorDay;      // true = πρώτη μέρα -> νέος
+          newEntry.isNew = !hadPriorDay; 
+          svcNoteScan(String(id).trim(), dayKeyForCheck);     // true = πρώτη μέρα -> νέος
           saveLogData();
           if (todayView && todayView.style.display !== "none") renderTodayLog();
         })
@@ -4828,8 +4830,57 @@ function shiftMonth(delta) {
 document.getElementById("svcPrevMonth")?.addEventListener("click", () => shiftMonth(-1));
 document.getElementById("svcNextMonth")?.addEventListener("click", () => shiftMonth(1));
 
-// 🆕 «Νέος πελάτης» = η πρώτη μέρα που εμφανίζεται ποτέ αυτό το ID
-function svcParseKey(dateStr) {
+// 🔥 Ιστορικό σκαναρισμάτων από Firestore — πηγή αλήθειας για τους «νέους πελάτες»
+let fsFirstSeen = null;  // Map: id -> πρώτη ημέρα (ISO "YYYY-MM-DD")
+let fsByDay = null;      // Map: ISO ημέρα -> Set από ids
+let fsLoading = null;
+
+function svcToIso(dateLocal) {
+  const [d, m, y] = String(dateLocal).split("/").map(Number);
+  if (!d || !m || !y) return "";
+  return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+}
+
+function loadScanHistory() {
+  if (fsLoading) return fsLoading;
+  fsLoading = db.collection("xgym_scans").get()
+    .then(snap => {
+      const first = new Map();
+      const byDay = new Map();
+      snap.forEach(doc => {
+        const data = doc.data() || {};
+        const id = String(data.id || "").trim();
+        const key = String(data.dateKey || "").slice(0, 10) || svcToIso(data.dateLocal);
+        if (!id || !key) return;
+        if (!byDay.has(key)) byDay.set(key, new Set());
+        byDay.get(key).add(id);
+        const prev = first.get(id);
+        if (prev === undefined || key < prev) first.set(id, key);
+      });
+      fsFirstSeen = first;
+      fsByDay = byDay;
+      console.log(`🔥 Ιστορικό Firestore: ${first.size} μοναδικά ID`);
+      return first;
+    })
+    .catch(err => {
+      console.error("❌ Λήψη ιστορικού από Firestore απέτυχε:", err);
+      fsFirstSeen = null;
+      fsByDay = null;
+      return null;
+    });
+  return fsLoading;
+}
+
+// Ενημέρωση των χαρτών μετά από νέο σκανάρισμα (χωρίς νέο διάβασμα)
+function svcNoteScan(id, isoKey) {
+  if (!fsFirstSeen || !fsByDay || !id || !isoKey) return;
+  if (!fsByDay.has(isoKey)) fsByDay.set(isoKey, new Set());
+  fsByDay.get(isoKey).add(id);
+  const prev = fsFirstSeen.get(id);
+  if (prev === undefined || isoKey < prev) fsFirstSeen.set(id, isoKey);
+}
+
+loadScanHistory();function svcParseKey(dateStr) {
   const [d, m, y] = String(dateStr).split("/").map(Number);
   return (d && m && y) ? new Date(y, m - 1, d).getTime() : null;
 }
@@ -4850,6 +4901,15 @@ function svcFirstSeen() {
 }
 
 function svcCountNewDay(dateKey) {
+  const iso = svcToIso(dateKey);
+  if (fsFirstSeen && fsByDay) {
+    const dayIds = fsByDay.get(iso);
+    if (!dayIds) return 0;
+    let count = 0;
+    dayIds.forEach(id => { if (fsFirstSeen.get(id) === iso) count++; });
+    return count;
+  }
+  // Fallback: τοπικό ιστορικό
   const t = svcParseKey(dateKey);
   if (t === null) return 0;
   const first = svcFirstSeen();
@@ -4863,6 +4923,13 @@ function svcCountNewDay(dateKey) {
 }
 
 function svcCountNewMonth() {
+  const prefix = `${calYear}-${String(calMonth + 1).padStart(2, "0")}`;
+  if (fsFirstSeen) {
+    let count = 0;
+    fsFirstSeen.forEach(key => { if (String(key).startsWith(prefix)) count++; });
+    return count;
+  }
+  // Fallback: τοπικό ιστορικό
   const first = svcFirstSeen();
   const start = new Date(calYear, calMonth, 1).getTime();
   const end = new Date(calYear, calMonth + 1, 1).getTime();
