@@ -408,22 +408,21 @@ body {
   margin-bottom: 40px;
 }
 
-.daily-content h2 {
+.daily-content > h2 {
   font-family: 'Inter', 'Segoe UI', sans-serif;
-  font-size: 1.5rem;
+  font-size: 1.45rem;
   font-weight: 300;
-  letter-spacing: 5px;
-  text-transform: uppercase;
+  letter-spacing: 1px;
   color: rgba(255, 255, 255, 0.92);
   margin: 0 0 8px;
 }
 
-.daily-content h2::after {
+.daily-content > h2::after {
   content: "";
   display: block;
   width: 34px;
   height: 2px;
-  margin: 12px auto 28px;
+  margin: 12px auto 24px;
   border-radius: 2px;
   background: linear-gradient(90deg, #5ff0ff, rgba(95, 240, 255, 0));
 }
@@ -962,17 +961,18 @@ body {
 }
 
 .stat-box strong {
-  font-size: 0.7rem;
-  font-weight: 500;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.82rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .stat-box span {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 2.1rem;
-  font-weight: 300;
+  font-family: inherit;
+  font-size: 2rem;
+  font-weight: 400;
+  letter-spacing: 0;
   line-height: 1;
   color: #5ff0ff;
 }
@@ -3674,7 +3674,7 @@ if (window.dailyChartInstance) {
       scales: {
         y: {
           beginAtZero: true,
-          suggestedMax: 10,
+          grace: "25%",
           border: { display: false },
           ticks: { precision: 0, color: "rgba(255,255,255,0.45)", padding: 8 },
           grid: { color: "rgba(255,255,255,0.06)" }
