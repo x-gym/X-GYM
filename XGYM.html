@@ -559,7 +559,7 @@ body {
       /* === Redesign: Σήμερα === */
     .today-shell {
   position: absolute;
-  top: calc(50% + 55px);
+  top: calc(50% + 20px);
   left: 50%;
   transform: translate(-50%, -50%);
   width: min(680px, 92vw);
@@ -4008,6 +4008,26 @@ mirrorPaymentToFirestore(entry?.id, name, amount, svcToIso(entryDayStr));
 
     // 💾 Σώσε ΟΛΟ το ενημερωμένο mockData
     saveData();
+
+    // 🧾 Ξαναχτίζουμε τον πίνακα από το mockData (Apps Script + Firestore μαζί)
+    if (tbody) {
+      tbody.innerHTML = "";
+      totalToday = 0;
+      (mockData[todayStr] || [])
+        .filter(e => e.type === "income")
+        .forEach(e => {
+          const row = document.createElement("tr");
+          const nameCell = document.createElement("td");
+          nameCell.textContent = e.name || "";
+          const amountCell = document.createElement("td");
+          const amt = parseFloat(e.amount) || 0;
+          amountCell.textContent = amt;
+          row.appendChild(nameCell);
+          row.appendChild(amountCell);
+          tbody.appendChild(row);
+          totalToday += amt;
+        });
+    }
 
     // 🏷️ Ενημέρωση label «Ημερήσια έσοδα»
     const label = document.querySelector(".toggle-3d");
