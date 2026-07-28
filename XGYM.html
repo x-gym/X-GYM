@@ -2916,6 +2916,7 @@ document.getElementById("monthsToggle").addEventListener("click", () => {
 document.getElementById("todayBtn").addEventListener("click", () => {
   showView("todayView");
   renderTodayLog();
+  reloadScanHistory().then(() => renderTodayLog());
 });
 
 const CUSTOMER_LIST_URL = "https://script.google.com/macros/s/AKfycby2OyAf_vG3GVccysg97lnEIYJLstC5BJ-dDMBqceQ4c4nGzkoX70PaNOGmJGEewuU/exec?listIds=1";
@@ -3003,8 +3004,39 @@ function updateTodayFade() {
 }
 if (todayLog) todayLog.addEventListener("scroll", updateTodayFade);
     
+function reloadScanHistory() {
+  fsLoading = null;
+  return loadScanHistory();
+}
+
+function periodOf(entry) {
+  const p = entry.period;
+  if (p === "Πρωί" || p === "Μεσημέρι" || p === "Βράδυ") return p;
+  const h = parseInt(String(entry.time || "").split(":")[0], 10);
+  if (isNaN(h)) return "Πρωί";
+  return h < 12 ? "Πρωί" : h < 18 ? "Μεσημέρι" : "Βράδυ";
+}
+
+// Ενώνει τις σημερινές καταγραφές του Firestore με τις τοπικές (χωρίς διπλότυπα)
+function todayEntriesList() {
+  const iso = svcToIso(new Date().toLocaleDateString("el-GR"));
+  const fs = (typeof fsScansByDay !== "undefined" && fsScansByDay && fsScansByDay.get(iso)) || [];
+  const local = (logToday && logToday.entries) || [];
+  const seen = new Set();
+  const out = [];
+  fs.concat(local).forEach(e => {
+    const k = String(e.id || "").trim() + "|" + (e.time || "");
+    if (seen.has(k)) return;
+    seen.add(k);
+    out.push(e);
+  });
+  out.sort((a, b) => String(a.time || "").localeCompare(String(b.time || "")));
+  return out;
+}
+
 function renderTodayLog() {
   todayLog.innerHTML = "";
+  const todayEntries = todayEntriesList();
 
  const dateLabel = document.getElementById("todayDateLabel");
   if (dateLabel) {
@@ -3014,7 +3046,7 @@ function renderTodayLog() {
   }
 
   const totalCountEl = document.getElementById("todayTotalCount");
-  if (totalCountEl) totalCountEl.textContent = logToday.entries.length;
+  if (totalCountEl) totalCountEl.textContent = todayEntries.length;
 
   const periods = [
     { key: "Πρωί",     icon: "☀️" },
@@ -3023,15 +3055,11 @@ function renderTodayLog() {
   ];
 
   const grouped = { Πρωί: [], Μεσημέρι: [], Βράδυ: [] };
-  logToday.entries.forEach(entry => {
-    if (grouped[entry.period]) {
-      grouped[entry.period].push(entry);
-    } else {
-      console.warn("❌ Άγνωστο period:", entry.period, entry);
-    }
+  todayEntries.forEach(entry => {
+    grouped[periodOf(entry)].push(entry);
   });
 
-  if (logToday.entries.length === 0) {
+  if (todayEntries.length === 0) {
     const empty = document.createElement("div");
     empty.className = "today-empty";
     empty.innerHTML = `
@@ -3064,8 +3092,11 @@ entries.forEach(entry => {
       const row = document.createElement("div");
       // 🆕 Προτεραιότητα στο σημάδι isNew (Firestore)· fallback στο τοπικό ιστορικό όσο δεν έχει απαντήσει
       let isNewToday;
+      const isoToday = svcToIso(new Date().toLocaleDateString("el-GR"));
       if (typeof entry.isNew === "boolean") {
         isNewToday = entry.isNew;
+      } else if (typeof fsFirstSeen !== "undefined" && fsFirstSeen) {
+        isNewToday = fsFirstSeen.get(String(entry.id || "").trim()) === isoToday;
       } else {
         isNewToday = !hasScanHistoryBeforeToday(entry.id);
       }
@@ -4983,8 +5014,7 @@ function loadScanHistory() {
         const key = String(data.dateKey || "").slice(0, 10) || svcToIso(data.dateLocal);
         if (!id || !key) return;
         if (!scans.has(key)) scans.set(key, []);
-        scans.get(key).push({ id: id, name: data.name || "", gender: data.gender || "", time: data.time || "" });
-        if (!byDay.has(key)) byDay.set(key, new Set());
+scans.get(key).push({ id: id, name: data.name || "", gender: data.gender || "", time: data.time || "", period: data.period || "" });        if (!byDay.has(key)) byDay.set(key, new Set());
         byDay.get(key).add(id);
         const prev = first.get(id);
         if (prev === undefined || key < prev) first.set(id, key);
