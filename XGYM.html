@@ -3745,8 +3745,9 @@ async function loadDailyIncome() {
     }
 
     const data = await response.json();
-    console.log("✅ Δεδομένα από API:", data);
+console.log("✅ Δεδομένα από API:", data);
 
+    await loadPaymentHistory();
     const lastClearStr = localStorage.getItem("lastClearDate");
     const lastClearDate = lastClearStr ? new Date(lastClearStr) : null;
 
@@ -3783,7 +3784,7 @@ async function loadDailyIncome() {
       const exists = mockData[entryDayStr].some(
         (e) => e.type === "income" && e.name === name && Number(e.amount) === amount
       );
-
+mirrorPaymentToFirestore(entry?.id, name, amount, svcToIso(entryDayStr));
       if (!exists) {
         mockData[entryDayStr].push({
           id: "INCOME",
@@ -4999,6 +5000,80 @@ function svcToIso(dateLocal) {
   const [d, m, y] = String(dateLocal).split("/").map(Number);
   if (!d || !m || !y) return "";
   return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+}
+// 💶 ======================== ΙΣΤΟΡΙΚΟ ΠΛΗΡΩΜΩΝ (xgym_payments) ========================
+var fsPaymentIds = null;
+var fsPaymentsByDay = null;
+var fsPaymentsLoading = null;
+
+function paymentDocId(custId, iso, amount) {
+  const safe = s => String(s == null ? "" : s).replace(/[^0-9A-Za-z_-]/g, "");
+  return `${safe(custId) || "NA"}_${iso}_${safe(String(amount).replace(".", "-"))}`;
+}
+
+function mergePaymentsIntoMockData() {
+  if (!fsPaymentsByDay) return 0;
+  let added = 0;
+  fsPaymentsByDay.forEach((list, iso) => {
+    const [y, m, d] = String(iso).split("-").map(Number);
+    if (!y || !m || !d) return;
+    const key = `${d}/${m}/${y}`;
+    if (!mockData[key]) mockData[key] = [];
+    const seen = new Set(
+      mockData[key].filter(e => e.type === "income")
+                   .map(e => (e.name || "") + "|" + (Number(e.amount) || 0))
+    );
+    list.forEach(p => {
+      const k = (p.name || "") + "|" + (Number(p.amount) || 0);
+      if (seen.has(k)) return;
+      seen.add(k);
+      mockData[key].push({ id: "INCOME", name: p.name, amount: p.amount, time: "", type: "income" });
+      added++;
+    });
+  });
+  return added;
+}
+
+function loadPaymentHistory() {
+  if (fsPaymentsLoading) return fsPaymentsLoading;
+  fsPaymentsLoading = db.collection("xgym_payments").get()
+    .then(snap => {
+      const ids = new Set();
+      const byDay = new Map();
+      snap.forEach(doc => {
+        ids.add(doc.id);
+        const p = doc.data() || {};
+        const key = String(p.dateKey || "").slice(0, 10);
+        if (!key) return;
+        if (!byDay.has(key)) byDay.set(key, []);
+        byDay.get(key).push({ id: p.id, name: p.name || "", amount: parseFloat(p.amount) || 0 });
+      });
+      fsPaymentIds = ids;
+      fsPaymentsByDay = byDay;
+      const added = mergePaymentsIntoMockData();
+      console.log(`💶 Ιστορικό πληρωμών Firestore: ${ids.size} εγγραφές (+${added} στο mockData)`);
+      return ids;
+    })
+    .catch(err => {
+      console.error("❌ Λήψη ιστορικού πληρωμών απέτυχε:", err);
+      return null;
+    });
+  return fsPaymentsLoading;
+}
+
+function mirrorPaymentToFirestore(custId, name, amount, iso) {
+  if (!iso || !amount) return;
+  const docId = paymentDocId(custId, iso, amount);
+  if (fsPaymentIds && fsPaymentIds.has(docId)) return;
+  db.collection("xgym_payments").doc(docId).set({
+    id: String(custId == null ? "" : custId),
+    name: name || "",
+    amount: amount,
+    dateKey: iso,
+    ts: firebase.firestore.FieldValue.serverTimestamp()
+  }, { merge: true })
+    .then(() => { if (fsPaymentIds) fsPaymentIds.add(docId); })
+    .catch(err => console.error("❌ Καταγραφή πληρωμής απέτυχε:", err));
 }
 // 🔄 Χύνει τα σκαναρίσματα του Firestore μέσα στο mockData (πηγή για στατιστικά/γραφήματα/CSV)
 function mergeFirestoreIntoMockData() {
