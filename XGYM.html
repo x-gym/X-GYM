@@ -393,41 +393,64 @@ body {
 }
 
 .daily-content {
-  background-color: rgba(0, 0, 0, 0.6);
-  padding: 2rem;
-  border-radius: 12px;
+  background: rgba(10, 14, 20, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  padding: 2.5rem 2rem;
+  border-radius: 20px;
   max-width: 1000px;
   width: 100%;
   text-align: center;
   color: white;
   z-index: 2;
-  margin-top: 100px; /* ↑ Κρατά απόσταση από πάνω */
+  margin-top: 100px;
   margin-bottom: 40px;
-  
 }
-#peakHourBox {
-  background-color: rgba(255, 255, 255, 0.05);  /* ημιδιαφανές λευκό */
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
-  padding: 0.7rem 1.2rem;
-  border-radius: 10px;
-  font-weight: 500;
-  font-size: 1.3rem;
-  margin-top: 20px;
-  display: inline-block;
-  box-shadow: 0 0 8px rgba(255, 255, 255, 0.1);
+
+.daily-content h2 {
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 300;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.92);
+  margin: 0 0 8px;
 }
+
+.daily-content h2::after {
+  content: "";
+  display: block;
+  width: 34px;
+  height: 2px;
+  margin: 12px auto 28px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #5ff0ff, rgba(95, 240, 255, 0));
+}
+#peakHourBox,
 #totalEntriesBox {
-  background-color: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
-  padding: 0.7rem 1.2rem;
-  border-radius: 10px;
-  font-weight: 500;
-  font-size: 1.3rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-width: 250px;
+  height: auto;
   margin-top: 20px;
-  display: inline-block;
-  box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+  padding: 22px 30px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  box-shadow: none;
+  color: white;
+  transition: border-color 0.3s ease, background-color 0.3s ease, transform 0.3s ease;
+}
+
+#peakHourBox:hover,
+#totalEntriesBox:hover {
+  border-color: rgba(95, 240, 255, 0.4);
+  background: rgba(0, 255, 255, 0.04);
+  transform: translateY(-3px);
 }
 
 /* Εμφάνιση στο hover */
@@ -3634,6 +3657,7 @@ if (window.dailyChartInstance) {
       responsive: true,
       maintainAspectRatio: false,
       animation: { duration: 900, easing: "easeOutQuart" },
+      interaction: { mode: "index", intersect: false },
       plugins: {
         legend: { display: false },
         tooltip: {
