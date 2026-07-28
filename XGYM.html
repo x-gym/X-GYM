@@ -385,11 +385,15 @@ body {
   height: auto; 
 }
 
+.chart-wrap {
+  position: relative;
+  width: 100%;
+  height: 340px;
+  margin: 0 auto 8px;
+}
+
 #dailyChart {
-  width: 100% !important;
-  height: 340px !important;
   display: block;
-  margin: 0 auto;
 }
 
 .daily-content {
@@ -2402,7 +2406,7 @@ body {
   <div class="daily-wrapper">
     <div class="daily-content">
       <h2>Ημερήσια Στατιστικά Καταγραφών</h2>
-      <canvas id="dailyChart" width="2000" height="1000"></canvas>
+      <div class="chart-wrap"><canvas id="dailyChart"></canvas></div>
 
       <div class="stat-box-container">
         <div id="peakHourBox" class="stat-box">
@@ -3680,12 +3684,23 @@ if (window.dailyChartInstance) {
           beginAtZero: true,
           grace: "25%",
           border: { display: false },
-          ticks: { precision: 0, color: "rgba(255,255,255,0.45)", padding: 8 },
+          ticks: {
+            precision: 0,
+            color: "rgba(255,255,255,0.38)",
+            padding: 12,
+            font: { family: "'Inter', 'Segoe UI', sans-serif", size: 13, weight: "300" }
+          },
           grid: { color: "rgba(255,255,255,0.06)" }
         },
         x: {
           border: { display: false },
-          ticks: { color: "rgba(255,255,255,0.45)" },
+          ticks: {
+            color: "rgba(255,255,255,0.38)",
+            padding: 10,
+            maxRotation: 0,
+            autoSkipPadding: 16,
+            font: { family: "'Inter', 'Segoe UI', sans-serif", size: 12, weight: "300" }
+          },
           grid: { display: false }
         }
       }
