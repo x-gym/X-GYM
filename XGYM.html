@@ -387,7 +387,7 @@ body {
 
 #dailyChart {
   width: 100% !important;
-  height: auto !important;
+  height: 340px !important;
   display: block;
   margin: 0 auto;
 }
@@ -916,20 +916,42 @@ body {
 }
 
   .stat-box {
-  background-color: rgba(255, 255, 255, 0.1);
-  padding: 12px 20px;
-  border-radius: 12px;
-  font-size: 18px;
-  font-weight: bold;
-  color: white;
-  min-width: 260px;
-  text-align: center;
-  box-shadow: 0 0 10px rgba(0,0,0,0.4);
-  backdrop-filter: blur(3px);
-  height: 48px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 8px;
+  min-width: 250px;
+  height: auto;
+  padding: 20px 30px;
+  background: rgba(10, 14, 20, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.4);
+  color: white;
+  transition: border-color 0.3s ease, transform 0.3s ease;
+}
+
+.stat-box:hover {
+  border-color: rgba(95, 240, 255, 0.35);
+  transform: translateY(-2px);
+}
+
+.stat-box strong {
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.stat-box span {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 2.1rem;
+  font-weight: 300;
+  line-height: 1;
+  color: #5ff0ff;
 }
 
   @media (max-width: 600px) {
@@ -3656,6 +3678,9 @@ const peakEl = document.getElementById("peakHourValue");
   if (peakEl) {
     peakEl.textContent = peakHour;
   }
+
+  updateTotalEntriesBox();
+  updateGenderPercentages();
 }
 let peakHour = 0; // ή κάποια λογική default τιμή
 
