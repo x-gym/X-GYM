@@ -2802,7 +2802,7 @@ function saveData() {
     console.error("saveData failed", e);
   }
 }
-let todayDate = new Date().toISOString().slice(0, 10);
+let todayDate = new Date().toLocaleDateString("sv-SE");
 let storedLog = JSON.parse(localStorage.getItem("logToday"));
 
 if (storedLog && storedLog.date === todayDate) {
@@ -3809,9 +3809,10 @@ const todaysEntries = logToday.entries.filter(entry => {
     // Μηδενίζουμε τις εγγραφές
     logToday.entries = [];
 
-    // Αδειάζουμε και τα counts για το διάγραμμα
-    for (let i = 0; i < counts.length; i++) {
-      counts[i] = 0;
+    // Αδειάζουμε το διάγραμμα (το counts ανήκει στη renderDailyStatsPage)
+    if (window.dailyChartInstance) {
+      window.dailyChartInstance.data.datasets[0].data =
+        window.dailyChartInstance.data.labels.map(() => 0);
     }
 
     // Ενημερώνουμε chart αν υπάρχει
