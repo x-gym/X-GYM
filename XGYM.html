@@ -1943,6 +1943,43 @@ body {
     }
     .dd-empty { padding: 1.2rem 0; font-size: 0.8rem; color: rgba(255,255,255,0.25); text-align: center; }
 
+    /* ✨ Παιχνιδιάρικη εναλλαγή ημερολογίου ↔ σελίδας ημέρας */
+    @keyframes ddIn {
+      from { opacity: 0; transform: translateY(30px) scale(0.95); filter: blur(10px); }
+      to   { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+    }
+    @keyframes ddRise {
+      from { opacity: 0; transform: translateY(22px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes ddPop {
+      from { opacity: 0; transform: scale(1.15); letter-spacing: 0.06em; }
+      to   { opacity: 1; transform: scale(1); letter-spacing: -0.02em; }
+    }
+
+    #dayDetailView.view-in .dd-wrap    { animation: ddIn .6s cubic-bezier(.16,1,.3,1) both; }
+    #dayDetailView.view-in .dd-back    { animation: ddRise .45s cubic-bezier(.16,1,.3,1) .10s both; }
+    #dayDetailView.view-in .dd-eyebrow { animation: ddRise .45s cubic-bezier(.16,1,.3,1) .16s both; }
+    #dayDetailView.view-in .dd-title   { animation: ddPop .55s cubic-bezier(.16,1,.3,1) .20s both; }
+
+    #dayDetailView.view-in .dd-metric  { animation: ddRise .5s cubic-bezier(.16,1,.3,1) both; }
+    #dayDetailView.view-in .dd-metric:nth-child(1) { animation-delay: .28s; }
+    #dayDetailView.view-in .dd-metric:nth-child(2) { animation-delay: .34s; }
+    #dayDetailView.view-in .dd-metric:nth-child(3) { animation-delay: .40s; }
+    #dayDetailView.view-in .dd-metric:nth-child(4) { animation-delay: .46s; }
+
+    #dayDetailView.view-in .dd-card    { animation: ddRise .5s cubic-bezier(.16,1,.3,1) both; }
+    #dayDetailView.view-in .dd-card:nth-child(1) { animation-delay: .52s; }
+    #dayDetailView.view-in .dd-card:nth-child(2) { animation-delay: .60s; }
+    #dayDetailView.view-in .dd-card:nth-child(3) { animation-delay: .68s; }
+
+    #calendarView.view-in .svc-interface { animation: ddIn .5s cubic-bezier(.16,1,.3,1) both; }
+
+    @media (prefers-reduced-motion: reduce) {
+      #dayDetailView.view-in *,
+      #calendarView.view-in .svc-interface { animation: none !important; }
+    }
+
     /* 🔒 Καμία λέξη δεν στενεύει πια το ημερολόγιο */
     .svc-sidebar, .svc-grid-container { min-width: 0; }
     .svc-month-name {
