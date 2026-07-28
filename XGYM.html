@@ -5389,6 +5389,12 @@ document.getElementById("svcCloseDay")?.addEventListener("click", () => {
   document.querySelectorAll("#calendarView .svc-day-cell").forEach(c => c.classList.remove("svc-active"));
   renderCalendarStats();
 });
+
+// 📄 Η σελίδα ημέρας πρέπει να είναι αδερφάκι των υπόλοιπων views, όχι παιδί του ημερολογίου
+(function () {
+  const ddv = document.getElementById("dayDetailView");
+  if (ddv && ddv.parentElement !== document.body) document.body.appendChild(ddv);
+})();
 // === Αρχικοποίηση σελίδας ===
 showView("mainContent");
 loadDailyIncome();
