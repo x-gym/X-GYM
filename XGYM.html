@@ -3536,13 +3536,14 @@ const labels = [
 const counts = new Array(labels.length).fill(0);
 scheduleMidnightReset();
 
-if (logToday.entries && logToday.entries.length > 0) {
+const statsEntries = todayEntriesList();
+if (statsEntries.length > 0) {
   const now = new Date();
   const filteredEntries = [];
   const lastScanMap = new Map();
 
-  logToday.entries.forEach(entry => {
-    if (!entry.id || !entry.time) return;
+statsEntries.forEach(entry => {
+      if (!entry.id || !entry.time) return;
 
     const [h, m] = entry.time.split(":").map(Number);
     const entryTime = new Date();
@@ -3594,22 +3595,48 @@ if (window.dailyChartInstance) {
       datasets: [{
         label: "Αριθμός Καταγραφών",
         data: counts,
-        backgroundColor: "rgba(0, 200, 255, 0.7)",
-        borderRadius: 6
+        backgroundColor: (c) => {
+          const a = c.chart.ctx.createLinearGradient(0, 0, 0, 420);
+          a.addColorStop(0, "rgba(95, 240, 255, 0.95)");
+          a.addColorStop(1, "rgba(0, 140, 200, 0.25)");
+          return a;
+        },
+        hoverBackgroundColor: "rgba(140, 250, 255, 1)",
+        borderRadius: 10,
+        borderSkipped: false,
+        barPercentage: 0.62,
+        categoryPercentage: 0.85
       }]
     },
     options: {
       responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 900, easing: "easeOutQuart" },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: "rgba(10, 14, 20, 0.95)",
+          borderColor: "rgba(95, 240, 255, 0.35)",
+          borderWidth: 1,
+          padding: 12,
+          displayColors: false,
+          titleColor: "#5ff0ff",
+          bodyColor: "#fff",
+          callbacks: { label: (c) => `${c.parsed.y} καταγραφές` }
+        }
+      },
       scales: {
         y: {
           beginAtZero: true,
-          min: 0,
-          max: 30,
-          ticks: { stepSize: 3 },
-          title: { display: true, text: "Καταγραφές" }
+          suggestedMax: 10,
+          border: { display: false },
+          ticks: { precision: 0, color: "rgba(255,255,255,0.45)", padding: 8 },
+          grid: { color: "rgba(255,255,255,0.06)" }
         },
         x: {
-          title: { display: true, text: "Ώρα" }
+          border: { display: false },
+          ticks: { color: "rgba(255,255,255,0.45)" },
+          grid: { display: false }
         }
       }
     }
@@ -3685,10 +3712,11 @@ const todaysEntries = logToday.entries.filter(entry => {
   }, msUntilMidnight);
 }
 function updateTotalEntriesBox() {
-  document.getElementById("totalEntriesValue").textContent = logToday.entries.length;
+  const el = document.getElementById("totalEntriesValue");
+  if (el) el.textContent = todayEntriesList().length;
 }
 function updateGenderPercentages() {
-  const entries = logToday.entries;
+  const entries = todayEntriesList();
   const total = entries.length;
 
   let maleCount = 0;
