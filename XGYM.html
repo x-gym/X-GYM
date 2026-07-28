@@ -5000,6 +5000,29 @@ function svcToIso(dateLocal) {
   if (!d || !m || !y) return "";
   return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 }
+// 🔄 Χύνει τα σκαναρίσματα του Firestore μέσα στο mockData (πηγή για στατιστικά/γραφήματα/CSV)
+function mergeFirestoreIntoMockData() {
+  if (!fsScansByDay) return 0;
+  let added = 0;
+  fsScansByDay.forEach((list, iso) => {
+    const [y, m, d] = String(iso).split("-").map(Number);
+    if (!y || !m || !d) return;
+    const key = `${d}/${m}/${y}`;
+    if (!mockData[key]) mockData[key] = [];
+    const seen = new Set(
+      mockData[key].filter(e => e.type !== "income")
+                   .map(e => String(e.id || "").trim() + "|" + (e.time || ""))
+    );
+    list.forEach(e => {
+      const k = String(e.id || "").trim() + "|" + (e.time || "");
+      if (seen.has(k)) return;
+      seen.add(k);
+      mockData[key].push({ id: e.id, name: e.name, gender: e.gender, time: e.time });
+      added++;
+    });
+  });
+  return added;
+}
 
 function loadScanHistory() {
   if (fsLoading) return fsLoading;
@@ -5022,7 +5045,18 @@ scans.get(key).push({ id: id, name: data.name || "", gender: data.gender || "", 
       fsFirstSeen = first;
       fsByDay = byDay;
       fsScansByDay = scans;
-      console.log(`🔥 Ιστορικό Firestore: ${first.size} μοναδικά ID`);
+      const added = mergeFirestoreIntoMockData();
+      console.log(`🔥 Ιστορικό Firestore: ${first.size} μοναδικά ID (+${added} καταγραφές στο mockData)`);
+      try {
+        const activeBtn = document.querySelector("#monthSelector button.active");
+        if (activeBtn) {
+          const mm = parseInt(activeBtn.dataset.month, 10);
+          if (!isNaN(mm)) {
+            if (typeof drawMonthlyChart === "function") drawMonthlyChart(mm);
+            if (typeof drawSecondChart === "function") drawSecondChart(mm);
+          }
+        }
+      } catch (e) { console.warn("redraw skipped", e); }
       return first;
     })
     .catch(err => {
