@@ -932,8 +932,8 @@ body {
   display: flex;
   justify-content: center; /* ✅ Κεντρική στοίχιση */
   gap: 2rem;
-  margin-top: 2rem;
-  margin-bottom: 3rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0;
   flex-wrap: wrap;
 }
 
@@ -961,20 +961,24 @@ body {
 }
 
 .stat-box strong {
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   font-weight: 400;
-  letter-spacing: 0;
+  letter-spacing: 0.02em;
   text-transform: none;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.42);
 }
 
 .stat-box span {
   font-family: inherit;
-  font-size: 2rem;
-  font-weight: 400;
-  letter-spacing: 0;
+  font-size: 2.6rem;
+  font-weight: 200;
+  letter-spacing: -0.02em;
   line-height: 1;
-  color: #5ff0ff;
+  font-variant-numeric: tabular-nums;
+  background: linear-gradient(180deg, #a8f4ff 0%, #2ec4e6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
   @media (max-width: 600px) {
@@ -1006,8 +1010,8 @@ body {
   justify-content: center;
   flex-wrap: wrap;
   gap: 30px;
-  margin-top: 20px;
-  margin-bottom: 50px;
+  margin-top: 56px;
+  margin-bottom: 40px;
   padding: 10px 0;
 }
 
