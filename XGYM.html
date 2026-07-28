@@ -2031,6 +2031,35 @@ body {
     }
     .dd-empty { padding: 1.2rem 0; font-size: 0.8rem; color: rgba(255,255,255,0.25); text-align: center; }
 
+    /* 🖼️ Πλήρες φόντο στη σελίδα Σήμερα */
+    #todayView {
+      height: 100vh;
+      max-height: none;
+      overflow: hidden;
+      background-color: #05080c;
+      background-attachment: fixed;
+    }
+
+    /* 🔠 Μεγαλύτερα γράμματα στις τρεις στήλες */
+    .dd-card { padding: 1.6rem 1.5rem; }
+
+    .dd-card-title {
+      font-size: 0.76rem;
+      letter-spacing: 0.2em;
+      padding-bottom: 1rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .dd-row { padding: 0.7rem 0; gap: 12px; }
+
+    .dd-av { width: 30px; height: 30px; font-size: 0.64rem; }
+
+    .dd-name { font-size: 1rem; }
+
+    .dd-time, .dd-amt { font-size: 0.86rem; }
+
+    .dd-total { font-size: 0.92rem; padding-top: 1rem; }
+
     /* ✨ Παιχνιδιάρικη εναλλαγή ημερολογίου ↔ σελίδας ημέρας */
     @keyframes ddIn {
       from { opacity: 0; transform: translateY(30px) scale(0.95); filter: blur(10px); }
@@ -3149,7 +3178,7 @@ function todayEntriesList() {
     seen.add(k);
     out.push(e);
   });
-  out.sort((a, b) => String(a.time || "").localeCompare(String(b.time || "")));
+  out.sort((a, b) => svcTimeVal(a.time) - svcTimeVal(b.time));
   return out;
 }
 
@@ -5390,10 +5419,19 @@ function svcCountNewMonth() {
   return n;
 }
 
+function svcTimeVal(t) {
+  const parts = String(t || "").split(":");
+  const h = parseInt(parts[0], 10);
+  const m = parseInt(parts[1], 10);
+  return (isNaN(h) ? 99 : h) * 60 + (isNaN(m) ? 0 : m);
+}
+
 function svcScansFor(dateKey) {
   const iso = svcToIso(dateKey);
-  if (fsScansByDay) return fsScansByDay.get(iso) || [];
-  return (mockData[dateKey] || []).filter(e => e.type !== "income");
+  const list = fsScansByDay
+    ? (fsScansByDay.get(iso) || [])
+    : (mockData[dateKey] || []).filter(e => e.type !== "income");
+  return list.slice().sort((a, b) => svcTimeVal(a.time) - svcTimeVal(b.time));
 }
 
 function svcIncomeFor(dateKey) {
