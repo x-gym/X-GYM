@@ -2361,7 +2361,9 @@ body {
     .today-date { color: rgba(255,255,255,0.42); letter-spacing: 0.3px; }
     
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js">
+    
+  </script>
 </head>
 
 
@@ -5758,6 +5760,7 @@ function buildReportHTML(R) {
   const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const eur = n => (Math.round(n * 100) / 100).toLocaleString("el-GR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
+  const eur0 = n => Math.round(n).toLocaleString("el-GR") + " €";
   const now = new Date();
   const T = R.totals;
 
@@ -5778,6 +5781,7 @@ function buildReportHTML(R) {
 <title>X-GYM · Αναφορά ${R.year}</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;600&family=JetBrains+Mono:wght@300;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"><\/script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"><\/script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#05080c;color:#e8eef2;font-family:'Inter',sans-serif;padding:48px 40px 80px}
@@ -5786,10 +5790,11 @@ h1{font-size:2.4rem;font-weight:200;letter-spacing:-.02em}
 .sub{color:rgba(255,255,255,.4);font-size:.9rem;margin-top:6px;font-family:'JetBrains Mono',monospace}
 .rule{height:2px;width:44px;border-radius:2px;background:linear-gradient(90deg,#5ff0ff,transparent);margin:16px 0 40px}
 h2{font-size:.72rem;font-weight:400;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.35);margin:48px 0 18px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.08)}
-.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden}
-.kpi{background:#080c11;padding:24px 16px;text-align:center}
-.kpi-v{font-size:1.9rem;font-weight:200;color:#5ff0ff;line-height:1;font-variant-numeric:tabular-nums}
-.kpi-l{font-size:.64rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.35);margin-top:10px}
+.kpis{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden}
+.kpi{background:#080c11;padding:20px 6px;text-align:center}
+.kpi-v{font-size:1.25rem;font-weight:200;color:#5ff0ff;line-height:1.1;font-variant-numeric:tabular-nums;white-space:nowrap}
+.kpi-l{font-size:.52rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.35);margin-top:9px;line-height:1.3}
+@media(max-width:880px){.kpis{grid-template-columns:repeat(4,1fr)}}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
 .card{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:24px}
 .card h3{font-size:.68rem;font-weight:400;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:18px;text-align:center}
@@ -5809,6 +5814,17 @@ tr:last-child td{border-bottom:none}
 .dl:hover{background:rgba(95,240,255,.16);transform:translateY(-2px)}
 .dl:active{transform:translateY(0)}
 .hint{font-size:.72rem;color:rgba(255,255,255,.25);margin-top:12px}
+body.light{background:#fff;color:#111}
+body.light .card,body.light .kpi{background:#fff}
+body.light .kpi-v,body.light td.num{color:#0a7ea4}
+body.light h2,body.light .kpi-l,body.light .card h3,body.light th{color:#555}
+body.light td{color:#111;border-color:#ddd}
+body.light .kpis{background:#ddd;border-color:#ccc}
+body.light .card{border-color:#ddd}
+body.light .foot{color:#888}
+body.light .sub{color:#666}
+body.light .note,body.light .hint{color:#888}
+body.light .actions{display:none}
 @media print{body{background:#fff;color:#111;padding:16px}.card,.kpi{background:#fff}
 .kpi-v,td.num{color:#0a7ea4}h2,.kpi-l,.card h3,th{color:#555}td{color:#111;border-color:#ddd}
 .kpis{background:#ddd;border-color:#ccc}.card{border-color:#ddd}.foot{color:#888}.actions,.hint{display:none}}
@@ -5822,10 +5838,10 @@ tr:last-child td{border-bottom:none}
 <div class="kpis">
 ${kpi(T.records, "Καταγραφές")}
 ${kpi(T.customers, "Πελάτες")}
-${kpi(T.newCustomers, "Νέοι πελάτες")}
-${kpi(eur(T.income), "Έσοδα")}
-${kpi(T.avgPerCustomer.toFixed(1), "Μ.Ο. επισκέψεων")}
-${kpi(eur(T.avgIncomePerCustomer), "Μ.Ο. εσόδων/πελάτη")}
+${kpi(T.newCustomers, "Νέοι")}
+${kpi(eur0(T.income), "Έσοδα")}
+${kpi(T.avgPerCustomer.toFixed(1), "Επισκ. / πελάτη")}
+${kpi(eur0(T.avgIncomePerCustomer), "Έσοδα / πελάτη")}
 ${kpi(T.bestMonth, "Κορυφαίος μήνας")}
 </div>
 
@@ -5856,8 +5872,8 @@ ${kpi(T.bestMonth, "Κορυφαίος μήνας")}
 ${R.payments.length > 200 ? '<div class="note">Εμφανίζονται οι 200 πιο πρόσφατες.</div>' : ""}
 
 <div class="actions">
-  <button class="dl" onclick="window.print()">⤓&nbsp; Κατέβασμα αναφοράς σε PDF</button>
-  <div class="hint">Στο παράθυρο εκτύπωσης επίλεξε «Αποθήκευση ως PDF»</div>
+  <button class="dl" id="btnPdf">⤓&nbsp; Κατέβασμα αναφοράς σε PDF</button>
+  <div class="hint" id="pdfHint">Η λήψη ξεκινά αυτόματα</div>
 </div>
 
 <div class="foot">X-GYM — Always Hungry For More</div>
@@ -5893,6 +5909,34 @@ new Chart(document.getElementById("cH"), { type: "bar",
     datasets: [{ label: "Καταγραφές", data: D.hourly, backgroundColor: "rgba(95,240,255,.5)", borderRadius: 6 }] },
   options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
     scales: { y: { beginAtZero: true, grid, ticks: F }, x: { grid: { display: false }, ticks: { ...F, maxRotation: 0, autoSkipPadding: 12 } } } } });
+    scales: { y: { beginAtZero: true, grid, ticks: F }, x: { grid: { display: false }, ticks: { ...F, maxRotation: 0, autoSkipPadding: 12 } } } } });
+
+document.getElementById("btnPdf").addEventListener("click", function () {
+  const btn = this, hint = document.getElementById("pdfHint");
+  const old = btn.textContent;
+  btn.textContent = "Δημιουργία PDF…"; btn.disabled = true;
+  document.body.classList.add("light");
+  const opt = {
+    margin: [8, 8, 8, 8],
+    filename: "X-GYM_Αναφορά_${R.year}.pdf",
+    image: { type: "jpeg", quality: 0.96 },
+    html2canvas: { scale: 2, backgroundColor: "#ffffff", useCORS: true, logging: false },
+    jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+    pagebreak: { mode: ["css", "legacy"], avoid: [".card", "table", ".kpis"] }
+  };
+  html2pdf().set(opt).from(document.querySelector(".wrap")).save()
+    .then(function () {
+      document.body.classList.remove("light");
+      btn.textContent = old; btn.disabled = false;
+      hint.textContent = "Η λήψη ολοκληρώθηκε";
+    })
+    .catch(function (e) {
+      document.body.classList.remove("light");
+      btn.textContent = old; btn.disabled = false;
+      hint.textContent = "Σφάλμα: " + e.message;
+    });
+});
+}
 <\/script></body></html>`;
 }
 
@@ -5903,6 +5947,7 @@ function exportFullReport() {
     const w = window.open("", "_blank");
     if (!w) { alert("Ο browser μπλόκαρε το νέο παράθυρο. Επίτρεψε τα pop-ups για αυτή τη σελίδα."); return; }
     w.document.open(); w.document.write(html); w.document.close();
+    w.focus();
   } catch (err) {
     console.error("❌ Αναφορά απέτυχε:", err);
     alert("Σφάλμα κατά τη δημιουργία της αναφοράς: " + err.message);
