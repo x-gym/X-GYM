@@ -2383,7 +2383,7 @@ body {
 </div>
 </div>
 
-    <button class="dropbtn" id="exportCsvBtn"><span>Εξαγωγή CSV</span></button>
+    <button class="dropbtn" id="exportCsvBtn"><span>Αναφορά PDF</span></button>
     <button class="dropbtn" id="todayBtn"><span>Σήμερα</span></button>
     <button id="homeButton" class="home-btn" title="Αρχική">
       <!-- SVG για το σπιτάκι -->
@@ -4115,6 +4115,8 @@ document.addEventListener("DOMContentLoaded", () => {
       alert("Δεν υπάρχουν καταγραφές για εξαγωγή.");
       return;
     }
+    exportFullReport();
+    return;
 
     let csvContent = "";
     let yearlyIncome = 0;
@@ -5638,6 +5640,262 @@ document.getElementById("svcCloseDay")?.addEventListener("click", () => {
   const pmo = document.getElementById("passwordModalOverlay");
   if (pmo && pmo.parentElement !== document.body) document.body.appendChild(pmo);
 })();
+// ===== 📊 ΠΛΗΡΗΣ ΑΝΑΦΟΡΑ =====
+function collectReportData() {
+  const year = CURRENT_YEAR;
+  const MONTHS = ["Ιανουάριος","Φεβρουάριος","Μάρτιος","Απρίλιος","Μάιος","Ιούνιος",
+                  "Ιούλιος","Αύγουστος","Σεπτέμβριος","Οκτώβριος","Νοέμβριος","Δεκέμβριος"];
+  const per = Array.from({ length: 12 }, () => ({
+    records: 0, ids: new Set(), male: new Set(), female: new Set(),
+    income: 0, visitDays: new Map(), newIds: 0
+  }));
+  const hourly = new Array(24).fill(0);
+  const periods = { "Πρωί": 0, "Μεσημέρι": 0, "Βράδυ": 0 };
+  const firstSeen = new Map(), visitsPerId = new Map(), nameById = new Map();
+  const payments = [];
+
+  for (const k in mockData) {
+    const [d, m, y] = k.split("/").map(Number);
+    if (!d || !m || !y) continue;
+    const t = new Date(y, m - 1, d).getTime();
+    (mockData[k] || []).forEach(e => {
+      if (e.type === "income" || !e.id) return;
+      const id = String(e.id).trim();
+      if (!id) return;
+      const prev = firstSeen.get(id);
+      if (prev === undefined || t < prev) firstSeen.set(id, t);
+    });
+  }
+
+  for (const k in mockData) {
+    const [d, m, y] = k.split("/").map(Number);
+    if (!d || !m || !y || y !== year) continue;
+    const t = new Date(y, m - 1, d).getTime();
+    const M = per[m - 1];
+    (mockData[k] || []).forEach(e => {
+      if (e.type === "income") {
+        const amt = parseFloat(e.amount) || 0;
+        M.income += amt;
+        payments.push({ date: k, name: e.name || "", amount: amt, month: m });
+        return;
+      }
+      M.records++;
+      const id = String(e.id || "").trim();
+      if (id) {
+        M.ids.add(id);
+        if (e.name) nameById.set(id, e.name);
+        visitsPerId.set(id, (visitsPerId.get(id) || 0) + 1);
+        const g = String(e.gender || "").toLowerCase();
+        if (g === "male" || g === "άνδρας") M.male.add(id);
+        else if (g === "female" || g === "γυναίκα") M.female.add(id);
+        if (!M.visitDays.has(id)) M.visitDays.set(id, new Set());
+        M.visitDays.get(id).add(t);
+      }
+      const h = parseInt(String(e.time || "").split(":")[0], 10);
+      if (!isNaN(h) && h >= 0 && h < 24) hourly[h]++;
+      periods[isNaN(h) ? "Πρωί" : h < 12 ? "Πρωί" : h < 18 ? "Μεσημέρι" : "Βράδυ"]++;
+    });
+  }
+
+  firstSeen.forEach(t => {
+    const dt = new Date(t);
+    if (dt.getFullYear() === year) per[dt.getMonth()].newIds++;
+  });
+
+  const WIN = 14 * 24 * 3600 * 1000;
+  per.forEach(M => {
+    let reg = 0;
+    M.visitDays.forEach(set => {
+      const days = Array.from(set).sort((a, b) => a - b);
+      let s = 0;
+      for (let i = 0; i < days.length; i++) {
+        while (days[i] - days[s] >= WIN) s++;
+        if (i - s + 1 > 3) { reg++; break; }
+      }
+    });
+    M.regulars = reg;
+  });
+
+  const yearIds = new Set(), yearMale = new Set(), yearFemale = new Set();
+  let totalRecords = 0, totalIncome = 0, totalNew = 0;
+  per.forEach(M => {
+    totalRecords += M.records; totalIncome += M.income; totalNew += M.newIds;
+    M.ids.forEach(i => yearIds.add(i));
+    M.male.forEach(i => yearMale.add(i));
+    M.female.forEach(i => yearFemale.add(i));
+  });
+
+  let bestIdx = -1, bestVal = -1;
+  per.forEach((M, i) => { if (M.records > bestVal) { bestVal = M.records; bestIdx = i; } });
+
+  const top = Array.from(visitsPerId.entries())
+    .sort((a, b) => b[1] - a[1]).slice(0, 15)
+    .map(([id, n]) => ({ id, name: nameById.get(id) || "—", visits: n }));
+
+  payments.sort((a, b) => {
+    const [d1, m1] = a.date.split("/").map(Number), [d2, m2] = b.date.split("/").map(Number);
+    return m2 - m1 || d2 - d1;
+  });
+
+  return {
+    year, MONTHS, hourly, periods, top, payments,
+    months: per.map((M, i) => ({
+      name: MONTHS[i], records: M.records, customers: M.ids.size, newIds: M.newIds,
+      male: M.male.size, female: M.female.size, income: M.income,
+      regulars: M.ids.size ? (M.regulars / M.ids.size) * 100 : 0
+    })),
+    totals: {
+      records: totalRecords, customers: yearIds.size, newCustomers: totalNew,
+      income: totalIncome, male: yearMale.size, female: yearFemale.size,
+      bestMonth: bestIdx >= 0 && bestVal > 0 ? MONTHS[bestIdx] : "—",
+      avgPerCustomer: yearIds.size ? (totalRecords / yearIds.size) : 0
+    }
+  };
+}
+
+function buildReportHTML(R) {
+  const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const eur = n => (Math.round(n * 100) / 100).toLocaleString("el-GR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
+  const now = new Date();
+  const T = R.totals;
+
+  const kpi = (v, l) => `<div class="kpi"><div class="kpi-v">${v}</div><div class="kpi-l">${l}</div></div>`;
+
+  const monthRows = R.months.map(m => m.records || m.income ? `
+    <tr><td>${m.name}</td><td>${m.records}</td><td>${m.customers}</td><td>${m.newIds}</td>
+    <td>${m.male}</td><td>${m.female}</td><td>${m.regulars.toFixed(1)}%</td>
+    <td class="num">${eur(m.income)}</td></tr>` : "").join("");
+
+  const topRows = R.top.map((t, i) => `
+    <tr><td class="rank">${i + 1}</td><td>${esc(t.name)}</td><td class="num">${t.visits}</td></tr>`).join("");
+
+  const payRows = R.payments.slice(0, 200).map(p => `
+    <tr><td>${esc(p.date)}</td><td>${esc(p.name)}</td><td class="num">${eur(p.amount)}</td></tr>`).join("");
+
+  return `<!DOCTYPE html><html lang="el"><head><meta charset="UTF-8">
+<title>X-GYM · Αναφορά ${R.year}</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;600&family=JetBrains+Mono:wght@300;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"><\/script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#05080c;color:#e8eef2;font-family:'Inter',sans-serif;padding:48px 40px 80px}
+.wrap{max-width:1080px;margin:0 auto}
+h1{font-size:2.4rem;font-weight:200;letter-spacing:-.02em}
+.sub{color:rgba(255,255,255,.4);font-size:.9rem;margin-top:6px;font-family:'JetBrains Mono',monospace}
+.rule{height:2px;width:44px;border-radius:2px;background:linear-gradient(90deg,#5ff0ff,transparent);margin:16px 0 40px}
+h2{font-size:.72rem;font-weight:400;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.35);margin:48px 0 18px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.08)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden}
+.kpi{background:#080c11;padding:24px 16px;text-align:center}
+.kpi-v{font-size:1.9rem;font-weight:200;color:#5ff0ff;line-height:1;font-variant-numeric:tabular-nums}
+.kpi-l{font-size:.64rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.35);margin-top:10px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.card{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:24px}
+.card h3{font-size:.68rem;font-weight:400;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:18px;text-align:center}
+.cbox{position:relative;height:260px}
+.cbox.tall{height:320px}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th{font-size:.62rem;font-weight:400;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.3);text-align:left;padding:0 10px 12px;border-bottom:1px solid rgba(255,255,255,.08)}
+td{padding:11px 10px;border-bottom:1px solid rgba(255,255,255,.04);color:rgba(255,255,255,.85)}
+td.num{text-align:right;font-variant-numeric:tabular-nums;color:#5ff0ff}
+th:last-child{text-align:right}
+td.rank{color:rgba(255,255,255,.3);width:36px}
+tr:last-child td{border-bottom:none}
+.foot{margin-top:56px;padding-top:20px;border-top:1px solid rgba(255,255,255,.08);font-size:.75rem;color:rgba(255,255,255,.25);text-align:center}
+.note{font-size:.75rem;color:rgba(255,255,255,.3);margin-top:10px}
+@media print{body{background:#fff;color:#111;padding:16px}.card,.kpi{background:#fff}
+.kpi-v,td.num{color:#0a7ea4}h2,.kpi-l,.card h3,th{color:#555}td{color:#111;border-color:#ddd}
+.kpis{background:#ddd;border-color:#ccc}.card{border-color:#ddd}.foot{color:#888}}
+</style></head><body><div class="wrap">
+
+<h1>X-GYM · Ετήσια Αναφορά ${R.year}</h1>
+<div class="sub">Εξαγωγή: ${now.toLocaleDateString("el-GR")} ${now.toLocaleTimeString("el-GR")}</div>
+<div class="rule"></div>
+
+<h2>Ετήσια σύνοψη</h2>
+<div class="kpis">
+${kpi(T.records, "Καταγραφές")}
+${kpi(T.customers, "Πελάτες")}
+${kpi(T.newCustomers, "Νέοι πελάτες")}
+${kpi(eur(T.income), "Έσοδα")}
+${kpi(T.avgPerCustomer.toFixed(1), "Μ.Ο. ανά πελάτη")}
+${kpi(T.bestMonth, "Κορυφαίος μήνας")}
+</div>
+
+<h2>Κατανομές</h2>
+<div class="grid2">
+  <div class="card"><h3>Άνδρες / Γυναίκες</h3><div class="cbox"><canvas id="cG"></canvas></div></div>
+  <div class="card"><h3>Ζώνες ημέρας</h3><div class="cbox"><canvas id="cP"></canvas></div></div>
+</div>
+
+<h2>Καταγραφές & έσοδα ανά μήνα</h2>
+<div class="card"><div class="cbox tall"><canvas id="cM"></canvas></div></div>
+
+<h2>Κατανομή ανά ώρα</h2>
+<div class="card"><div class="cbox"><canvas id="cH"></canvas></div></div>
+
+<h2>Ανάλυση ανά μήνα</h2>
+<table><thead><tr><th>Μήνας</th><th>Καταγρ.</th><th>Πελάτες</th><th>Νέοι</th><th>Άνδρες</th><th>Γυναίκες</th><th>Τακτικοί</th><th>Έσοδα</th></tr></thead>
+<tbody>${monthRows || '<tr><td colspan="8">Χωρίς δεδομένα</td></tr>'}</tbody></table>
+<div class="note">Τακτικοί = πελάτες με πάνω από 3 επισκέψεις μέσα σε 2 συνεχόμενες εβδομάδες.</div>
+
+<h2>Κορυφαίοι πελάτες</h2>
+<table><thead><tr><th></th><th>Όνομα</th><th>Επισκέψεις</th></tr></thead>
+<tbody>${topRows || '<tr><td colspan="3">Χωρίς δεδομένα</td></tr>'}</tbody></table>
+
+<h2>Πληρωμές (${R.payments.length})</h2>
+<table><thead><tr><th>Ημερομηνία</th><th>Πελάτης</th><th>Ποσό</th></tr></thead>
+<tbody>${payRows || '<tr><td colspan="3">Χωρίς πληρωμές</td></tr>'}</tbody></table>
+${R.payments.length > 200 ? '<div class="note">Εμφανίζονται οι 200 πιο πρόσφατες.</div>' : ""}
+
+<div class="foot">X-GYM — Always Hungry For More</div>
+</div>
+<script>
+const D = ${JSON.stringify({ months: R.months, hourly: R.hourly, periods: R.periods, totals: R.totals, MONTHS: R.MONTHS })};
+const F = { color: "rgba(255,255,255,.45)", font: { family: "Inter", size: 12, weight: "300" } };
+const grid = { color: "rgba(255,255,255,.06)" };
+Chart.defaults.color = "rgba(255,255,255,.45)";
+Chart.defaults.font.family = "Inter";
+const legend = { position: "bottom", labels: { color: "rgba(255,255,255,.55)", padding: 16, boxWidth: 12, font: { size: 12 } } };
+
+new Chart(document.getElementById("cG"), { type: "doughnut",
+  data: { labels: ["Άνδρες", "Γυναίκες"], datasets: [{ data: [D.totals.male, D.totals.female],
+    backgroundColor: ["#5ff0ff", "#a855f7"], borderColor: "#05080c", borderWidth: 3 }] },
+  options: { responsive: true, maintainAspectRatio: false, cutout: "62%", plugins: { legend } } });
+
+new Chart(document.getElementById("cP"), { type: "doughnut",
+  data: { labels: ["Πρωί", "Μεσημέρι", "Βράδυ"], datasets: [{ data: [D.periods["Πρωί"], D.periods["Μεσημέρι"], D.periods["Βράδυ"]],
+    backgroundColor: ["#5ff0ff", "#f0c05f", "#7b6cff"], borderColor: "#05080c", borderWidth: 3 }] },
+  options: { responsive: true, maintainAspectRatio: false, cutout: "62%", plugins: { legend } } });
+
+new Chart(document.getElementById("cM"), { type: "bar",
+  data: { labels: D.MONTHS.map(m => m.slice(0, 3)), datasets: [
+    { label: "Καταγραφές", data: D.months.map(m => m.records), backgroundColor: "rgba(95,240,255,.55)", borderRadius: 8, yAxisID: "y" },
+    { label: "Έσοδα (€)", data: D.months.map(m => Math.round(m.income)), type: "line", borderColor: "#f0c05f",
+      backgroundColor: "rgba(240,192,95,.12)", borderWidth: 2, pointRadius: 3, tension: .35, fill: true, yAxisID: "y1" }] },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend },
+    scales: { y: { beginAtZero: true, grid, ticks: F }, y1: { position: "right", beginAtZero: true, grid: { display: false }, ticks: F }, x: { grid: { display: false }, ticks: F } } } });
+
+new Chart(document.getElementById("cH"), { type: "bar",
+  data: { labels: D.hourly.map((_, i) => String(i).padStart(2, "0") + ":00"),
+    datasets: [{ label: "Καταγραφές", data: D.hourly, backgroundColor: "rgba(95,240,255,.5)", borderRadius: 6 }] },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+    scales: { y: { beginAtZero: true, grid, ticks: F }, x: { grid: { display: false }, ticks: { ...F, maxRotation: 0, autoSkipPadding: 12 } } } } });
+<\/script></body></html>`;
+}
+
+function exportFullReport() {
+  try {
+    const R = collectReportData();
+    const html = buildReportHTML(R);
+    const w = window.open("", "_blank");
+    if (!w) { alert("Ο browser μπλόκαρε το νέο παράθυρο. Επίτρεψε τα pop-ups για αυτή τη σελίδα."); return; }
+    w.document.open(); w.document.write(html); w.document.close();
+  } catch (err) {
+    console.error("❌ Αναφορά απέτυχε:", err);
+    alert("Σφάλμα κατά τη δημιουργία της αναφοράς: " + err.message);
+  }
+}
 // === Αρχικοποίηση σελίδας ===
 showView("mainContent");
 loadDailyIncome();
