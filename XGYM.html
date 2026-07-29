@@ -5803,9 +5803,14 @@ td.rank{color:rgba(255,255,255,.3);width:36px}
 tr:last-child td{border-bottom:none}
 .foot{margin-top:56px;padding-top:20px;border-top:1px solid rgba(255,255,255,.08);font-size:.75rem;color:rgba(255,255,255,.25);text-align:center}
 .note{font-size:.75rem;color:rgba(255,255,255,.3);margin-top:10px}
+.actions{margin-top:56px;text-align:center}
+.dl{background:rgba(95,240,255,.08);border:1px solid rgba(95,240,255,.35);border-radius:12px;color:#5ff0ff;font-family:'Inter',sans-serif;font-size:.95rem;font-weight:300;letter-spacing:.06em;padding:15px 32px;cursor:pointer;transition:background-color .25s ease,transform .2s ease}
+.dl:hover{background:rgba(95,240,255,.16);transform:translateY(-2px)}
+.dl:active{transform:translateY(0)}
+.hint{font-size:.72rem;color:rgba(255,255,255,.25);margin-top:12px}
 @media print{body{background:#fff;color:#111;padding:16px}.card,.kpi{background:#fff}
 .kpi-v,td.num{color:#0a7ea4}h2,.kpi-l,.card h3,th{color:#555}td{color:#111;border-color:#ddd}
-.kpis{background:#ddd;border-color:#ccc}.card{border-color:#ddd}.foot{color:#888}}
+.kpis{background:#ddd;border-color:#ccc}.card{border-color:#ddd}.foot{color:#888}.actions,.hint{display:none}}
 </style></head><body><div class="wrap">
 
 <h1>X-GYM · Ετήσια Αναφορά ${R.year}</h1>
@@ -5847,6 +5852,11 @@ ${kpi(T.bestMonth, "Κορυφαίος μήνας")}
 <table><thead><tr><th>Ημερομηνία</th><th>Πελάτης</th><th>Ποσό</th></tr></thead>
 <tbody>${payRows || '<tr><td colspan="3">Χωρίς πληρωμές</td></tr>'}</tbody></table>
 ${R.payments.length > 200 ? '<div class="note">Εμφανίζονται οι 200 πιο πρόσφατες.</div>' : ""}
+
+<div class="actions">
+  <button class="dl" onclick="window.print()">⤓&nbsp; Κατέβασμα αναφοράς σε PDF</button>
+  <div class="hint">Στο παράθυρο εκτύπωσης επίλεξε «Αποθήκευση ως PDF»</div>
+</div>
 
 <div class="foot">X-GYM — Always Hungry For More</div>
 </div>
