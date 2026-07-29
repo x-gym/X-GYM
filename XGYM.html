@@ -5909,8 +5909,6 @@ new Chart(document.getElementById("cH"), { type: "bar",
     datasets: [{ label: "Καταγραφές", data: D.hourly, backgroundColor: "rgba(95,240,255,.5)", borderRadius: 6 }] },
   options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
     scales: { y: { beginAtZero: true, grid, ticks: F }, x: { grid: { display: false }, ticks: { ...F, maxRotation: 0, autoSkipPadding: 12 } } } } });
-    scales: { y: { beginAtZero: true, grid, ticks: F }, x: { grid: { display: false }, ticks: { ...F, maxRotation: 0, autoSkipPadding: 12 } } } } });
-
 document.getElementById("btnPdf").addEventListener("click", function () {
   const btn = this, hint = document.getElementById("pdfHint");
   const old = btn.textContent;
@@ -5944,10 +5942,16 @@ function exportFullReport() {
   try {
     const R = collectReportData();
     const html = buildReportHTML(R);
-    const w = window.open("", "_blank");
-    if (!w) { alert("Ο browser μπλόκαρε το νέο παράθυρο. Επίτρεψε τα pop-ups για αυτή τη σελίδα."); return; }
-    w.document.open(); w.document.write(html); w.document.close();
+    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const w = window.open(url, "_blank");
+    if (!w) {
+      URL.revokeObjectURL(url);
+      alert("Ο browser μπλόκαρε το νέο παράθυρο. Επίτρεψε τα pop-ups για αυτή τη σελίδα.");
+      return;
+    }
     w.focus();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
   } catch (err) {
     console.error("❌ Αναφορά απέτυχε:", err);
     alert("Σφάλμα κατά τη δημιουργία της αναφοράς: " + err.message);
