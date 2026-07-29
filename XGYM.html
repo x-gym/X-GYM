@@ -5918,21 +5918,16 @@ document.getElementById("btnPdf").addEventListener("click", function () {
     margin: [8, 8, 8, 8],
     filename: "X-GYM_Αναφορά_${R.year}.pdf",
     image: { type: "jpeg", quality: 0.96 },
-    html2canvas: { scale: 2, backgroundColor: "#ffffff", useCORS: true, logging: false },
+    html2canvas: {
+      scale: 2, backgroundColor: "#ffffff", useCORS: true, logging: false,
+      onclone: function (doc) { doc.body.classList.add("light"); }
+    },
     jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
     pagebreak: { mode: ["css", "legacy"], avoid: [".card", "table", ".kpis"] }
   };
-  html2pdf().set(opt).from(document.querySelector(".wrap")).save()
-    .then(function () {
-      document.body.classList.remove("light");
-      btn.textContent = old; btn.disabled = false;
-      hint.textContent = "Η λήψη ολοκληρώθηκε";
-    })
-    .catch(function (e) {
-      document.body.classList.remove("light");
-      btn.textContent = old; btn.disabled = false;
-      hint.textContent = "Σφάλμα: " + e.message;
-    });
+  window.print();
+  document.body.classList.remove("light");
+  btn.textContent = old; btn.disabled = false;
 });
 
 <\/script></body></html>`;
