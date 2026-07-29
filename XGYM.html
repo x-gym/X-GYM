@@ -5748,7 +5748,8 @@ function collectReportData() {
       records: totalRecords, customers: yearIds.size, newCustomers: totalNew,
       income: totalIncome, male: yearMale.size, female: yearFemale.size,
       bestMonth: bestIdx >= 0 && bestVal > 0 ? MONTHS[bestIdx] : "—",
-      avgPerCustomer: yearIds.size ? (totalRecords / yearIds.size) : 0
+      avgPerCustomer: yearIds.size ? (totalRecords / yearIds.size) : 0,
+      avgIncomePerCustomer: yearIds.size ? (totalIncome / yearIds.size) : 0
     }
   };
 }
@@ -5823,7 +5824,8 @@ ${kpi(T.records, "Καταγραφές")}
 ${kpi(T.customers, "Πελάτες")}
 ${kpi(T.newCustomers, "Νέοι πελάτες")}
 ${kpi(eur(T.income), "Έσοδα")}
-${kpi(T.avgPerCustomer.toFixed(1), "Μ.Ο. ανά πελάτη")}
+${kpi(T.avgPerCustomer.toFixed(1), "Μ.Ο. επισκέψεων")}
+${kpi(eur(T.avgIncomePerCustomer), "Μ.Ο. εσόδων/πελάτη")}
 ${kpi(T.bestMonth, "Κορυφαίος μήνας")}
 </div>
 
