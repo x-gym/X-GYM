@@ -17,6 +17,7 @@
 
 <!-- Firestore -->
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
   // Βάλε εδώ το config από το Firebase Console > Project settings > Your apps > Web app
@@ -1114,6 +1115,36 @@ align-self: center;          /* κάθετα στο grid row */
 .xlb-item[data-rank="1"] .xlb-rank::after {
   content: none !important;
 }
+.stats-slide { background: #05080c; }
+.stats-slide.active { display: flex; }
+.xst-wrap { height: 100%; min-height: 100vh; }
+.xst-hours { background: radial-gradient(120vw 90vh at 15% -10%, rgba(95,240,255,.10), transparent 60%), #05080c; }
+.xst-days  { background: radial-gradient(120vw 90vh at 85% -10%, rgba(123,108,255,.12), transparent 60%), #05080c; }
+
+.xst-wrap {
+  width: 100%; height: 100%;
+  display: flex; flex-direction: column;
+  padding: 5vh 5vw 4vh;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+}
+.xst-title { font-size: 4.6vw; font-weight: 200; color: #fff; letter-spacing: -.02em; line-height: 1; text-align: center; }
+.xst-sub {
+  font-size: 1.25vw; letter-spacing: .34em; text-transform: uppercase;
+  color: rgba(255,255,255,.34); text-align: center; margin-top: 1.6vh;
+}
+.xst-cv { position: relative; flex: 1 1 auto; min-height: 42vh; margin: 3.5vh 0 1vh; }
+.xst-tips { display: grid; grid-template-columns: 1fr 1fr; gap: 4vw; }
+.xst-tip {
+  display: flex; flex-direction: column; align-items: center; gap: 1.1vh;
+  padding: 3vh 2vw; border-radius: 26px;
+  border: 1px solid rgba(255,255,255,.09);
+}
+.xst-tip span { font-size: 1.1vw; letter-spacing: .3em; text-transform: uppercase; color: rgba(255,255,255,.35); }
+.xst-tip b { font-size: 3.6vw; font-weight: 200; line-height: 1; }
+.xst-tip.quiet { background: linear-gradient(180deg, rgba(95,240,255,.09), rgba(95,240,255,.02)); }
+.xst-tip.quiet b { color: #5ff0ff; text-shadow: 0 0 40px rgba(95,240,255,.5); }
+.xst-tip.busy { background: linear-gradient(180deg, rgba(240,192,95,.09), rgba(240,192,95,.02)); }
+.xst-tip.busy b { color: #f0c05f; text-shadow: 0 0 40px rgba(240,192,95,.45); }
   </style>
 </head>
 <body>
@@ -1127,6 +1158,30 @@ align-self: center;          /* κάθετα στο grid row */
             <div class="xlb-panel">
                 </div>
         </div>
+    </div>
+    <div class="slide stats-slide xst-hours">
+      <div class="xst-wrap">
+        <div class="xst-title">Επισκεψιμότητα ανά Ώρα</div>
+        <div class="xst-sub">Ωριαία Κατανομή</div>
+        <div class="xst-cv"><canvas id="statHourChart"></canvas></div>
+        <div class="xst-tips">
+          <div class="xst-tip quiet"><span>Ελάχιστη Επισκεψιμότητα</span><b id="statQuietH">—</b></div>
+          <div class="xst-tip busy"><span>Μέγιστη Επισκεψιμότητα</span><b id="statBusyH">—</b></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide stats-slide xst-days">
+      <div class="xst-wrap">
+        <div class="xst-title">Εβδομαδιαία Επισκεψιμότητα</div>
+        <div class="xst-sub">Ημερήσια Κατανομή</div>
+        <div class="xst-cv"><canvas id="statDowChart"></canvas></div>
+        <div class="xst-tips">
+          <div class="xst-tip quiet"><span>Ελάχιστη Ημερήσια Κίνηση</span><b id="statQuietD">—</b></div>
+          <div class="xst-tip busy"><span>Μέγιστη Ημερήσια Κίνηση</span><b id="statBusyD">—</b></div>
+        </div>
+      </div>
+    </div>
     </div>
 </div>
 
@@ -1158,6 +1213,13 @@ align-self: center;          /* κάθετα στο grid row */
         const slideEl = slides[index];
         if (!slideEl) return;
         slideEl.classList.add('active');
+        if (slideEl.classList.contains("stats-slide")) {
+          setTimeout(() => {
+            if (typeof statChartH !== "undefined" && statChartH) statChartH.resize();
+            if (typeof statChartD !== "undefined" && statChartD) statChartD.resize();
+            if (typeof renderStatsSlide === "function") renderStatsSlide();
+          }, 80);
+        }
 
         // 2. Υπολογισμός διάρκειας και έναρξη βίντεο
         const video = slideEl.querySelector('video');
@@ -1201,6 +1263,180 @@ align-self: center;          /* κάθετα στο grid row */
             showSlide(currentSlide);
         }, ms);
     }
+
+    // ===== 📊 LIVE ΣΤΑΤΙΣΤΙΚΑ ΟΘΟΝΗΣ =====
+const DOW_NAMES = ["Δευτέρα","Τρίτη","Τετάρτη","Πέμπτη","Παρασκευή","Σάββατο","Κυριακή"];
+const DOW_SHORT = ["ΔΕΥ","ΤΡΙ","ΤΕΤ","ΠΕΜ","ΠΑΡ","ΣΑΒ","ΚΥΡ"];
+
+let statHours = new Array(24).fill(0);
+let statDows  = new Array(7).fill(0);
+let statGrid  = {};
+let statTotal = 0;
+let statSeen  = new Set();
+let statChartH = null, statChartD = null;
+
+function addScanToStats(d, docId) {
+  if (docId) { if (statSeen.has(docId)) return false; statSeen.add(docId); }
+  const key = String(d.dateKey || "").slice(0, 10);
+  const h = parseInt(String(d.time || "").split(":")[0], 10);
+  if (isNaN(h) || h < 0 || h > 23) return false;
+  const [y, m, dd] = key.split("-").map(Number);
+  if (!y || !m || !dd) return false;
+  const dow = (new Date(y, m - 1, dd).getDay() + 6) % 7;
+  statHours[h]++; statDows[dow]++;
+  statGrid[dow + "-" + h] = (statGrid[dow + "-" + h] || 0) + 1;
+  statTotal++;
+  return true;
+}
+
+function quietestSlot() {
+  const maxH = Math.max(...statHours);
+  if (!maxH) return null;
+  const okHours = [];
+  for (let h = 0; h < 24; h++) if (statHours[h] >= maxH * 0.25) okHours.push(h);
+  if (!okHours.length) return null;
+  let best = null, busy = null;
+  for (let dow = 0; dow < 7; dow++) {
+    if (!statDows[dow]) continue;
+    for (const h of okHours) {
+      const c = statGrid[dow + "-" + h] || 0;
+      if (!best || c < best.count) best = { dow, hour: h, count: c };
+      if (!busy || c > busy.count) busy = { dow, hour: h, count: c };
+    }
+  }
+  return { quiet: best, busy: busy };
+}
+
+function bestWorstHour() {
+  const maxH = Math.max(...statHours);
+  if (!maxH) return null;
+  let quiet = null, busy = null;
+  for (let h = 0; h < 24; h++) {
+    const v = statHours[h];
+    if (v < maxH * 0.25) continue;
+    if (!quiet || v < quiet.v) quiet = { h, v };
+    if (!busy  || v > busy.v)  busy  = { h, v };
+  }
+  return (quiet && busy) ? { quiet, busy } : null;
+}
+
+function bestWorstDow() {
+  let quiet = null, busy = null;
+  for (let d = 0; d < 6; d++) {
+    const v = statDows[d];
+    if (!v) continue;
+    if (!quiet || v < quiet.v) quiet = { d, v };
+    if (!busy  || v > busy.v)  busy  = { d, v };
+  }
+  return (quiet && busy) ? { quiet, busy } : null;
+}
+
+function statGradient(ctx, area, c1, c2) {
+  if (!area) return c1;
+  const g = ctx.createLinearGradient(0, area.top, 0, area.bottom);
+  g.addColorStop(0, c1); g.addColorStop(1, c2);
+  return g;
+}
+
+function statChartOptions(labelSize) {
+  return {
+    responsive: true, maintainAspectRatio: false,
+    animation: { duration: 1400, easing: "easeOutQuart" },
+    layout: { padding: { top: 10 } },
+    plugins: { legend: { display: false }, tooltip: { enabled: false } },
+    scales: {
+      y: { display: false, beginAtZero: true, grace: "18%" },
+      x: {
+        grid: { display: false }, border: { display: false },
+        ticks: { color: "rgba(255,255,255,.55)", padding: 14, maxRotation: 0,
+                 font: { family: "Inter, sans-serif", size: labelSize, weight: "300" } }
+      }
+    }
+  };
+}
+
+function sizeStatsCanvases() {
+  const h = Math.round(window.innerHeight * 0.45);
+  document.querySelectorAll(".stats-slide .xst-cv").forEach(el => {
+    el.style.height = h + "px";
+    el.style.minHeight = h + "px";
+  });
+}
+window.addEventListener("resize", () => {
+  sizeStatsCanvases();
+  if (statChartH) statChartH.resize();
+  if (statChartD) statChartD.resize();
+});
+
+function makeStatBar(el, labels, data, dim1, dim2, hot1, hot2, labelSize, prev) {
+  if (prev) { try { prev.destroy(); } catch (e) {} }
+  const peak = Math.max(...data);
+  const colorFn = (c) => {
+    const { ctx, chartArea } = c.chart;
+    const hot = data[c.dataIndex] === peak && peak > 0;
+    return statGradient(ctx, chartArea, hot ? hot1 : dim1, hot ? hot2 : dim2);
+  };
+  return new Chart(el, {
+    type: "bar",
+    data: { labels: labels, datasets: [{ data: data, backgroundColor: colorFn,
+      borderRadius: 16, borderSkipped: false, barPercentage: .7, categoryPercentage: .9 }] },
+    options: statChartOptions(labelSize)
+  });
+}
+
+function renderStatsSlide() {
+  if (typeof Chart === "undefined") return;
+  sizeStatsCanvases();
+
+  const hEl = document.getElementById("statHourChart");
+  const dEl = document.getElementById("statDowChart");
+  const H = bestWorstHour();
+  const D = bestWorstDow();
+
+  if (hEl) {
+    const labels = [], data = [];
+    for (let h = 8; h <= 23; h++) { labels.push(String(h).padStart(2, "0")); data.push(statHours[h]); }
+    statChartH = makeStatBar(hEl, labels, data,
+      "rgba(95,240,255,.62)", "rgba(95,240,255,.06)",
+      "#8ff8ff", "rgba(95,240,255,.28)", 20, statChartH);
+  }
+
+  if (dEl) {
+    const data = statDows.slice(0, 6);
+    statChartD = makeStatBar(dEl, DOW_SHORT.slice(0, 6), data,
+      "rgba(123,108,255,.62)", "rgba(123,108,255,.06)",
+      "#b9aeff", "rgba(123,108,255,.28)", 24, statChartD);
+  }
+
+  const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+  set("statQuietH", H ? String(H.quiet.h).padStart(2, "0") + ":00" : "—");
+  set("statBusyH",  H ? String(H.busy.h).padStart(2, "0") + ":00" : "—");
+  set("statQuietD", D ? DOW_NAMES[D.quiet.d] : "—");
+  set("statBusyD",  D ? DOW_NAMES[D.busy.d] : "—");
+}
+
+function loadStatsHistory() {
+  return db.collection("xgym_scans").get().then(snap => {
+    statHours = new Array(24).fill(0); statDows = new Array(7).fill(0);
+    statGrid = {}; statTotal = 0; statSeen = new Set();
+    snap.forEach(doc => addScanToStats(doc.data() || {}, doc.id));
+    console.log("📊 Στατιστικά οθόνης:", statTotal, "καταγραφές");
+    renderStatsSlide();
+  }).catch(err => console.error("❌ Λήψη στατιστικών απέτυχε:", err));
+}
+
+function watchStatsLive() {
+  const todayIso = new Date().toLocaleDateString("sv-SE");
+  return db.collection("xgym_scans").where("dateKey", "==", todayIso)
+    .onSnapshot(snap => {
+      let added = 0;
+      snap.docs.forEach(doc => { if (addScanToStats(doc.data() || {}, doc.id)) added++; });
+      if (added) renderStatsSlide();
+    }, err => console.error("❌ Live στατιστικά:", err));
+}
+
+loadStatsHistory().then(() => watchStatsLive());
+setInterval(loadStatsHistory, 6 * 60 * 60 * 1000);
 
     function retriggerRankAnims(root = document) {
         root.querySelectorAll('.xlb-item.rank-up').forEach(el => {
