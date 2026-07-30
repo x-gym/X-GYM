@@ -1502,6 +1502,29 @@ body {
       border-bottom: 1px solid rgba(255,255,255,.1);
     }
     .subs-head span { color: rgba(255,255,255,.32); letter-spacing: .1em; margin-left: 10px; text-transform: none; }
+
+    #subsAlerts {
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      margin-top: 22px;
+      background: rgba(255,255,255,0.04);
+      border-color: rgba(255,255,255,0.06);
+      backdrop-filter: none;
+      box-shadow: none;
+    }
+    #subsAlerts > div { padding: 22px 18px; }
+    #subsAlerts span { color: #f0c05f; }
+    #subsAlerts em {
+      display: block;
+      margin-top: 10px;
+      font-style: normal;
+      font-size: .68rem;
+      line-height: 1.55;
+      letter-spacing: 0;
+      text-transform: none;
+      color: rgba(255,255,255,.32);
+      max-width: 210px;
+    }
+    #subsAlerts strong { line-height: 1.35; }
     #subsActive {
       grid-template-columns: repeat(5, 1fr);
       margin-top: 22px;
@@ -5684,31 +5707,67 @@ const SUB_LABELS_FULL = {
   "6ΜΗΝΙΑΙΟ": "Εξάμηνη", "ΕΤΗΣΙΟ": "Ετήσια"
 };
 
+function lastScanByCustomer() {
+  const last = new Map();
+  for (const k in mockData) {
+    const [d, m, y] = k.split("/").map(Number);
+    if (!d || !m || !y) continue;
+    const t = new Date(y, m - 1, d).getTime();
+    (mockData[k] || []).forEach(e => {
+      if (e.type === "income" || !e.id) return;
+      const id = String(e.id).trim();
+      const prev = last.get(id);
+      if (prev === undefined || t > prev) last.set(id, t);
+    });
+  }
+  return last;
+}
+
 function subscriptionStats() {
   if (!customerSubscriptions) return null;
   const today = new Date().toLocaleDateString("sv-SE");
   const soon = new Date(); soon.setDate(soon.getDate() + 30);
   const soonStr = soon.toLocaleDateString("sv-SE");
+  const ago = new Date(); ago.setDate(ago.getDate() - 30);
+  const agoStr = ago.toLocaleDateString("sv-SE");
+
+  const lastSeen = lastScanByCustomer();
+  const now = Date.now();
+  const DAYS21 = 21 * 24 * 3600 * 1000;
+  const DAYS30 = 30 * 24 * 3600 * 1000;
+  const DAYS7 = 7 * 24 * 3600 * 1000;
 
   const counts = {};
   Object.keys(SUB_LABELS_FULL).forEach(k => counts[k] = { active: 0, expired: 0, unknown: 0 });
 
-  let active = 0, expired = 0, unknown = 0, noSub = 0, expiringSoon = 0;
+  let active = 0, expired = 0, unknown = 0, noSub = 0;
+  let expiringSoon = 0, churnRisk = 0, expiredLast30 = 0, neverCame = 0;
+  let expiredButComing = 0, healthyCore = 0;
 
   customerSubscriptions.forEach((sub, id) => {
     const type = String(sub || "").trim().toUpperCase();
     if (!SUB_LABELS_FULL[type]) { noSub++; return; }
     const exp = (customerExpiry && customerExpiry.get(id)) || "";
     if (!exp) { counts[type].unknown++; unknown++; return; }
+
     if (exp >= today) {
       counts[type].active++; active++;
       if (exp <= soonStr) expiringSoon++;
+      const ls = lastSeen.get(id);
+      if (ls === undefined) { churnRisk++; neverCame++; }
+      else if (now - ls > DAYS21) churnRisk++;
+      else if (now - ls <= DAYS7) healthyCore++;
     } else {
       counts[type].expired++; expired++;
+      if (exp >= agoStr) expiredLast30++;
+      const lsx = lastSeen.get(id);
+      if (lsx !== undefined && now - lsx <= DAYS30) expiredButComing++;
     }
   });
 
-  return { counts, active, expired, unknown, noSub, expiringSoon, total: customerSubscriptions.size };
+  return { counts, active, expired, unknown, noSub, expiringSoon,
+           churnRisk, expiredLast30, neverCame, expiredButComing, healthyCore,
+           total: customerSubscriptions.size };
 }
 
 function renderSubsSection() {
@@ -5726,6 +5785,8 @@ function renderSubsSection() {
       <div class="subs-rows" id="subsPct"></div>
       <div class="subs-head" style="margin-top:52px">Ενεργές συνδρομές ανά τύπο</div>
       <div class="monthly-summary-box" id="subsActive"></div>
+      <div class="subs-head" style="margin-top:52px">Χρειάζονται προσοχή</div>
+      <div class="monthly-summary-box" id="subsAlerts"></div>
       <div class="subs-foot" id="subsFoot"></div>`;
     host.parentNode.insertBefore(sec, host.nextSibling);
   }
@@ -5748,6 +5809,21 @@ function renderSubsSection() {
   document.getElementById("subsActive").innerHTML = types
     .map(k => `<div><strong>${SUB_LABELS_FULL[k]}</strong> <span>${S.counts[k].active}</span></div>`)
     .join("");
+
+    const al = (l, v, d) => `<div><strong>${l}</strong> <span>${v}</span><em>${d}</em></div>`;
+  document.getElementById("subsAlerts").innerHTML =
+    al("Κίνδυνος αποχώρησης", S.churnRisk - S.neverCame,
+       "Ενεργή συνδρομή, αλλά δεν έχουν έρθει πάνω από 21 ημέρες") +
+    al("Ποτέ δεν σκανάρισαν", S.neverCame,
+       "Ενεργή συνδρομή χωρίς καμία καταγραφή — πιθανώς δεν χρησιμοποιούν το QR") +
+    al("Έληξαν αλλά έρχονται", S.expiredButComing,
+       "Ληγμένη συνδρομή, όμως ήρθαν τον τελευταίο μήνα — άμεση ευκαιρία ανανέωσης") +
+    al("Έληξαν τελ. 30 ημέρες", S.expiredLast30,
+       "Έληξαν μέσα στον τελευταίο μήνα και δεν ανανέωσαν") +
+    al("Λήγουν σε 30 ημέρες", S.expiringSoon,
+       "Κανονική ροή ανανεώσεων — οι μηνιαίες λήγουν κάθε μήνα") +
+    al("Ενεργοί & συνεπείς", S.healthyCore,
+       "Ενεργή συνδρομή και ήρθαν την τελευταία εβδομάδα");
 
   document.getElementById("subsFoot").innerHTML =
     `Σύνολο εγγεγραμμένων: <b>${S.total}</b> &nbsp;·&nbsp; με συνδρομή: <b>${base}</b>` +
@@ -5904,8 +5980,7 @@ let subsBlock = "";
     }).join("");
     subsBlock = `
 <h2>Σύνθεση πελατολογίου</h2>
-<div class="kpis">
-${kpi(S.active, "Ενεργές")}
+<div class="kpis kpis-5">${kpi(S.active, "Ενεργές")}
 ${kpi(S.expired, "Ληγμένες")}
 ${kpi(S.expiringSoon, "Λήγουν σε 30 ημ.")}
 ${kpi(base, "Με συνδρομή")}
@@ -5936,7 +6011,8 @@ h2{font-size:.72rem;font-weight:400;letter-spacing:.22em;text-transform:uppercas
 .kpi{background:#080c11;padding:20px 6px;text-align:center}
 .kpi-v{font-size:1.25rem;font-weight:200;color:#5ff0ff;line-height:1.1;font-variant-numeric:tabular-nums;white-space:nowrap}
 .kpi-l{font-size:.52rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.35);margin-top:9px;line-height:1.3}
-@media(max-width:880px){.kpis{grid-template-columns:repeat(4,1fr)}}
+.kpis-5{grid-template-columns:repeat(5,1fr)}
+@media(max-width:880px){.kpis,.kpis-5{grid-template-columns:repeat(4,1fr)}}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
 .card{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:24px}
 .card h3{font-size:.68rem;font-weight:400;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:18px;text-align:center}
