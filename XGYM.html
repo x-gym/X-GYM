@@ -1481,6 +1481,47 @@ body {
       text-shadow: none !important;
     }
 
+    /* 🎫 Σύνθεση πελατολογίου */
+    .subs-section {
+      width: 90%; max-width: 1000px; margin: 70px auto 0;
+      font-family: 'Inter', sans-serif;
+      background: rgba(10, 14, 20, 0.82);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      padding: 34px 36px 30px;
+    }
+    .subs-head {
+      font-size: 1.05rem;
+      font-weight: 400;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: #ffffff;
+      padding-bottom: 14px;
+      border-bottom: 1px solid rgba(255,255,255,.1);
+    }
+    .subs-head span { color: rgba(255,255,255,.32); letter-spacing: .1em; margin-left: 10px; text-transform: none; }
+    #subsActive {
+      grid-template-columns: repeat(5, 1fr);
+      margin-top: 22px;
+      background: rgba(255,255,255,0.04);
+      border-color: rgba(255,255,255,0.06);
+      backdrop-filter: none;
+      box-shadow: none;
+    }
+    .subs-rows { margin-top: 22px; }
+    .subs-row { display: flex; align-items: center; gap: 20px; padding: 13px 4px; }
+    .subs-name { flex: 0 0 110px; font-size: .95rem; color: rgba(255,255,255,.7); }
+    .subs-bar { flex: 1; height: 10px; border-radius: 6px; overflow: hidden; background: rgba(255,255,255,.05); }
+    .subs-bar span { display: block; height: 100%; background: linear-gradient(90deg,#5ff0ff,#2ec4e6); }
+    .subs-n { flex: 0 0 78px; text-align: right; font-size: 1.15rem; font-weight: 200; color: #5ff0ff; font-variant-numeric: tabular-nums; }
+    .subs-n em { font-style: normal; font-size: .78rem; color: rgba(255,255,255,.35); margin-left: 2px; }
+    .subs-foot { margin-top: 26px; text-align: center; font-size: .8rem; color: rgba(255,255,255,.35); line-height: 1.9; }
+    .subs-foot b { color: #5ff0ff; font-weight: 400; }
+    .subs-empty { padding: 20px 0; text-align: center; font-size: .85rem; color: rgba(255,255,255,.25); }
+    @media (max-width: 900px) { #subsActive { grid-template-columns: repeat(3, 1fr); } }
+
 @media (max-width: 820px) {
   .monthly-summary-box { grid-template-columns: repeat(2, 1fr); }
 }
@@ -3074,6 +3115,7 @@ const CUSTOMER_LIST_REFRESH_MS = 5 * 60 * 1000; // ανανέωση κάθε 5 �
 
 let knownCustomerIds = null; // IDs που υπάρχουν στο sheet
 let customerSubscriptions = null; // Map: id -> τύπος συνδρομής (στήλη ΣΥΝΔΡΟΜΗ του sheet)
+let customerExpiry = null; // Map: id -> ημερομηνία λήξης "YYYY-MM-DD"
 
 async function refreshKnownCustomerIds() {
   try {
@@ -3089,6 +3131,9 @@ async function refreshKnownCustomerIds() {
     const customers = Array.isArray(data.customers) ? data.customers : [];
     customerSubscriptions = new Map(
       customers.map(c => [String(c.id).trim(), String(c.sub || "").trim().toUpperCase()])
+    );
+    customerExpiry = new Map(
+      customers.map(c => [String(c.id).trim(), String(c.exp || "").trim()])
     );
 
     console.log(`✅ Λίστα πελατών ανανεώθηκε: ${knownCustomerIds.size} εγγεγραμμένα ID`);
@@ -4220,7 +4265,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let secondChartDrawn = false;
 
  statsMonthlyBtn?.addEventListener("click", () => {
-    requestPasswordThenShow("monthlyStatsPage");
+    requestPasswordThenShow("monthlyStatsPage", () => renderSubsSection());
   });
 
 // ✅ Trigger τρέχοντος μήνα ΜΟΛΙΣ φορτωθεί όλο
@@ -5642,6 +5687,84 @@ document.getElementById("svcCloseDay")?.addEventListener("click", () => {
   const pmo = document.getElementById("passwordModalOverlay");
   if (pmo && pmo.parentElement !== document.body) document.body.appendChild(pmo);
 })();
+
+// ===== 🎫 ΣΥΝΘΕΣΗ ΠΕΛΑΤΟΛΟΓΙΟΥ =====
+const SUB_LABELS_FULL = {
+  "ΜΗΝΙΑΙΟ": "Μηνιαία", "2ΜΗΝΙΑΙΟ": "Δίμηνη", "3ΜΗΝΙΑΙΟ": "Τρίμηνη",
+  "6ΜΗΝΙΑΙΟ": "Εξάμηνη", "ΕΤΗΣΙΟ": "Ετήσια"
+};
+
+function subscriptionStats() {
+  if (!customerSubscriptions) return null;
+  const today = new Date().toLocaleDateString("sv-SE");
+  const soon = new Date(); soon.setDate(soon.getDate() + 30);
+  const soonStr = soon.toLocaleDateString("sv-SE");
+
+  const counts = {};
+  Object.keys(SUB_LABELS_FULL).forEach(k => counts[k] = { active: 0, expired: 0, unknown: 0 });
+
+  let active = 0, expired = 0, unknown = 0, noSub = 0, expiringSoon = 0;
+
+  customerSubscriptions.forEach((sub, id) => {
+    const type = String(sub || "").trim().toUpperCase();
+    if (!SUB_LABELS_FULL[type]) { noSub++; return; }
+    const exp = (customerExpiry && customerExpiry.get(id)) || "";
+    if (!exp) { counts[type].unknown++; unknown++; return; }
+    if (exp >= today) {
+      counts[type].active++; active++;
+      if (exp <= soonStr) expiringSoon++;
+    } else {
+      counts[type].expired++; expired++;
+    }
+  });
+
+  return { counts, active, expired, unknown, noSub, expiringSoon, total: customerSubscriptions.size };
+}
+
+function renderSubsSection() {
+  const S = subscriptionStats();
+  const host = document.getElementById("secondChartContainer");
+  if (!S || !host) return;
+
+  let sec = document.getElementById("subsSection");
+  if (!sec) {
+    sec = document.createElement("div");
+    sec.id = "subsSection";
+    sec.className = "subs-section";
+    sec.innerHTML = `
+      <div class="subs-head">Κατανομή τύπων συνδρομής</div>
+      <div class="subs-rows" id="subsPct"></div>
+      <div class="subs-head" style="margin-top:52px">Ενεργές συνδρομές ανά τύπο</div>
+      <div class="monthly-summary-box" id="subsActive"></div>
+      <div class="subs-foot" id="subsFoot"></div>`;
+    host.parentNode.insertBefore(sec, host.nextSibling);
+  }
+
+  const types = Object.keys(SUB_LABELS_FULL);
+  const totalOf = k => S.counts[k].active + S.counts[k].expired + S.counts[k].unknown;
+  const base = types.reduce((s, k) => s + totalOf(k), 0);
+
+  document.getElementById("subsPct").innerHTML = types.map(k => {
+    const tot = totalOf(k);
+    if (!tot) return "";
+    const pct = base ? (tot / base) * 100 : 0;
+    return `<div class="subs-row">
+      <div class="subs-name">${SUB_LABELS_FULL[k]}</div>
+      <div class="subs-bar"><span class="sb-a" style="width:${pct.toFixed(1)}%"></span></div>
+      <div class="subs-n">${pct.toFixed(1)}<em>%</em></div>
+    </div>`;
+  }).join("") || '<div class="subs-empty">Δεν υπάρχουν δεδομένα συνδρομών</div>';
+
+  document.getElementById("subsActive").innerHTML = types
+    .map(k => `<div><strong>${SUB_LABELS_FULL[k]}</strong> <span>${S.counts[k].active}</span></div>`)
+    .join("");
+
+  document.getElementById("subsFoot").innerHTML =
+    `Σύνολο εγγεγραμμένων: <b>${S.total}</b> &nbsp;·&nbsp; με συνδρομή: <b>${base}</b>` +
+    ` &nbsp;·&nbsp; ενεργές: <b>${S.active}</b> &nbsp;·&nbsp; ληγμένες: <b>${S.expired}</b>` +
+    (S.expiringSoon ? ` &nbsp;·&nbsp; λήγουν σε 30 ημέρες: <b>${S.expiringSoon}</b>` : "") +
+    (S.unknown ? ` &nbsp;·&nbsp; χωρίς ημ/νία λήξης: <b>${S.unknown}</b>` : "");
+}
 // ===== 📊 ΠΛΗΡΗΣ ΑΝΑΦΟΡΑ =====
 function collectReportData() {
   const year = CURRENT_YEAR;
