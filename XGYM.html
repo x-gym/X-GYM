@@ -4344,19 +4344,14 @@ function drawMonthlyChart(month) {
 },
         title: {
           display: true,
-          text: "Έσοδα Ιουλίου:",
-          color: "white",
-          font: {
-            size: 22,
-            weight: "bold"
-          }
+          text: "ΕΣΟΔΑ",
+          color: "#ffffff",
+          font: { family: "'Inter', sans-serif", size: 17, weight: "400" }
         },
         legend: {
           labels: {
-            color: "white",
-            font: {
-              size: 16
-            }
+            color: "rgba(255,255,255,0.35)",
+            font: { family: "'Inter', sans-serif", size: 13 }
           }
         },
         zoom: {
@@ -4435,7 +4430,7 @@ function updateMonthlyChartFromData(monthInput) {
     const total = weeklyTotals.reduce((a, b) => a + b, 0);
     const bestWeek = weeklyTotals.indexOf(Math.max(...weeklyTotals)) + 1;
 
-    window.julyChartInstance.options.plugins.title.text = `Έσοδα ${getMonthName(monthInput)}: €${total}`;
+    window.julyChartInstance.options.plugins.title.text = `ΕΣΟΔΑ ${getMonthName(monthInput).toUpperCase()}: €${total}`;
     window.julyChartInstance.update();
 
     document.getElementById("totalJulyIncome").textContent = `${total.toFixed(2)}€`;
@@ -4648,19 +4643,14 @@ function drawSecondChart(month) {
         },
         title: {
           display: true,
-          text: "Απόδοση Γυμναστηρίου",
-          color: "white",
-          font: {
-            size: 22,
-            weight: "bold"
-          }
+          text: "ΑΠΟΔΟΣΗ ΓΥΜΝΑΣΤΗΡΙΟΥ",
+          color: "#ffffff",
+          font: { family: "'Inter', sans-serif", size: 17, weight: "400" }
         },
         legend: {
           labels: {
-            color: "white",
-            font: {
-              size: 16
-            }
+            color: "rgba(255,255,255,0.35)",
+            font: { family: "'Inter', sans-serif", size: 13 }
           }
         },
         zoom: {
@@ -5864,6 +5854,8 @@ function collectReportData() {
 
   return {
     year, MONTHS, hourly, periods, top, payments,
+    subs: (typeof subscriptionStats === "function" ? subscriptionStats() : null),
+    SUB_LABELS: (typeof SUB_LABELS_FULL !== "undefined" ? SUB_LABELS_FULL : {}),
     months: per.map((M, i) => ({
       name: MONTHS[i], records: M.records, customers: M.ids.size, newIds: M.newIds,
       male: M.male.size, female: M.female.size, income: M.income,
@@ -5899,7 +5891,34 @@ function buildReportHTML(R) {
 
   const payRows = R.payments.slice(0, 200).map(p => `
     <tr><td>${esc(p.date)}</td><td>${esc(p.name)}</td><td class="num">${eur(p.amount)}</td></tr>`).join("");
-
+let subsBlock = "";
+  if (R.subs) {
+    const S = R.subs, TY = Object.keys(R.SUB_LABELS);
+    const tot = k => S.counts[k].active + S.counts[k].expired + S.counts[k].unknown;
+    const base = TY.reduce((a, k) => a + tot(k), 0);
+    const rows = TY.map(k => {
+      const t = tot(k); if (!t) return "";
+      return `<tr><td>${R.SUB_LABELS[k]}</td><td>${t}</td>` +
+             `<td>${base ? ((t / base) * 100).toFixed(1) : "0.0"}%</td>` +
+             `<td>${S.counts[k].active}</td><td class="num">${S.counts[k].expired}</td></tr>`;
+    }).join("");
+    subsBlock = `
+<h2>Σύνθεση πελατολογίου</h2>
+<div class="kpis">
+${kpi(S.active, "Ενεργές")}
+${kpi(S.expired, "Ληγμένες")}
+${kpi(S.expiringSoon, "Λήγουν σε 30 ημ.")}
+${kpi(base, "Με συνδρομή")}
+${kpi(S.total, "Εγγεγραμμένοι")}
+</div>
+<div class="grid2" style="margin-top:24px">
+  <div class="card"><h3>Τύποι συνδρομής</h3><div class="cbox"><canvas id="cS"></canvas></div></div>
+  <div class="card"><h3>Ενεργές / Ληγμένες</h3><div class="cbox"><canvas id="cA"></canvas></div></div>
+</div>
+<table style="margin-top:24px"><thead><tr><th>Τύπος</th><th>Σύνολο</th><th>Ποσοστό</th><th>Ενεργές</th><th>Ληγμένες</th></tr></thead>
+<tbody>${rows || '<tr><td colspan="5">Χωρίς δεδομένα</td></tr>'}</tbody></table>
+<div class="note">Κατάσταση όπως έχει σήμερα, βάσει ημερομηνίας λήξης.</div>`;
+  }
   return `<!DOCTYPE html><html lang="el"><head><meta charset="UTF-8">
 <title>X-GYM · Αναφορά ${R.year}</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;600&family=JetBrains+Mono:wght@300;500&display=swap" rel="stylesheet">
@@ -5979,6 +5998,7 @@ ${kpi(T.bestMonth, "Κορυφαίος μήνας")}
 
 <h2>Κατανομή ανά ώρα</h2>
 <div class="card"><div class="cbox"><canvas id="cH"></canvas></div></div>
+${subsBlock}
 
 <h2>Ανάλυση ανά μήνα</h2>
 <table><thead><tr><th>Μήνας</th><th>Καταγρ.</th><th>Πελάτες</th><th>Νέοι</th><th>Άνδρες</th><th>Γυναίκες</th><th>Τακτικοί</th><th>Έσοδα</th></tr></thead>
@@ -6032,6 +6052,21 @@ new Chart(document.getElementById("cH"), { type: "bar",
     datasets: [{ label: "Καταγραφές", data: D.hourly, backgroundColor: "rgba(95,240,255,.5)", borderRadius: 6 }] },
   options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
     scales: { y: { beginAtZero: true, grid, ticks: F }, x: { grid: { display: false }, ticks: { ...F, maxRotation: 0, autoSkipPadding: 12 } } } } });
+    if (document.getElementById("cS")) {
+  const SB = ${JSON.stringify(R.subs ? { counts: R.subs.counts, active: R.subs.active, expired: R.subs.expired } : null)};
+  const LB = ${JSON.stringify(R.SUB_LABELS)};
+  const keys = Object.keys(LB).filter(k => SB.counts[k] && (SB.counts[k].active + SB.counts[k].expired + SB.counts[k].unknown) > 0);
+  new Chart(document.getElementById("cS"), { type: "doughnut",
+    data: { labels: keys.map(k => LB[k]),
+      datasets: [{ data: keys.map(k => SB.counts[k].active + SB.counts[k].expired + SB.counts[k].unknown),
+        backgroundColor: ["#5ff0ff", "#7b6cff", "#a855f7", "#f0c05f", "#4ade80"],
+        borderColor: "#05080c", borderWidth: 3 }] },
+    options: { responsive: true, maintainAspectRatio: false, cutout: "58%", plugins: { legend } } });
+  new Chart(document.getElementById("cA"), { type: "doughnut",
+    data: { labels: ["Ενεργές", "Ληγμένες"], datasets: [{ data: [SB.active, SB.expired],
+      backgroundColor: ["#5ff0ff", "rgba(255,255,255,.22)"], borderColor: "#05080c", borderWidth: 3 }] },
+    options: { responsive: true, maintainAspectRatio: false, cutout: "58%", plugins: { legend } } });
+}
 document.getElementById("btnPdf").addEventListener("click", function () {
   const btn = this, hint = document.getElementById("pdfHint");
   const old = btn.textContent;
