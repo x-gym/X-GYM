@@ -6969,8 +6969,7 @@ function admDrawAdd() {
         d.toLocaleDateString("el-GR", { day: "2-digit", month: "2-digit" }) + '</button>' +
     '</div></div>' +
     '<div class="adm-warn" id="admAddWarn"></div>' +
-    '<button class="adm-act primary" data-act="addsave">Αποθήκευση</button>' +
-    '<button class="adm-act" data-act="addcancel">Άκυρο</button>';
+    '<button class="adm-act primary" data-act="addsave">Αποθήκευση</button>';
   ["admAddTime", "admAddDur"].forEach(function (id) {
     document.getElementById(id).addEventListener("change", admAddSync);
   });
