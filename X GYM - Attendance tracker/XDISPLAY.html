@@ -1356,6 +1356,54 @@ align-self: center;          /* κάθετα στο grid row */
   color:rgba(255,255,255,.44); margin-top:.35vh; }
 .xsw-name .tag-kids, .xsw-name .tag-men{ font-size:.8vw; padding:.28vh .6vw;
   margin-left:.8vw; vertical-align:.3em; }
+
+  /* ═══════════════ QR ΠΡΟΓΡΑΜΜΑΤΟΣ ═══════════════ */
+.xsq-slide{ color:#fff;
+  background:
+    radial-gradient(110% 70% at 78% 50%, rgba(95,240,255,.07), transparent 58%),
+    linear-gradient(180deg, #0a1017 0%, #04070a 74%); }
+.xsq-aura{ position:absolute; right:12vw; top:50%; width:62vw; height:62vw;
+  transform:translate(50%,-50%); pointer-events:none; opacity:.11; color:#5ff0ff;
+  background:radial-gradient(circle, currentColor 0%, transparent 62%); filter:blur(2vw); }
+.xsq-wrap{ position:relative; height:100%; box-sizing:border-box; display:flex;
+  align-items:center; justify-content:center; gap:7vw; padding:9vh 7vw 4vh; }
+.xsq-left{ flex:0 1 auto; max-width:42vw; }
+.xsq-eyebrow{ font-family:'Poppins',sans-serif; font-weight:600; font-size:1.5vw;
+  letter-spacing:.44em; text-transform:uppercase; color:rgba(255,255,255,.42);
+  text-indent:.44em; }
+.xsq-title{ font-family:'Orbitron',sans-serif; font-weight:700; font-size:5vw;
+  line-height:1.02; margin-top:2vh; letter-spacing:-.025em; color:#fff;
+  text-shadow:0 0 8vw rgba(95,240,255,.28); }
+.xsq-rule{ width:7vw; height:.26vh; margin-top:3vh; border-radius:1vh;
+  background:linear-gradient(90deg, #5ff0ff, transparent); }
+.xsq-list{ list-style:none; margin:3.6vh 0 0; padding:0; }
+.xsq-list li{ position:relative; font-family:'Poppins',sans-serif; font-weight:300;
+  font-size:1.75vw; color:rgba(255,255,255,.6); padding-left:2.4vw; margin-bottom:1.9vh;
+  line-height:1.35; }
+.xsq-list li::before{ content:""; position:absolute; left:0; top:.62em;
+  width:.62vw; height:.62vw; border-radius:50%; background:#5ff0ff;
+  box-shadow:0 0 1.4vh rgba(95,240,255,.75); }
+.xsq-right{ flex:none; display:flex; flex-direction:column; align-items:center; }
+.xsq-card{ padding:1.9vh 1.9vh; border-radius:2.6vh; background:#fff;
+  box-shadow:0 0 9vh -1.5vh rgba(95,240,255,.55), 0 2.4vh 6vh -1.6vh rgba(0,0,0,.85);
+  animation:xsqBreathe 3.6s ease-in-out infinite; }
+.xsq-card img{ display:block; width:34vh; height:34vh; }
+@keyframes xsqBreathe{
+  0%,100%{ box-shadow:0 0 9vh -1.5vh rgba(95,240,255,.5),  0 2.4vh 6vh -1.6vh rgba(0,0,0,.85); }
+  50%    { box-shadow:0 0 13vh -1.5vh rgba(95,240,255,.85), 0 2.4vh 6vh -1.6vh rgba(0,0,0,.85); } }
+.xsq-cta{ display:flex; align-items:center; gap:1vw; margin-top:3.2vh;
+  padding:1.3vh 2.4vw; border-radius:6vh;
+  background:linear-gradient(135deg, rgba(255,255,255,.085), rgba(255,255,255,.022));
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.16);
+  backdrop-filter:blur(1.4vw) saturate(150%); -webkit-backdrop-filter:blur(1.4vw) saturate(150%);
+  font-family:'Poppins',sans-serif; font-weight:500; font-size:1.5vw;
+  letter-spacing:.06em; color:rgba(255,255,255,.82); white-space:nowrap; }
+.xsq-cam{ width:1.9vw; height:1.5vw; border-radius:.4vw; flex:none; position:relative;
+  border:.19vw solid #5ff0ff; box-shadow:0 0 1.6vh rgba(95,240,255,.55); }
+.xsq-cam::after{ content:""; position:absolute; left:50%; top:50%;
+  width:.66vw; height:.66vw; border-radius:50%; transform:translate(-50%,-50%);
+  background:#5ff0ff; }
   </style>
   <script src="../schedule.js?v=1.2.0"></script>
 </head>
