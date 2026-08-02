@@ -1145,8 +1145,219 @@ align-self: center;          /* κάθετα στο grid row */
 .xst-tip.quiet b { color: #5ff0ff; text-shadow: 0 0 40px rgba(95,240,255,.5); }
 .xst-tip.busy { background: linear-gradient(180deg, rgba(240,192,95,.09), rgba(240,192,95,.02)); }
 .xst-tip.busy b { color: #f0c05f; text-shadow: 0 0 40px rgba(240,192,95,.45); }
+
+/* ═══════════════ ΕΠΟΜΕΝΟ ΤΜΗΜΑ ═══════════════ */
+.xsn-slide{ color:#fff;
+  background:
+    radial-gradient(130% 85% at 50% 42%, rgba(255,255,255,.035), transparent 58%),
+    linear-gradient(180deg, #0a1017 0%, #04070a 72%); }
+.xsn-glow{ position:absolute; left:50%; top:44%; width:86vw; height:86vw;
+  transform:translate(-50%,-50%); pointer-events:none; opacity:.15;
+  background:radial-gradient(circle, currentColor 0%, transparent 60%); filter:blur(1vw); }
+.xsn-ring{ position:absolute; left:50%; top:44%; width:52vw; height:52vw;
+  transform:translate(-50%,-50%); pointer-events:none; border-radius:50%;
+  border:1px solid currentColor; opacity:.07; }
+.xsn-ring.b{ width:74vw; height:74vw; opacity:.04; }
+.xsn-wrap{ position:relative; height:100%; box-sizing:border-box; display:flex;
+  flex-direction:column; align-items:center; justify-content:center; text-align:center;
+  padding:11vh 6vw 3vh; }   /* ασύμμετρο padding = κατέβασμα στην ασφαλή ζώνη */
+.xsn-strip{ position:absolute; top:10vh; left:50%; transform:translateX(-50%);
+  display:none; align-items:center; gap:1.1vw; padding:1.15vh 2.4vw; border-radius:6vh;
+  background:linear-gradient(135deg, rgba(255,255,255,.085), rgba(255,255,255,.025));
+  border:1px solid rgba(255,255,255,.1);
+  box-shadow:0 1.4vh 3.4vh -1.2vh rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.14);
+  backdrop-filter:blur(1.4vw) saturate(150%); -webkit-backdrop-filter:blur(1.4vw) saturate(150%);
+  font-family:'Poppins',sans-serif; font-weight:400; font-size:1.35vw;
+  letter-spacing:.05em; color:rgba(255,255,255,.55); white-space:nowrap; }
+.xsn-strip.on{ display:flex; }
+.xsn-strip em{ width:.8vw; height:.8vw; border-radius:50%; font-style:normal;
+  background:currentColor; box-shadow:0 0 1.8vh currentColor; flex:none; }
+.xsn-strip b{ color:#fff; font-weight:600; }
+.xsn-eyebrow{ font-family:'Poppins',sans-serif; font-weight:600; font-size:1.75vw;
+  letter-spacing:.44em; text-transform:uppercase; color:rgba(255,255,255,.46);
+  text-indent:.44em; }
+.xsn-rule{ width:6vw; height:.24vh; border-radius:1vh; margin-top:2vh;
+  background:linear-gradient(90deg, transparent, currentColor 35%, currentColor 65%, transparent);
+  opacity:.9; }
+.xsn-name{ font-family:'Orbitron',sans-serif; font-weight:700; font-size:8.6vw;
+  line-height:.94; margin-top:3vh; letter-spacing:-.02em;
+  text-shadow:0 0 10vw currentColor, 0 .5vh 2.4vh rgba(0,0,0,.65); }
+.xsn-trainer{ font-family:'Poppins',sans-serif; font-weight:300; font-size:2.3vw;
+  color:rgba(255,255,255,.6); margin-top:2.4vh; letter-spacing:.03em; }
+.xsn-trainer b{ font-weight:600; color:rgba(255,255,255,.95); }
+.xsn-trainer i{ font-style:normal; color:rgba(255,255,255,.22); margin:0 1.1vw; }
+.xsn-panel{ position:relative; margin-top:5vh; display:flex; flex-direction:column;
+  align-items:center; padding:2.7vh 5.2vw; border-radius:2.6vh;
+  background:linear-gradient(135deg, rgba(255,255,255,.08), rgba(255,255,255,.022));
+  border:1px solid rgba(255,255,255,.1);
+  box-shadow:0 2.2vh 5.5vh -1.6vh rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.15);
+  backdrop-filter:blur(1.8vw) saturate(155%); -webkit-backdrop-filter:blur(1.8vw) saturate(155%); }
+.xsn-count{ font-family:'Orbitron',sans-serif; font-weight:700; font-size:4.7vw;
+  line-height:1; letter-spacing:-.02em; text-shadow:0 0 4vw currentColor; }
+.xsn-when{ font-family:'Poppins',sans-serif; font-weight:400; font-size:1.45vw;
+  letter-spacing:.36em; color:rgba(255,255,255,.36); margin-top:1.7vh; text-indent:.36em; }
+.xsn-barwrap{ width:26vw; height:.7vh; border-radius:1vh; margin-top:2.6vh;
+  background:rgba(255,255,255,.09); overflow:hidden; display:none;
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.5); }
+.xsn-barwrap.on{ display:block; }
+.xsn-barwrap i{ display:block; height:100%; width:0; border-radius:1vh;
+  background:linear-gradient(90deg, transparent, currentColor 40%, currentColor);
+  box-shadow:0 0 2.2vh currentColor; transition:width 1s linear; }
+.xsn-barwrap.pre{ background:rgba(255,255,255,.055); }
+.xsn-barwrap.pre i{ opacity:.42; box-shadow:none; }
+.xsn-after{ font-family:'Poppins',sans-serif; font-weight:400; font-size:1.35vw;
+  color:rgba(255,255,255,.28); margin-top:5.5vh; letter-spacing:.2em; text-transform:uppercase; }
+.xsn-after b{ color:rgba(255,255,255,.58); font-weight:600; }
+
+/* ═══════════════ ΤΟ ΠΡΟΓΡΑΜΜΑ ΣΗΜΕΡΑ ═══════════════ */
+.xsd-slide{ color:#fff;
+  background:
+    radial-gradient(120% 70% at 50% -8%, rgba(255,255,255,.045), transparent 55%),
+    linear-gradient(180deg, #0a1017 0%, #04070a 74%); }
+.xsd-aura{ position:absolute; left:50%; top:60%; width:130vw; height:80vw;
+  transform:translate(-50%,-50%); pointer-events:none; opacity:.09;
+  background:radial-gradient(ellipse at center, currentColor 0%, transparent 58%);
+  filter:blur(2vw); }
+.xsd-wrap{ position:relative; height:100%; box-sizing:border-box; display:flex;
+  flex-direction:column; justify-content:center; padding:9vh 7vw 2.5vh; }
+.xsd-title{ font-family:'Orbitron',sans-serif; font-weight:700; font-size:3.6vw;
+  color:#fff; text-align:center; line-height:1; letter-spacing:-.025em;
+  text-shadow:0 0 7vw rgba(255,255,255,.18); }
+.xsd-rule{ width:8vw; height:.22vh; margin:1.9vh auto 0; border-radius:1vh;
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,.55), transparent); }
+.xsd-sub{ font-family:'Poppins',sans-serif; font-weight:600; font-size:1.25vw;
+  letter-spacing:.5em; text-transform:uppercase; color:rgba(255,255,255,.34);
+  text-align:center; margin-top:1.7vh; text-indent:.5em; }
+.xsd-list{ margin-top:3.8vh; display:flex; flex-direction:column; gap:1vh; }
+.xsd-row{ position:relative; display:flex; align-items:center; gap:2.2vw;
+  padding:1.6vh 2.4vw 1.6vh 3.6vw; border-radius:1.9vh; overflow:hidden;
+  background:linear-gradient(135deg, rgba(255,255,255,.062), rgba(255,255,255,.016));
+  border:1px solid rgba(255,255,255,.075);
+  box-shadow:0 1.3vh 3.2vh -1.3vh rgba(0,0,0,.72), inset 0 1px 0 rgba(255,255,255,.1);
+  backdrop-filter:blur(1.3vw) saturate(150%); -webkit-backdrop-filter:blur(1.3vw) saturate(150%); }
+.xsd-row::after{ content:""; position:absolute; inset:0; pointer-events:none;
+  background:linear-gradient(90deg, currentColor, transparent 36%); opacity:.075; }
+.xsd-bar{ position:absolute; left:0; top:0; bottom:0; width:.48vw;
+  background:linear-gradient(180deg, currentColor 0%, currentColor 58%, transparent 125%);
+  box-shadow:0 0 1.7vh currentColor; }
+.xsd-time{ position:relative; font-family:'Orbitron',sans-serif; font-weight:700;
+  font-size:2.65vw; color:#fff; min-width:8vw; letter-spacing:-.025em;
+  text-shadow:0 .2vh .7vh rgba(0,0,0,.55); }
+.xsd-body{ position:relative; flex:1; text-align:left; min-width:0; }
+.xsd-name{ font-family:'Poppins',sans-serif; font-weight:600; font-size:2.4vw;
+  color:#fff; line-height:1.08; letter-spacing:-.008em; }
+.xsd-trainer{ font-family:'Poppins',sans-serif; font-weight:300; font-size:1.45vw;
+  color:rgba(255,255,255,.44); margin-top:.55vh; letter-spacing:.03em; }
+.tag-kids, .tag-men{ font-family:'Poppins',sans-serif; font-weight:600;
+  letter-spacing:.24em; border-radius:.55vh; white-space:nowrap; text-transform:uppercase; }
+.tag-kids{ color:#ff8fc7; background:rgba(255,143,199,.12);
+  border:1px solid rgba(255,143,199,.32); box-shadow:0 0 1.6vh -.4vh rgba(255,143,199,.5); }
+.tag-men { color:#7cc4ff; background:rgba(124,196,255,.12);
+  border:1px solid rgba(124,196,255,.32); box-shadow:0 0 1.6vh -.4vh rgba(124,196,255,.5); }
+.xsd-name .tag-kids, .xsd-name .tag-men{ font-size:.92vw; padding:.32vh .72vw;
+  margin-left:.95vw; vertical-align:.34em; }
+.xsn-name .tag-kids, .xsn-name .tag-men{ font-size:1.45vw; padding:.5vh 1vw;
+  margin-left:1.3vw; vertical-align:.9em; letter-spacing:.28em; }
+  .ampm{ font-family:'Poppins',sans-serif; font-weight:400; font-size:.44em;
+  letter-spacing:.02em; text-transform:none; opacity:.5; margin-left:.38em;
+  vertical-align:.12em; }
+.xsd-flag{ position:relative; font-family:'Poppins',sans-serif; font-weight:600;
+  font-size:1.12vw; letter-spacing:.26em; text-transform:uppercase;
+  padding:.85vh 1.4vw; border-radius:.95vh; white-space:nowrap; text-indent:.26em; }
+.xsd-flag.now{ color:#05080c; font-weight:700; }
+.xsd-flag.soon{ border:1px solid; background:rgba(255,255,255,.028); }
+.xsd-flag.off{ color:#ff6b6b; background:rgba(255,107,107,.12);
+  border:1px solid rgba(255,107,107,.28); }
+.xsd-row.now{ padding-top:2.35vh; padding-bottom:2.35vh;
+  background:linear-gradient(135deg, rgba(255,255,255,.115), rgba(255,255,255,.032));
+  border-color:currentColor;
+  box-shadow:0 0 6.5vh -1.2vh currentColor, 0 1.8vh 4.5vh -1.5vh rgba(0,0,0,.8),
+             inset 0 1px 0 rgba(255,255,255,.2); }
+.xsd-row.now::after{ opacity:.14; }
+.xsd-row.now .xsd-time{ font-size:3.05vw; }
+.xsd-row.now .xsd-name{ font-size:2.65vw; }
+/* ── μπάρα προόδου: διαδρομή + γέμισμα + λάμψη που κυλάει + κεφαλή ── */
+.xsd-track{ position:absolute; left:0; right:0; bottom:0; height:.5vh;
+  background:rgba(255,255,255,.06); }
+.xsd-prog{ position:absolute; left:0; bottom:0; height:.5vh; overflow:hidden;
+  background:linear-gradient(90deg, rgba(255,255,255,.12), currentColor 45%, currentColor);
+  box-shadow:0 0 2.4vh currentColor, 0 0 .6vh currentColor; }
+.xsd-prog::before{ content:""; position:absolute; inset:0;
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,.6), transparent);
+  background-size:24% 100%; background-repeat:no-repeat;
+  animation:xsSweep 2.8s linear infinite; }
+.xsd-prog::after{ content:""; position:absolute; right:0; top:50%;
+  width:.85vh; height:.85vh; border-radius:50%; transform:translate(50%,-50%);
+  background:#fff; box-shadow:0 0 1.8vh .25vh currentColor;
+  animation:xsPulse 1.9s ease-in-out infinite; }
+@keyframes xsSweep{ from{ background-position:-26% 0; } to{ background-position:126% 0; } }
+@keyframes xsPulse{ 0%,100%{ opacity:1;   transform:translate(50%,-50%) scale(1); }
+                    50%    { opacity:.5;  transform:translate(50%,-50%) scale(1.55); } }
+.xsd-row.done{ background:rgba(255,255,255,.012); border-color:rgba(255,255,255,.038);
+  box-shadow:none; backdrop-filter:none; -webkit-backdrop-filter:none; }
+.xsd-row.done::after{ opacity:.02; }
+.xsd-row.done .xsd-bar{ opacity:.22; box-shadow:none; }
+.xsd-row.done .xsd-time{ color:rgba(255,255,255,.25); text-shadow:none; }
+.xsd-row.done .xsd-name{ color:rgba(255,255,255,.29); font-weight:400; }
+.xsd-row.done .xsd-trainer{ color:rgba(255,255,255,.16); }
+.xsd-row.done .tag-kids, .xsd-row.done .tag-men{ opacity:.35; box-shadow:none; }
+.xsd-row.off{ background:rgba(255,107,107,.028); border-color:rgba(255,107,107,.14); }
+.xsd-row.off .xsd-bar{ opacity:.3; box-shadow:none; }
+.xsd-row.off .xsd-time,
+.xsd-row.off .xsd-name{ color:rgba(255,255,255,.3); text-decoration:line-through;
+  text-decoration-thickness:.16vh; }
+.xsd-row.off .xsd-trainer{ color:rgba(255,255,255,.17); }
+
+/* ═══════════════ ΕΒΔΟΜΑΔΙΑΙΟ ΠΡΟΓΡΑΜΜΑ ═══════════════ */
+.xsw-slide{ color:#fff;
+  background:
+    radial-gradient(120% 70% at 50% -8%, rgba(255,255,255,.045), transparent 55%),
+    linear-gradient(180deg, #0a1017 0%, #04070a 74%); }
+.xsw-aura{ position:absolute; left:50%; top:62%; width:130vw; height:80vw;
+  transform:translate(-50%,-50%); pointer-events:none; opacity:.05; color:#5ff0ff;
+  background:radial-gradient(ellipse at center, currentColor 0%, transparent 58%); filter:blur(2vw); }
+.xsw-wrap{ position:relative; height:100%; box-sizing:border-box; display:flex;
+  flex-direction:column; padding:8vh 5vw 3vh; }
+.xsw-title{ font-family:'Orbitron',sans-serif; font-weight:700; font-size:3.2vw;
+  color:#fff; text-align:center; line-height:1; letter-spacing:-.025em;
+  text-shadow:0 0 7vw rgba(255,255,255,.18); }
+.xsw-rule{ width:7vw; height:.22vh; margin:1.6vh auto 0; border-radius:1vh;
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,.55), transparent); }
+.xsw-sub{ font-family:'Poppins',sans-serif; font-weight:600; font-size:1.2vw;
+  letter-spacing:.48em; text-transform:uppercase; color:rgba(255,255,255,.34);
+  text-align:center; margin-top:1.5vh; text-indent:.48em; }
+.xsw-cols{ flex:1; min-height:0; margin-top:3.6vh; display:flex; gap:2.4vw; align-items:stretch; }
+.xsw-col{ flex:1; min-width:0; display:flex; flex-direction:column; }
+.xsw-day{ font-family:'Poppins',sans-serif; font-weight:600; font-size:1.5vw;
+  letter-spacing:.3em; text-indent:.3em; text-transform:uppercase; text-align:center;
+  color:rgba(255,255,255,.44); padding:1vh 0; margin-bottom:1.6vh; border-radius:1vh;
+  border:1px solid transparent; }
+.xsw-col.today .xsw-day{ color:#5ff0ff; background:rgba(95,240,255,.09);
+  border-color:rgba(95,240,255,.28); }
+.xsw-rows{ flex:1; display:flex; flex-direction:column; gap:1vh; }
+.xsw-row{ position:relative; display:flex; align-items:center; gap:1.6vw; overflow:hidden;
+  padding:1.35vh 1.5vw 1.35vh 2.2vw; border-radius:1.5vh;
+  background:linear-gradient(135deg, rgba(255,255,255,.06), rgba(255,255,255,.015));
+  border:1px solid rgba(255,255,255,.07);
+  box-shadow:0 1vh 2.6vh -1.1vh rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.09);
+  backdrop-filter:blur(1vw) saturate(150%); -webkit-backdrop-filter:blur(1vw) saturate(150%); }
+.xsw-row::after{ content:""; position:absolute; inset:0; pointer-events:none;
+  background:linear-gradient(90deg, currentColor, transparent 40%); opacity:.07; }
+.xsw-bar{ position:absolute; left:0; top:0; bottom:0; width:.34vw;
+  background:linear-gradient(180deg, currentColor 0%, currentColor 58%, transparent 125%);
+  box-shadow:0 0 1.4vh currentColor; }
+.xsw-time{ position:relative; font-family:'Orbitron',sans-serif; font-weight:700;
+  font-size:2vw; color:#fff; min-width:6vw; letter-spacing:-.025em;
+  text-shadow:0 .2vh .6vh rgba(0,0,0,.5); }
+.xsw-body{ position:relative; flex:1; min-width:0; text-align:left; }
+.xsw-name{ font-family:'Poppins',sans-serif; font-weight:600; font-size:1.95vw;
+  color:#fff; line-height:1.1; letter-spacing:-.008em; }
+.xsw-tr{ font-family:'Poppins',sans-serif; font-weight:300; font-size:1.25vw;
+  color:rgba(255,255,255,.44); margin-top:.35vh; }
+.xsw-name .tag-kids, .xsw-name .tag-men{ font-size:.8vw; padding:.28vh .6vw;
+  margin-left:.8vw; vertical-align:.3em; }
   </style>
-  <script src="../schedule.js"></script>
+  <script src="../schedule.js?v=1.2.0"></script>
 </head>
 <body>
   <div id="digitalClock"></div>
@@ -1183,8 +1394,58 @@ align-self: center;          /* κάθετα στο grid row */
         </div>
       </div>
     </div>
+    <!-- ═══ ΕΠΟΜΕΝΟ ΤΜΗΜΑ ═══ -->
+    <div class="slide xsn-slide" data-duration="20000">
+      <div class="xsn-glow" id="xsnGlow"></div>
+      <div class="xsn-ring" id="xsnRingA"></div>
+      <div class="xsn-ring b" id="xsnRingB"></div>
+      <div class="xsn-wrap">
+        <div class="xsn-strip" id="xsnStrip"><em id="xsnStripDot"></em><span id="xsnStripTxt"></span></div>
+        <div class="xsn-eyebrow" id="xsnEyebrow">ΕΠΟΜΕΝΟ ΤΜΗΜΑ</div>
+        <div class="xsn-rule" id="xsnRule"></div>
+        <div class="xsn-name" id="xsnName">—</div>
+        <div class="xsn-trainer" id="xsnTrainer"></div>
+        <div class="xsn-panel">
+          <div class="xsn-count" id="xsnCount"></div>
+          <div class="xsn-when" id="xsnWhen"></div>
+          <div class="xsn-barwrap" id="xsnBarWrap"><i id="xsnBar"></i></div>
+        </div>
+        <div class="xsn-after" id="xsnAfter"></div>
+      </div>
     </div>
-</div>
+
+    <!-- ═══ ΤΟ ΠΡΟΓΡΑΜΜΑ ΣΗΜΕΡΑ ═══ -->
+    <div class="slide xsd-slide" data-duration="28000">
+      <div class="xsd-aura" id="xsdAura"></div>
+      <div class="xsd-wrap">
+        <div class="xsd-title">Σημερινό πρόγραμμα τμημάτων</div>
+        <div class="xsd-rule"></div>
+        <div class="xsd-sub" id="xsdDate">—</div>
+        <div class="xsd-list" id="xsdList"></div>
+      </div>
+    </div>
+
+    <!-- ═══ ΕΒΔΟΜΑΔΙΑΙΟ · ΜΕΡΟΣ Α ═══ -->
+    <div class="slide xsw-slide" data-duration="24000" data-half="0">
+      <div class="xsw-aura"></div>
+      <div class="xsw-wrap">
+        <div class="xsw-title">Εβδομαδιαίο πρόγραμμα</div>
+        <div class="xsw-rule"></div>
+        <div class="xsw-sub" id="xswSub0">—</div>
+        <div class="xsw-cols" id="xswCols0"></div>
+      </div>
+    </div>
+
+    <!-- ═══ ΕΒΔΟΜΑΔΙΑΙΟ · ΜΕΡΟΣ Β ═══ -->
+    <div class="slide xsw-slide" data-duration="24000" data-half="1">
+      <div class="xsw-aura"></div>
+      <div class="xsw-wrap">
+        <div class="xsw-title">Εβδομαδιαίο πρόγραμμα</div>
+        <div class="xsw-rule"></div>
+        <div class="xsw-sub" id="xswSub1">—</div>
+        <div class="xsw-cols" id="xswCols1"></div>
+      </div>
+    </div>
 
   <script>
    const PREV_RANKS_KEY = "previousRanks";
@@ -1195,10 +1456,10 @@ align-self: center;          /* κάθετα στο grid row */
     let slideTimer;
 
     // Χρόνοι σε milliseconds
-    const DURATION_DEFAULT = 500000;    // 500 δευτερόλεπτα για φωτό
-    const DURATION_LEADERBOARD = 1000000; // 1000 δευτερόλεπτα για leaderboard
+    const DURATION_DEFAULT = 50000;      // 40 δευτερόλεπτα
+const DURATION_LEADERBOARD = 10000;  
 
-    function showSlide(index) {
+    function showSlide(index, _hops) {
         clearTimeout(slideTimer);
 
         // 1. Καθαρισμός slides και βίντεο
@@ -1213,6 +1474,13 @@ align-self: center;          /* κάθετα στο grid row */
 
         const slideEl = slides[index];
         if (!slideEl) return;
+
+        // slide χωρίς περιεχόμενο -> προσπερνιέται
+        if (slideEl.classList.contains("xsl-skip") && (_hops || 0) < slides.length) {
+            currentSlide = (index + 1) % slides.length;
+            return showSlide(currentSlide, (_hops || 0) + 1);
+        }
+
         slideEl.classList.add('active');
         if (slideEl.classList.contains("stats-slide")) {
           setTimeout(() => {
@@ -1225,7 +1493,9 @@ align-self: center;          /* κάθετα στο grid row */
         // 2. Υπολογισμός διάρκειας και έναρξη βίντεο
         const video = slideEl.querySelector('video');
         const isLeaderboard = slideEl.classList.contains("leaderboard-slide");
-        let duration = isLeaderboard ? DURATION_LEADERBOARD : DURATION_DEFAULT;
+        let duration = slideEl.dataset.duration
+                     ? +slideEl.dataset.duration
+                     : (isLeaderboard ? DURATION_LEADERBOARD : DURATION_DEFAULT);
 
         if (video) {
             video.muted = true;
@@ -1260,7 +1530,9 @@ align-self: center;          /* κάθετα στο grid row */
     function startTimer(ms) {
         clearTimeout(slideTimer);
         slideTimer = setTimeout(() => {
-            currentSlide = (currentSlide + 1) % slides.length;
+            currentSlide = (typeof xsNextIndex === "function")
+                         ? xsNextIndex(currentSlide)
+                         : (currentSlide + 1) % slides.length;
             showSlide(currentSlide);
         }, ms);
     }
@@ -2159,6 +2431,387 @@ function updateClock() {
 
 setInterval(updateClock, 10000); // ανανέωση κάθε 10 δευτερόλεπτα
 updateClock(); // αρχική εμφάνιση
+
+/* ═══════════════════════════════════════════════════════════
+   ΠΡΟΓΡΑΜΜΑ ΤΜΗΜΑΤΩΝ ΣΤΗΝ ΟΘΟΝΗ
+   Πηγή: Firestore σε πραγματικό χρόνο (onSnapshot).
+   Ακύρωση από το ADMIN φαίνεται εδώ σε δευτερόλεπτα, χωρίς refresh.
+   ═══════════════════════════════════════════════════════════ */
+let xsClasses = null;
+let xsOverrides = [];
+
+/* Κεφαλαία χωρίς τόνους — ΔΕΥΤΕΡΑ, όχι ΔΕΥΤΈΡΑ */
+function xsUp(s) {
+  return String(s).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
+}
+
+function xsClassesInUse() {
+  return (xsClasses && xsClasses.length) ? xsClasses : XSchedule.DEFAULT_CLASSES;
+}
+
+function xsWatchSchedule() {
+  if (typeof XSchedule === "undefined") { console.error("XDISPLAY: λείπει το schedule.js"); return; }
+  db.collection("xgym_classes").onSnapshot(function (s) {
+    xsClasses = s.empty ? null : s.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
+    console.log("📅 τμήματα:", xsClasses ? xsClasses.length : 0);
+    xsRender();
+  }, function (e) { console.warn("XDISPLAY τμήματα:", e.message); });
+
+  db.collection("xgym_class_overrides").onSnapshot(function (s) {
+    xsOverrides = s.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
+    console.log("📅 εξαιρέσεις:", xsOverrides.length);
+    xsRender();
+  }, function (e) { console.warn("XDISPLAY εξαιρέσεις:", e.message); });
+}
+
+/* το τμήμα που ακολουθεί μέσα στην ίδια μέρα */
+function xsAfter(occ) {
+  if (!occ) return null;
+  var occs = XSchedule.visibleOccurrences(
+    XSchedule.getScheduleForDate(XSchedule.parseKey(occ.date), xsClassesInUse(), xsOverrides));
+  var passed = false;
+  for (var i = 0; i < occs.length; i++) {
+    var o = occs[i];
+    if (passed && o.status !== "cancelled") return o;
+    if (o.classId === occ.classId && o.time === occ.time) passed = true;
+  }
+  return null;
+}
+
+function xsRender() { xsRenderNext(); xsRenderToday(); xsRenderWeek(); }
+
+/* ---------- slide 1: επόμενο / τώρα ---------- */
+/* ---------- slide 1: επόμενο / τώρα ---------- */
+/* ═══ ΡΥΘΜΙΣΕΙΣ ΧΡΟΝΟΥ ═══ */
+var XS_HANDOVER   = 10;   /* λεπτά πριν τη λήξη: αντιστροφή ιεραρχίας      */
+var XS_GAP        = 15;   /* μέγιστο κενό μεταξύ τους για να θεωρηθεί παράδοση */
+var XS_LEAD       = 30;   /* λεπτά πριν την έναρξη: εμφάνιση μπάρας        */
+var XS_FAR        = 120;  /* πάνω από τόσα λεπτά: ώρα αντί για αντίστροφη  */
+var XS_HOT_BEFORE = 12;   /* λεπτά πριν την έναρξη: το slide αποκτά σειρά  */
+var XS_HOT_AFTER  = 5;    /* λεπτά μετά την έναρξη: κρατάει την προτεραιότητα */
+
+/* π.μ. / μ.μ. — μικρό υποσημείωμα δίπλα στην ώρα */
+function xsAmPm(t) {
+  return parseInt(String(t).split(":")[0], 10) < 12 ? "π.μ." : "μ.μ.";
+}
+function xsT(t) {
+  return t + '<small class="ampm">' + xsAmPm(t) + '</small>';
+}
+/* Σε εύρος ο δείκτης μπαίνει μία φορά — εκτός αν το εύρος περνάει το μεσημέρι */
+function xsRangeT(a, b) {
+  var pa = xsAmPm(a), pb = xsAmPm(b);
+  if (pa === pb) return a + " – " + b + '<small class="ampm">' + pb + '</small>';
+  return a + '<small class="ampm">' + pa + '</small> – ' +
+         b + '<small class="ampm">' + pb + '</small>';
+}
+
+/* Όνομα τμήματος με τα badges: KIDS ροζ, MEN μπλε */
+function xsLabel(o) {
+  var n = String(o.name).replace(" Kids", "").replace(" Men", ""), b = "";
+  if (o.kids)            b += '<small class="tag-kids">kids</small>';
+  if (o.badge === "MEN") b += '<small class="tag-men">men</small>';
+  return n + b;
+}
+
+/* «ΣΕ 8΄» / «ΣΕ 1ω 20΄» / «ΣΗΜΕΡΑ 16:00» / «ΔΕΥΤΕΡΑ 10:00» */
+function xsCountLabel(n) {
+  if (!n.isToday) return xsUp(n.dayName) + " " + xsT(n.time);
+  if (n.minutesUntil > XS_FAR) return "ΣΗΜΕΡΑ " + xsT(n.time);
+  var m = n.minutesUntil;
+  if (m < 1) return "ΞΕΚΙΝΑ ΤΩΡΑ";
+  if (m < 60) return "ΣΕ " + m + "΄";
+  var h = Math.floor(m / 60), r = m % 60;
+  return "ΣΕ " + h + "ω" + (r ? " " + r + "΄" : "");
+}
+
+/* ---------- slide 1: επόμενο / τώρα / παράδοση / επανεκκίνηση ---------- */
+function xsRenderNext() {
+  var slide = document.querySelector(".xsn-slide");
+  if (!slide || typeof XSchedule === "undefined") return;
+  var now = new Date(), C = xsClassesInUse();
+  var cur = XSchedule.getCurrentClass(now, C, xsOverrides);
+  var nxt = XSchedule.getNextClass(now, C, xsOverrides);
+
+  /* Παράδοση: το τρέχον τελειώνει σε λίγο ΚΑΙ το επόμενο ξεκινάει αμέσως μετά. */
+  var gap = (cur && nxt && nxt.isToday) ? (nxt.startMin - cur.endMin) : 999;
+  var handover = !!(cur && nxt && nxt.isToday &&
+                    cur.minutesLeft <= XS_HANDOVER && gap <= XS_GAP);
+  var hero = (cur && !handover) ? cur : nxt;
+
+  if (!hero) { slide.classList.add("xsl-skip"); return; }
+  slide.classList.remove("xsl-skip");
+
+  var live = (hero === cur);
+  var resume = !live && !hero.isToday;
+  var dayOccs = resume
+    ? XSchedule.visibleOccurrences(
+        XSchedule.getScheduleForDate(XSchedule.parseKey(hero.date), C, xsOverrides))
+        .filter(function (o) { return o.status !== "cancelled"; })
+    : null;
+
+  var strip = document.getElementById("xsnStrip");
+  if (handover) {
+    strip.classList.add("on");
+    document.getElementById("xsnStripDot").style.color = cur.color;
+    document.getElementById("xsnStripTxt").innerHTML =
+      "τώρα · <b>" + cur.name + "</b> — τελειώνει σε " + cur.minutesLeft + "΄";
+  } else {
+    strip.classList.remove("on");
+  }
+
+  ["xsnGlow","xsnRingA","xsnRingB","xsnRule"].forEach(function (id) {
+    var e = document.getElementById(id); if (e) e.style.color = hero.color;
+  });
+  document.getElementById("xsnEyebrow").textContent =
+    resume ? "ΤΑ ΤΜΗΜΑΤΑ ΞΑΝΑΡΧΙΖΟΥΝ"
+           : (live ? "ΤΩΡΑ ΣΤΗΝ ΑΙΘΟΥΣΑ" : "ΕΠΟΜΕΝΟ ΤΜΗΜΑ");
+
+  var nameEl = document.getElementById("xsnName");
+  nameEl.style.color = hero.color;
+  if (resume) {
+    nameEl.innerHTML = xsUp(hero.dayName);
+  } else {
+    nameEl.innerHTML = xsUp(String(hero.name).replace(" Kids", "").replace(" Men", "")) +
+      (hero.kids ? '<small class="tag-kids">kids</small>' : "") +
+      (hero.badge === "MEN" ? '<small class="tag-men">men</small>' : "");
+  }
+
+  document.getElementById("xsnTrainer").innerHTML = resume
+    ? "<b>" + xsT(hero.time) + "</b><i>·</i>" + hero.name + "<i>·</i>" + hero.trainer
+    : "<b>" + hero.trainer + "</b><i>·</i>" + hero.duration + " λεπτά";
+
+  var wrap = document.getElementById("xsnBarWrap");
+  var bar  = document.getElementById("xsnBar");
+  var cnt  = document.getElementById("xsnCount");
+  var when = document.getElementById("xsnWhen");
+  cnt.style.color = hero.color;
+
+  if (live) {
+    wrap.classList.add("on"); wrap.classList.remove("pre");
+    wrap.style.color = hero.color;
+    bar.style.width = Math.round(cur.progress * 100) + "%";
+    cnt.innerHTML   = "ΑΠΟΜΕΝΟΥΝ " + cur.minutesLeft + "΄";
+    when.innerHTML  = xsRangeT(cur.time, cur.endTime);
+  } else {
+    if (hero.isToday && hero.minutesUntil <= XS_LEAD) {
+      wrap.classList.add("on"); wrap.classList.add("pre");
+      wrap.style.color = hero.color;
+      bar.style.width = Math.round(((XS_LEAD - hero.minutesUntil) / XS_LEAD) * 100) + "%";
+    } else {
+      wrap.classList.remove("on"); wrap.classList.remove("pre");
+      bar.style.width = "0%";
+    }
+    if (resume) {
+      var n = dayOccs.length;
+      cnt.innerHTML   = n + (n === 1 ? " ΤΜΗΜΑ" : " ΤΜΗΜΑΤΑ");
+      when.innerHTML  = xsRangeT(dayOccs[0].time, dayOccs[n - 1].endTime);
+    } else {
+      cnt.innerHTML   = xsCountLabel(hero);
+      when.innerHTML  = (hero.isToday ? "" : xsUp(hero.dayName) + " · ") +
+                        xsRangeT(hero.time, hero.endTime);
+    }
+  }
+
+  var after = resume ? null : xsAfter(hero);
+  document.getElementById("xsnAfter").innerHTML =
+    after ? "μετά · " + xsT(after.time) + " <b>" + after.name + "</b> · " + after.trainer : "";
+}
+
+/* ═══ ΠΡΟΤΕΡΑΙΟΤΗΤΑ ΣΤΟ ΚΑΡΟΥΣΕΛ ═══
+   Κοντά σε αλλαγή τμήματος, το slide «Επόμενο τμήμα» παρεμβάλλεται
+   ανάμεσα στα υπόλοιπα, ώστε να εμφανίζεται διπλάσια συχνά. */
+var xsResume = 0;
+
+function xsHotIndex() {
+  for (var i = 0; i < slides.length; i++) {
+    if (slides[i].classList.contains("xsn-slide")) return i;
+  }
+  return -1;
+}
+
+function xsIsHot() {
+  if (typeof XSchedule === "undefined") return false;
+  var now = new Date(), C = xsClassesInUse();
+  var n = XSchedule.getNextClass(now, C, xsOverrides);
+  if (n && n.isToday && n.minutesUntil <= XS_HOT_BEFORE) return true;
+  var c = XSchedule.getCurrentClass(now, C, xsOverrides);
+  if (c && (c.duration - c.minutesLeft) <= XS_HOT_AFTER) return true;
+  return false;
+}
+
+function xsNextIndex(i) {
+  var normal = (i + 1) % slides.length;
+  var hot = xsHotIndex();
+  if (hot < 0 || slides.length < 3 || !xsIsHot()) return normal;
+
+  if (i === hot) {                       /* μόλις το δείξαμε -> πίσω στη ροή */
+    return (xsResume === hot) ? (hot + 1) % slides.length : xsResume;
+  }
+  /* Αν η επόμενη κανονική θέση είναι το ίδιο το slide, προσπέρασέ την —
+     αλλιώς το καρουσέλ κλειδώνει πάνω του. */
+  xsResume = (normal === hot) ? (normal + 1) % slides.length : normal;
+  return hot;
+}
+
+/* ═══ ΠΡΟΤΕΡΑΙΟΤΗΤΑ ΣΤΟ ΚΑΡΟΥΣΕΛ ═══
+   Κοντά σε αλλαγή τμήματος, το slide «Επόμενο τμήμα» παρεμβάλλεται
+   ανάμεσα στα υπόλοιπα, ώστε να εμφανίζεται διπλάσια συχνά. */
+var xsResume = 0;
+
+function xsHotIndex() {
+  for (var i = 0; i < slides.length; i++) {
+    if (slides[i].classList.contains("xsn-slide")) return i;
+  }
+  return -1;
+}
+
+function xsIsHot() {
+  if (typeof XSchedule === "undefined") return false;
+  var now = new Date(), C = xsClassesInUse();
+  var n = XSchedule.getNextClass(now, C, xsOverrides);
+  if (n && n.isToday && n.minutesUntil <= XS_HOT_BEFORE) return true;
+  var c = XSchedule.getCurrentClass(now, C, xsOverrides);
+  if (c && (c.duration - c.minutesLeft) <= XS_HOT_AFTER) return true;
+  return false;
+}
+
+function xsNextIndex(i) {
+  var normal = (i + 1) % slides.length;
+  var hot = xsHotIndex();
+  if (hot < 0 || slides.length < 3 || !xsIsHot()) return normal;
+
+  if (i === hot) {                       /* μόλις το δείξαμε -> πίσω στη ροή */
+    return (xsResume === hot) ? (hot + 1) % slides.length : xsResume;
+  }
+  /* Αν η επόμενη κανονική θέση είναι το ίδιο το slide, προσπέρασέ την —
+     αλλιώς το καρουσέλ κλειδώνει πάνω του. */
+  xsResume = (normal === hot) ? (normal + 1) % slides.length : normal;
+  return hot;
+}
+
+/* ---------- slide 2: το πρόγραμμα σήμερα ---------- */
+/* ---------- slide 2: το πρόγραμμα σήμερα ---------- */
+function xsRenderToday() {
+  var slide = document.querySelector(".xsd-slide");
+  if (!slide || typeof XSchedule === "undefined") return;
+  var now = new Date();
+  var occs = XSchedule.visibleOccurrences(
+    XSchedule.getScheduleForDate(now, xsClassesInUse(), xsOverrides));
+
+  if (!occs.length) { slide.classList.add("xsl-skip"); return; }
+  slide.classList.remove("xsl-skip");
+
+  document.getElementById("xsdDate").textContent =
+    xsUp(XSchedule.DAY_NAMES[now.getDay()]) + " " +
+    now.toLocaleDateString("el-GR", { day: "2-digit", month: "2-digit" });
+
+  var mins = now.getHours() * 60 + now.getMinutes();
+  var nextIdx = -1, auraColor = null;
+  for (var i = 0; i < occs.length; i++) {
+    if (occs[i].status !== "cancelled" && occs[i].startMin > mins) { nextIdx = i; break; }
+  }
+  for (var j = 0; j < occs.length; j++) {
+    if (occs[j].status !== "cancelled" && mins >= occs[j].startMin && mins < occs[j].endMin) {
+      auraColor = occs[j].color; break;
+    }
+  }
+  if (!auraColor && nextIdx >= 0) auraColor = occs[nextIdx].color;
+  var aura = document.getElementById("xsdAura");
+  if (aura) aura.style.color = auraColor || "#5ff0ff";
+
+  document.getElementById("xsdList").innerHTML = occs.map(function (o, i) {
+    var cls = "xsd-row", flag = "", prog = "";
+    if (o.status === "cancelled") {
+      cls += " off";
+      flag = '<span class="xsd-flag off">Ακυρώθηκε</span>';
+    } else if (mins >= o.startMin && mins < o.endMin) {
+      cls += " now";
+      /* το φόντο μπαίνει inline — το currentColor θα έδινε σκούρο σε σκούρο */
+      flag = '<span class="xsd-flag now" style="background:' + o.color +
+             ';box-shadow:0 0 2.4vh -.4vh ' + o.color + '">Τώρα</span>';
+      prog = '<div class="xsd-track"></div><div class="xsd-prog" style="width:' +
+             Math.round(((mins - o.startMin) / o.duration) * 100) + '%"></div>';
+    } else if (mins >= o.endMin) {
+      cls += " done";
+    } else if (i === nextIdx) {
+      var d = o.startMin - mins;
+      flag = '<span class="xsd-flag soon">σε ' +
+             (d < 60 ? d + "΄" : Math.floor(d / 60) + "ω " + (d % 60) + "΄") + '</span>';
+    }
+    return '<div class="' + cls + '" style="color:' + o.color + '">' +
+             '<span class="xsd-bar"></span>' +
+             '<div class="xsd-time">' + xsT(o.time) + '</div>' +
+             '<div class="xsd-body">' +
+               '<div class="xsd-name">' + xsLabel(o) + '</div>' +
+               '<div class="xsd-trainer">' + o.trainer + '</div>' +
+             '</div>' + flag + prog +
+           '</div>';
+  }).join("");
+}
+
+/* ═══════════ ΕΒΔΟΜΑΔΙΑΙΟ ΠΡΟΓΡΑΜΜΑ (δύο μέρη) ═══════════
+   Δείχνει το ΣΤΑΘΕΡΟ πρόγραμμα, όχι τις εξαιρέσεις ημέρας —
+   οι ακυρώσεις αφορούν συγκεκριμένες ημερομηνίες και ζουν στο «σήμερα». */
+
+function xsWeekDays() {
+  var C = xsClassesInUse().filter(function (c) { return c.active !== false; });
+  return [1,2,3,4,5,6,0].filter(function (d) {
+    return C.some(function (c) { return c.day === d; });
+  });
+}
+
+function xsWeekSplit(half) {
+  var d = xsWeekDays(), cut = Math.ceil(d.length / 2);
+  return half === 0 ? d.slice(0, cut) : d.slice(cut);
+}
+
+function xsRenderWeek() {
+  if (typeof XSchedule === "undefined") return;
+  var C = xsClassesInUse().filter(function (c) { return c.active !== false; });
+  var today = new Date().getDay();
+
+  [0, 1].forEach(function (half) {
+    var slide = document.querySelector('.xsw-slide[data-half="' + half + '"]');
+    if (!slide) return;
+    var days = xsWeekSplit(half);
+    if (!days.length) { slide.classList.add("xsl-skip"); return; }
+    slide.classList.remove("xsl-skip");
+
+    var sub = document.getElementById("xswSub" + half);
+    if (sub) sub.textContent = days.map(function (d) {
+      return xsUp(XSchedule.DAY_NAMES[d]); }).join("  ·  ");
+
+    document.getElementById("xswCols" + half).innerHTML = days.map(function (d) {
+      var list = C.filter(function (c) { return c.day === d; })
+                  .sort(function (a, b) {
+                    return XSchedule.minutesOf(a.time) - XSchedule.minutesOf(b.time); });
+      var rows = list.map(function (c) {
+        var t = XSchedule.CLASS_TYPES[c.type] || {};
+        var col  = c.color || t.color || "#8892a0";
+        var nm   = (c.label || XSchedule.displayName(c.type))
+                     .replace(" Kids", "").replace(" Men", "");
+        var kids = (c.kids !== undefined) ? c.kids : !!t.kids;
+        var badge = kids ? '<small class="tag-kids">kids</small>'
+                  : (t.badge === "MEN" ? '<small class="tag-men">men</small>' : "");
+        return '<div class="xsw-row" style="color:' + col + '">' +
+                 '<span class="xsw-bar"></span>' +
+                 '<div class="xsw-time">' + c.time + '</div>' +
+                 '<div class="xsw-body">' +
+                   '<div class="xsw-name">' + nm + badge + '</div>' +
+                   '<div class="xsw-tr">' + c.trainer + '</div>' +
+                 '</div>' +
+               '</div>';
+      }).join("");
+      return '<div class="xsw-col' + (d === today ? " today" : "") + '">' +
+               '<div class="xsw-day">' + xsUp(XSchedule.DAY_NAMES[d]) + '</div>' +
+               '<div class="xsw-rows">' + rows + '</div>' +
+             '</div>';
+    }).join("");
+  });
+}
+
+xsWatchSchedule();
+setInterval(xsRender, 15000);   /* κρατάει ζωντανή την αντίστροφη μέτρηση */
 
 
   </script>

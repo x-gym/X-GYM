@@ -15,7 +15,7 @@
 (function (global) {
   "use strict";
 
-  var VERSION = "1.0.0";
+  var VERSION = "1.2.0";
 
   /* ---------------------------------------------------------------- ημέρες */
   var DAY_CODES = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
@@ -139,6 +139,7 @@
                "cancelled"   ακυρώθηκε  (μένει στη λίστα — το UI αποφασίζει)
                "moved_away"  μεταφέρθηκε αλλού (το UI συνήθως το κρύβει)
                "moved_in"    ήρθε από άλλη μέρα
+               "added"       έκτακτο, μόνο για αυτή την ημέρα
   */
   function getScheduleForDate(date, classes, overrides) {
     classes   = classes   || [];
@@ -189,6 +190,18 @@
       out.push(occ);
     });
 
+    /* --- 3. έκτακτα τμήματα, μόνο για αυτή την ημέρα --- */
+    overrides.forEach(function (ov) {
+      if (ov.status !== "added") return;
+      if (ov.date !== key) return;
+      var c = { id: ov.classId, type: ov.type, duration: ov.duration || 60,
+                label: ov.label, color: ov.color, kids: ov.kids };
+      var occ = makeOcc(c, key, ov.time, ov.trainer, "added");
+      occ.oneOff = true;
+      occ.note = ov.note || "";
+      out.push(occ);
+    });
+
     out.sort(function (a, b) { return minutesOf(a.time) - minutesOf(b.time); });
     return out;
   }
@@ -199,9 +212,11 @@
     return {
       classId: c.id,
       type: c.type,
-      name: displayName(c.type),
-      color: t.color,
-      kids: t.kids,
+      /* Τα custom τμήματα κουβαλάνε δικά τους label/color.
+         Το CLASS_TYPES είναι πλέον απλώς οι προεπιλογές.        */
+      name: c.label || displayName(c.type),
+      color: c.color || t.color,
+      kids: (c.kids !== undefined) ? c.kids : t.kids,
       badge: t.badge,
       trainer: trainer,
       date: dateK,
