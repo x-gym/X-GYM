@@ -1468,6 +1468,83 @@ align-self: center;          /* κάθετα στο grid row */
   box-shadow:0 0 11vh -1.5vh rgba(214,41,118,.65), 0 2.8vh 7vh -1.8vh rgba(0,0,0,.9); }
 .xsi-card img{ display:block; width:58vh; height:58vh; }
 
+/* ═══════════════ ΕΤΗΣΙΟ LEADERBOARD ═══════════════ */
+.xsy-slide{ color:#fff;
+  background:
+    radial-gradient(100% 55% at 50% 8%, rgba(255,209,102,.09), transparent 58%),
+    linear-gradient(180deg, #0d1017 0%, #04070a 72%); }
+.xsy-aura{ position:absolute; left:50%; top:26%; width:120vh; height:120vh;
+  transform:translate(-50%,-50%); pointer-events:none; opacity:.11; filter:blur(3vw);
+  border-radius:50%;
+  background:radial-gradient(circle, #ffd166 0%, rgba(255,209,102,.25) 38%, transparent 66%); }
+.xsy-wrap{ position:relative; height:100%; box-sizing:border-box; display:flex;
+  flex-direction:column; padding:7vh 5vw 3.5vh; }
+.xsy-head{ text-align:center; flex:none; }
+.xsy-kicker{ font-family:'Poppins',sans-serif; font-weight:600; font-size:1.25vw;
+  letter-spacing:.42em; text-transform:uppercase; color:rgba(255,209,102,.72);
+  text-indent:.42em; }
+.xsy-title{ font-family:'Orbitron',sans-serif; font-weight:700; font-size:4.2vw;
+  line-height:1; margin-top:1.4vh; letter-spacing:-.03em;
+  background:linear-gradient(92deg,#fff 10%,#ffd166 52%,#c68b59);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  filter:drop-shadow(0 0 4vh rgba(255,209,102,.34)); }
+.xsy-rule{ width:7vw; height:.2vh; margin:1.6vh auto 0; border-radius:1vh;
+  background:linear-gradient(90deg,transparent,rgba(255,209,102,.7),transparent); }
+.xsy-sub{ font-family:'Poppins',sans-serif; font-weight:400; font-size:1.15vw;
+  letter-spacing:.3em; text-transform:uppercase; color:rgba(255,255,255,.34);
+  margin-top:1.4vh; text-indent:.3em; }
+.xsy-podium{ flex:none; display:flex; align-items:flex-end; justify-content:center;
+  gap:2vw; margin-top:3.4vh; }
+.xsy-pod{ position:relative; flex:0 1 21vw; display:flex; flex-direction:column;
+  align-items:center; padding:2.2vh 1.4vw 0; border-radius:2vh 2vh 0 0;
+  background:linear-gradient(180deg, rgba(255,255,255,.075), rgba(255,255,255,.012));
+  border:1px solid rgba(255,255,255,.09); border-bottom:0;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14);
+  backdrop-filter:blur(1.2vw) saturate(150%); -webkit-backdrop-filter:blur(1.2vw) saturate(150%); }
+.xsy-pod.empty{ background:none; border:0; box-shadow:none; }
+.xsy-medal{ width:4.4vh; height:4.4vh; border-radius:50%; flex:none;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Orbitron',sans-serif; font-weight:700; font-size:1.9vh; color:#0b0f14;
+  margin-bottom:1.5vh; }
+.xsy-pod.gold   .xsy-medal{ background:linear-gradient(145deg,#fff2c4,#ffd166 45%,#e0a83c);
+  box-shadow:0 0 3.4vh rgba(255,209,102,.75); }
+.xsy-pod.silver .xsy-medal{ background:linear-gradient(145deg,#fff,#d6e4f0 45%,#9fb3c4);
+  box-shadow:0 0 2.6vh rgba(214,228,240,.5); }
+.xsy-pod.bronze .xsy-medal{ background:linear-gradient(145deg,#f0c39a,#c68b59 45%,#9a6535);
+  box-shadow:0 0 2.6vh rgba(198,139,89,.5); }
+.xsy-pname{ font-family:'Poppins',sans-serif; font-weight:600; font-size:1.85vw;
+  color:#fff; text-align:center; line-height:1.15; letter-spacing:-.008em; }
+.xsy-pcount{ margin-top:.9vh; text-align:center; }
+.xsy-pcount b{ display:block; font-family:'Orbitron',sans-serif; font-weight:700;
+  font-size:3vw; line-height:1; letter-spacing:-.02em; }
+.xsy-pcount span{ display:block; font-family:'Poppins',sans-serif; font-weight:300;
+  font-size:.92vw; letter-spacing:.22em; text-transform:uppercase;
+  color:rgba(255,255,255,.36); margin-top:.7vh; }
+.xsy-pod.gold   .xsy-pcount b{ color:#ffd166; text-shadow:0 0 3.4vh rgba(255,209,102,.6); }
+.xsy-pod.silver .xsy-pcount b{ color:#d6e4f0; }
+.xsy-pod.bronze .xsy-pcount b{ color:#c68b59; }
+.xsy-plinth{ width:100%; margin-top:1.8vh; border-radius:.6vh .6vh 0 0; }
+.xsy-pod.gold   .xsy-plinth{ height:5.5vh; background:linear-gradient(180deg,rgba(255,209,102,.42),rgba(255,209,102,.05)); }
+.xsy-pod.silver .xsy-plinth{ height:3.4vh; background:linear-gradient(180deg,rgba(214,228,240,.32),rgba(214,228,240,.04)); }
+.xsy-pod.bronze .xsy-plinth{ height:2.2vh; background:linear-gradient(180deg,rgba(198,139,89,.32),rgba(198,139,89,.04)); }
+.xsy-pod.first{ padding-top:3vh; border-color:rgba(255,209,102,.3);
+  box-shadow:0 0 7vh -1.6vh rgba(255,209,102,.5), inset 0 1px 0 rgba(255,255,255,.2); }
+.xsy-pod.first .xsy-medal{ width:5.4vh; height:5.4vh; font-size:2.3vh; }
+.xsy-pod.first .xsy-pname{ font-size:2.15vw; }
+.xsy-pod.first .xsy-pcount b{ font-size:3.7vw; }
+.xsy-rest{ flex:1; min-height:0; display:flex; flex-direction:column;
+  justify-content:center; gap:.9vh; margin-top:2.4vh; }
+.xsy-row{ display:flex; align-items:center; gap:2vw; padding:1.15vh 2vw;
+  border-radius:1.3vh; background:rgba(255,255,255,.028);
+  border:1px solid rgba(255,255,255,.055);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06); }
+.xsy-rank{ flex:none; width:3.4vh; font-family:'Orbitron',sans-serif; font-weight:700;
+  font-size:1.55vw; color:rgba(255,255,255,.32); text-align:center; }
+.xsy-name{ flex:1; font-family:'Poppins',sans-serif; font-weight:400; font-size:1.65vw;
+  color:rgba(255,255,255,.88); min-width:0; }
+.xsy-count{ flex:none; font-family:'Orbitron',sans-serif; font-weight:700;
+  font-size:1.75vw; color:rgba(255,255,255,.6); }
+
   </style>
   <script src="../schedule.js?v=1.2.0"></script>
 </head>
@@ -1598,6 +1675,20 @@ align-self: center;          /* κάθετα στο grid row */
       </div>
     </div>
   </div>
+  <!-- ═══ ΕΤΗΣΙΟ LEADERBOARD ═══ -->
+    <div class="slide xsy-slide" data-duration="26000">
+      <div class="xsy-aura"></div>
+      <div class="xsy-wrap">
+        <div class="xsy-head">
+          <div class="xsy-kicker">Οι πιο συνεπείς της χρονιάς</div>
+          <div class="xsy-title">Top 8</div>
+          <div class="xsy-rule"></div>
+          <div class="xsy-sub" id="xsySub">—</div>
+        </div>
+        <div class="xsy-podium" id="xsyPodium"></div>
+        <div class="xsy-rest" id="xsyRest"></div>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -2989,6 +3080,112 @@ function xsRenderWeek() {
 }
 
 xsWatchSchedule();
+/* ═══════════ ΕΤΗΣΙΟ LEADERBOARD (top 8) ═══════════
+   Μετράει καταγραφές του ΤΡΕΧΟΝΤΟΣ έτους από το xgym_scans.
+   Μηδενίζει μόνο του την 1η Ιανουαρίου — το έτος βγαίνει από την ημερομηνία,
+   δεν αποθηκεύεται πουθενά. Καμία εξάρτηση από localStorage. */
+var xsyCounts = {};
+var xsySeen   = {};
+var xsyYear   = new Date().getFullYear();
+var xsyTotal  = 0;
+
+function xsyKeyYear(d) {
+  var k = d.dateKey || d.date || "";
+  if (typeof k === "string" && k.length >= 4) return +k.slice(0, 4);
+  if (d.timestamp && d.timestamp.toDate) return d.timestamp.toDate().getFullYear();
+  return null;
+}
+
+function xsyAdd(data, id) {
+  if (!data || xsySeen[id]) return false;
+  if (xsyKeyYear(data) !== xsyYear) return false;
+  var name = String(data.name || "").trim();
+  if (!name) return false;
+  xsySeen[id] = 1;
+  xsyCounts[name] = (xsyCounts[name] || 0) + 1;
+  xsyTotal++;
+  return true;
+}
+
+function xsyTop(n) {
+  return Object.keys(xsyCounts)
+    .map(function (k) { return { name: k, count: xsyCounts[k] }; })
+    .sort(function (a, b) {
+      return b.count - a.count || a.name.localeCompare(b.name, "el");
+    })
+    .slice(0, n || 8);
+}
+
+/* «Γιώργος Παπαδόπουλος» -> «Γιώργος Π.» */
+function xsyShort(full) {
+  var p = String(full).trim().split(/\s+/);
+  if (p.length === 1) return p[0];
+  return p[0] + " " + p[1].charAt(0).toUpperCase() + ".";
+}
+
+function xsyRender() {
+  var slide = document.querySelector(".xsy-slide");
+  if (!slide) return;
+  var rows = xsyTop(8);
+
+  if (!rows.length) { slide.classList.add("xsl-skip"); return; }
+  slide.classList.remove("xsl-skip");
+
+  var sub = document.getElementById("xsySub");
+  if (sub) sub.textContent = xsyYear + "  ·  " + xsyTotal.toLocaleString("el-GR") + " προπονήσεις";
+
+  var podOrder = [1, 0, 2];   /* 2ος, 1ος, 3ος — ο νικητής στο κέντρο */
+  var medals = ["gold", "silver", "bronze"];
+
+  document.getElementById("xsyPodium").innerHTML = podOrder.map(function (i) {
+    var r = rows[i];
+    if (!r) return '<div class="xsy-pod empty"></div>';
+    return '<div class="xsy-pod ' + medals[i] + (i === 0 ? " first" : "") + '">' +
+             '<div class="xsy-medal">' + (i + 1) + '</div>' +
+             '<div class="xsy-pname">' + xsyShort(r.name) + '</div>' +
+             '<div class="xsy-pcount"><b>' + r.count + '</b><span>προπονήσεις</span></div>' +
+             '<div class="xsy-plinth"></div>' +
+           '</div>';
+  }).join("");
+
+  document.getElementById("xsyRest").innerHTML = rows.slice(3).map(function (r, i) {
+    return '<div class="xsy-row">' +
+             '<div class="xsy-rank">' + (i + 4) + '</div>' +
+             '<div class="xsy-name">' + xsyShort(r.name) + '</div>' +
+             '<div class="xsy-count">' + r.count + '</div>' +
+           '</div>';
+  }).join("");
+}
+
+function xsyLoad() {
+  return db.collection("xgym_scans").get().then(function (snap) {
+    xsyCounts = {}; xsySeen = {}; xsyTotal = 0;
+    xsyYear = new Date().getFullYear();
+    snap.forEach(function (d) { xsyAdd(d.data() || {}, d.id); });
+    console.log("🏆 ετήσιο leaderboard:", xsyTotal, "προπονήσεις", xsyYear,
+                "·", Object.keys(xsyCounts).length, "άτομα");
+    xsyRender();
+  }).catch(function (e) { console.warn("🏆 αποτυχία:", e.message); });
+}
+
+function xsyWatch() {
+  var todayKey = new Date().toLocaleDateString("sv-SE");
+  db.collection("xgym_scans").where("dateKey", "==", todayKey)
+    .onSnapshot(function (snap) {
+      var n = 0;
+      snap.forEach(function (d) { if (xsyAdd(d.data() || {}, d.id)) n++; });
+      if (n) { console.log("🏆 +" + n); xsyRender(); }
+    }, function (e) { console.warn("🏆 listener:", e.message); });
+}
+
+setInterval(function () {
+  if (new Date().getFullYear() !== xsyYear) {
+    console.log("🏆 νέο έτος — μηδενισμός");
+    xsyLoad();
+  }
+}, 3600000);
+
+xsyLoad().then(xsyWatch);
 setInterval(xsRender, 15000);   /* κρατάει ζωντανή την αντίστροφη μέτρηση */
 
 
