@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#04070a">
+<title>X-GYM · Πρόγραμμα τμημάτων</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html,body{ margin:0; padding:0; background:#04070a; color:#fff;
+  font-family:'Poppins',-apple-system,sans-serif; -webkit-font-smoothing:antialiased; }
+body{ background:
+    radial-gradient(120% 45% at 50% 0%, rgba(95,240,255,.055), transparent 60%),
+    linear-gradient(180deg,#0a1017 0%,#04070a 55%);
+  background-attachment:fixed; min-height:100vh;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right)
+          calc(env(safe-area-inset-bottom) + 28px) env(safe-area-inset-left); }
+.wrap{ max-width:560px; margin:0 auto; padding:26px 16px 0; }
+
+header{ text-align:center; margin-bottom:22px; }
+h1{ font-family:'Orbitron',sans-serif; font-weight:700; font-size:24px; margin:0;
+  letter-spacing:-.02em; }
+.rule{ width:46px; height:2px; margin:12px auto 0; border-radius:2px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent); }
+.sub{ font-size:10.5px; font-weight:600; letter-spacing:.34em; text-indent:.34em;
+  text-transform:uppercase; color:rgba(255,255,255,.32); margin-top:11px; }
+
+/* ── σήμερα ── */
+.today{ margin-bottom:26px; border-radius:20px; overflow:hidden;
+  background:linear-gradient(135deg,rgba(255,255,255,.075),rgba(255,255,255,.02));
+  border:1px solid rgba(255,255,255,.09);
+  box-shadow:0 16px 40px -16px rgba(0,0,0,.85), inset 0 1px 0 rgba(255,255,255,.12);
+  backdrop-filter:blur(14px) saturate(150%); -webkit-backdrop-filter:blur(14px) saturate(150%); }
+.today-h{ padding:15px 17px 12px; border-bottom:1px solid rgba(255,255,255,.06);
+  display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
+.today-h b{ font-size:14.5px; font-weight:600; letter-spacing:.02em; }
+.today-h span{ font-size:10px; font-weight:600; letter-spacing:.22em;
+  text-transform:uppercase; color:rgba(255,255,255,.3); }
+.today-body{ padding:9px; }
+.empty{ padding:26px 18px; text-align:center; font-size:13.5px; font-weight:300;
+  color:rgba(255,255,255,.42); line-height:1.6; }
+
+/* ── γραμμή τμήματος ── */
+.row{ position:relative; display:flex; align-items:center; gap:13px; overflow:hidden;
+  padding:11px 13px 11px 17px; border-radius:14px; margin-bottom:7px;
+  background:rgba(255,255,255,.032); border:1px solid rgba(255,255,255,.055); }
+.row:last-child{ margin-bottom:0; }
+.row::after{ content:""; position:absolute; inset:0; pointer-events:none;
+  background:linear-gradient(90deg,currentColor,transparent 42%); opacity:.07; }
+.bar{ position:absolute; left:0; top:0; bottom:0; width:3px;
+  background:linear-gradient(180deg,currentColor,currentColor 60%,transparent 130%); }
+.time{ position:relative; font-family:'Orbitron',sans-serif; font-weight:700;
+  font-size:15px; color:#fff; min-width:47px; letter-spacing:-.02em; }
+.info{ position:relative; flex:1; min-width:0; }
+.nm{ font-size:15px; font-weight:600; color:#fff; line-height:1.25; }
+.tr{ font-size:12px; font-weight:300; color:rgba(255,255,255,.42); margin-top:1px; }
+.flag{ position:relative; font-size:9px; font-weight:600; letter-spacing:.16em;
+  text-transform:uppercase; padding:5px 9px; border-radius:7px; white-space:nowrap; }
+.flag.now{ color:#04070a; font-weight:700; }
+.flag.soon{ border:1px solid currentColor; }
+.flag.off{ color:#ff6b6b; background:rgba(255,107,107,.13);
+  border:1px solid rgba(255,107,107,.28); }
+.flag.moved{ color:#5ff0ff; background:rgba(95,240,255,.11);
+  border:1px solid rgba(95,240,255,.26); }
+
+.row.is-now{ background:rgba(255,255,255,.08); border-color:currentColor;
+  box-shadow:0 0 26px -8px currentColor; }
+.row.is-done{ opacity:.4; }
+.row.is-off .time, .row.is-off .nm{ color:rgba(255,255,255,.38);
+  text-decoration:line-through; }
+.row.is-off .tr{ color:rgba(255,255,255,.22); }
+.note{ position:relative; width:100%; font-size:11px; font-weight:300;
+  color:rgba(255,255,255,.34); margin-top:5px; padding-left:60px; }
+
+/* ── badges ── */
+.tag-kids,.tag-men{ font-size:8.5px; font-weight:600; letter-spacing:.18em;
+  padding:2px 6px; border-radius:5px; margin-left:7px; text-transform:uppercase;
+  vertical-align:1.5px; white-space:nowrap; }
+.tag-kids{ color:#ff8fc7; background:rgba(255,143,199,.13); border:1px solid rgba(255,143,199,.3); }
+.tag-men { color:#7cc4ff; background:rgba(124,196,255,.13); border:1px solid rgba(124,196,255,.3); }
+
+/* ── ημέρες εβδομάδας ── */
+.wk-h{ font-size:10px; font-weight:600; letter-spacing:.34em; text-indent:.34em;
+  text-transform:uppercase; color:rgba(255,255,255,.28); margin:0 4px 12px; }
+.day{ margin-bottom:10px; border-radius:17px; overflow:hidden;
+  background:linear-gradient(135deg,rgba(255,255,255,.05),rgba(255,255,255,.014));
+  border:1px solid rgba(255,255,255,.065); }
+.day.on{ border-color:rgba(95,240,255,.26); }
+.day-h{ display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding:14px 16px; cursor:pointer; user-select:none; }
+.day-h b{ font-size:14px; font-weight:600; letter-spacing:.03em; }
+.day.on .day-h b{ color:#5ff0ff; }
+.day-h em{ font-style:normal; font-size:11px; font-weight:300;
+  color:rgba(255,255,255,.34); margin-left:auto; margin-right:2px; }
+.chev{ width:9px; height:9px; border-right:1.6px solid rgba(255,255,255,.34);
+  border-bottom:1.6px solid rgba(255,255,255,.34); transform:rotate(45deg) translate(-2px,-2px);
+  transition:transform .22s ease; flex:none; }
+.day.open .chev{ transform:rotate(-135deg) translate(-2px,-2px); }
+.day-body{ display:none; padding:0 9px 9px; }
+.day.open .day-body{ display:block; }
+
+footer{ text-align:center; margin-top:24px; font-size:10px; font-weight:300;
+  letter-spacing:.16em; text-transform:uppercase; color:rgba(255,255,255,.2); line-height:2; }
+.dot{ display:inline-block; width:5px; height:5px; border-radius:50%;
+  background:#51cf66; box-shadow:0 0 8px #51cf66; margin-right:6px; vertical-align:1px; }
+.dot.off{ background:#ff6b6b; box-shadow:0 0 8px #ff6b6b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Πρόγραμμα τμημάτων</h1>
+    <div class="rule"></div>
+    <div class="sub" id="sub">φόρτωση…</div>
+  </header>
+
+  <div class="today" id="todayCard">
+    <div class="today-h"><b id="todayTitle">Σήμερα</b><span id="todayCount"></span></div>
+    <div class="today-body" id="todayBody">
+      <div class="empty">Φόρτωση προγράμματος…</div>
+    </div>
+  </div>
+
+  <div class="wk-h">Εβδομαδιαίο πρόγραμμα</div>
+  <div id="week"></div>
+
+  <footer>
+    <div><span class="dot" id="live"></span><span id="liveTxt">ζωντανή σύνδεση</span></div>
+    <div>X-GYM</div>
+  </footer>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script src="schedule.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyBcwXllrv82qw6o7FCwgJL2_qNGheLNit0",
+  authDomain: "xgym-b5623.firebaseapp.com",
+  projectId: "xgym-b5623",
+  storageBucket: "xgym-b5623.appspot.com",
+  messagingSenderId: "269441169531",
+  appId: "1:269441169531:web:e1f0fecf96b0fb7cf4cade"
+});
+var db = firebase.firestore();
+
+var CLASSES = null, OVR = [], ready = 0, openDay = null;
+
+function inUse() { return (CLASSES && CLASSES.length) ? CLASSES : XSchedule.DEFAULT_CLASSES; }
+function up(s) { return String(s).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase(); }
+
+function look(c) {
+  var t = XSchedule.CLASS_TYPES[c.type] || {};
+  return {
+    name: (c.label || XSchedule.displayName(c.type)).replace(" Kids", "").replace(" Men", ""),
+    color: c.color || t.color || "#8892a0",
+    kids: (c.kids !== undefined) ? c.kids : !!t.kids,
+    men: t.badge === "MEN"
+  };
+}
+function badge(o) {
+  if (o.kids) return '<small class="tag-kids">kids</small>';
+  if (o.men)  return '<small class="tag-men">men</small>';
+  return "";
+}
+
+/* ---------- σήμερα, με τις πραγματικές αλλαγές ---------- */
+function drawToday() {
+  var now = new Date();
+  var occs = XSchedule.visibleOccurrences(
+    XSchedule.getScheduleForDate(now, inUse(), OVR));
+  var mins = now.getHours() * 60 + now.getMinutes();
+
+  document.getElementById("todayTitle").textContent =
+    XSchedule.DAY_NAMES[now.getDay()] + " " +
+    now.toLocaleDateString("el-GR", { day: "2-digit", month: "2-digit" });
+
+  var live = occs.filter(function (o) { return o.status !== "cancelled"; }).length;
+  document.getElementById("todayCount").textContent =
+    live ? live + (live === 1 ? " τμήμα" : " τμήματα") : "";
+
+  var body = document.getElementById("todayBody");
+  if (!occs.length) {
+    var n = XSchedule.getNextClass(now, inUse(), OVR);
+    body.innerHTML = '<div class="empty">Δεν υπάρχουν τμήματα σήμερα.' +
+      (n ? '<br>Επόμενο: <b>' + n.dayName + " " + n.time + " · " + n.name + '</b>' : "") +
+      '</div>';
+    return;
+  }
+
+  var nextIdx = -1;
+  for (var i = 0; i < occs.length; i++) {
+    if (occs[i].status !== "cancelled" && occs[i].startMin > mins) { nextIdx = i; break; }
+  }
+
+  body.innerHTML = occs.map(function (o, i) {
+    var cls = "row", flag = "", note = "";
+    if (o.status === "cancelled") {
+      cls += " is-off";
+      flag = '<span class="flag off">Ακυρώθηκε</span>';
+      if (o.note) note = '<div class="note">' + o.note + '</div>';
+    } else if (mins >= o.startMin && mins < o.endMin) {
+      cls += " is-now";
+      flag = '<span class="flag now" style="background:' + o.color + '">Τώρα</span>';
+    } else if (mins >= o.endMin) {
+      cls += " is-done";
+    } else if (i === nextIdx) {
+      var d = o.startMin - mins;
+      flag = '<span class="flag soon">σε ' +
+             (d < 60 ? d + "΄" : Math.floor(d / 60) + "ω " + (d % 60) + "΄") + '</span>';
+    }
+    if (o.status === "moved_in") {
+      flag = '<span class="flag moved">Έκτακτη ώρα</span>';
+      note = '<div class="note">μεταφέρθηκε από τις ' + o.movedFrom.time + '</div>';
+    }
+    if (o.status === "added" && !flag) flag = '<span class="flag moved">Έκτακτο</span>';
+    if (o.trainerChanged) note = '<div class="note">αλλαγή προπονητή</div>';
+
+    return '<div class="' + cls + '" style="color:' + o.color + '">' +
+             '<span class="bar"></span>' +
+             '<div class="time">' + o.time + '</div>' +
+             '<div class="info"><div class="nm">' +
+               o.name.replace(" Kids", "").replace(" Men", "") +
+               (o.kids ? '<small class="tag-kids">kids</small>' :
+                (o.badge === "MEN" ? '<small class="tag-men">men</small>' : "")) +
+             '</div><div class="tr">' + o.trainer + '</div></div>' + flag + note +
+           '</div>';
+  }).join("");
+}
+
+/* ---------- εβδομαδιαίο, σταθερό πρόγραμμα ---------- */
+function drawWeek() {
+  var C = inUse().filter(function (c) { return c.active !== false; });
+  var today = new Date().getDay();
+  var days = [1,2,3,4,5,6,0].filter(function (d) {
+    return C.some(function (c) { return c.day === d; });
+  });
+  if (openDay === null) openDay = (days.indexOf(today) >= 0) ? today : days[0];
+
+  document.getElementById("week").innerHTML = days.map(function (d) {
+    var list = C.filter(function (c) { return c.day === d; })
+                .sort(function (a, b) {
+                  return XSchedule.minutesOf(a.time) - XSchedule.minutesOf(b.time); });
+    var rows = list.map(function (c) {
+      var v = look(c);
+      return '<div class="row" style="color:' + v.color + '">' +
+               '<span class="bar"></span>' +
+               '<div class="time">' + c.time + '</div>' +
+               '<div class="info"><div class="nm">' + v.name + badge(v) + '</div>' +
+               '<div class="tr">' + c.trainer + '</div></div>' +
+             '</div>';
+    }).join("");
+    return '<div class="day' + (d === today ? " on" : "") +
+             (d === openDay ? " open" : "") + '" data-day="' + d + '">' +
+             '<div class="day-h"><b>' + XSchedule.DAY_NAMES[d] + '</b>' +
+               '<em>' + list.length + (list.length === 1 ? " τμήμα" : " τμήματα") + '</em>' +
+               '<span class="chev"></span></div>' +
+             '<div class="day-body">' + rows + '</div>' +
+           '</div>';
+  }).join("");
+
+  document.querySelectorAll(".day-h").forEach(function (h) {
+    h.addEventListener("click", function () {
+      var card = h.parentElement;
+      var was = card.classList.contains("open");
+      document.querySelectorAll(".day").forEach(function (x) { x.classList.remove("open"); });
+      if (!was) { card.classList.add("open"); openDay = +card.dataset.day; }
+      else openDay = -1;
+    });
+  });
+
+  document.getElementById("sub").textContent =
+    C.length + " τμήματα · " + days.length + (days.length === 1 ? " ημέρα" : " ημέρες");
+}
+
+function render() { if (ready >= 1) { drawToday(); drawWeek(); } }
+
+function setLive(ok) {
+  document.getElementById("live").className = ok ? "dot" : "dot off";
+  document.getElementById("liveTxt").textContent = ok ? "ζωντανή σύνδεση" : "εκτός σύνδεσης";
+}
+
+db.collection("xgym_classes").onSnapshot(function (s) {
+  CLASSES = s.empty ? null : s.docs.map(function (d) {
+    return Object.assign({ id: d.id }, d.data()); });
+  ready = 1; setLive(true); render();
+}, function () { ready = 1; setLive(false); render(); });
+
+db.collection("xgym_class_overrides").onSnapshot(function (s) {
+  OVR = s.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
+  render();
+}, function () { setLive(false); });
+
+setInterval(function () { if (ready) drawToday(); }, 30000);
+document.addEventListener("visibilitychange", function () {
+  if (!document.hidden && ready) render();
+});
+</script>
+</body>
+</html>
