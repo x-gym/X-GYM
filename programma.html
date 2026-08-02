@@ -35,7 +35,8 @@ h1{ font-family:'Orbitron',sans-serif; font-weight:700; font-size:24px; margin:0
   box-shadow:0 16px 40px -16px rgba(0,0,0,.85), inset 0 1px 0 rgba(255,255,255,.12);
   backdrop-filter:blur(14px) saturate(150%); -webkit-backdrop-filter:blur(14px) saturate(150%); }
 .today-h{ padding:15px 17px 12px; border-bottom:1px solid rgba(255,255,255,.06);
-  display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
+  display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
+.today-h span{ flex:none; }
 .today-h b{ font-size:14.5px; font-weight:600; letter-spacing:.02em; }
 .today-h span{ font-size:10px; font-weight:600; letter-spacing:.22em;
   text-transform:uppercase; color:rgba(255,255,255,.3); }
@@ -44,21 +45,23 @@ h1{ font-family:'Orbitron',sans-serif; font-weight:700; font-size:24px; margin:0
   color:rgba(255,255,255,.42); line-height:1.6; }
 
 /* ── γραμμή τμήματος ── */
-.row{ position:relative; display:flex; align-items:center; gap:13px; overflow:hidden;
-  padding:11px 13px 11px 17px; border-radius:14px; margin-bottom:7px;
+.row{ position:relative; display:flex; flex-wrap:wrap; align-items:center; gap:11px;
+  overflow:hidden; padding:11px 13px 11px 17px; border-radius:14px; margin-bottom:7px;
   background:rgba(255,255,255,.032); border:1px solid rgba(255,255,255,.055); }
 .row:last-child{ margin-bottom:0; }
 .row::after{ content:""; position:absolute; inset:0; pointer-events:none;
   background:linear-gradient(90deg,currentColor,transparent 42%); opacity:.07; }
 .bar{ position:absolute; left:0; top:0; bottom:0; width:3px;
   background:linear-gradient(180deg,currentColor,currentColor 60%,transparent 130%); }
-.time{ position:relative; font-family:'Orbitron',sans-serif; font-weight:700;
-  font-size:15px; color:#fff; min-width:47px; letter-spacing:-.02em; }
-.info{ position:relative; flex:1; min-width:0; }
-.nm{ font-size:15px; font-weight:600; color:#fff; line-height:1.25; }
+.time{ position:relative; flex:none; font-family:'Orbitron',sans-serif; font-weight:700;
+  font-size:14.5px; color:#fff; min-width:46px; letter-spacing:-.02em; }
+.info{ position:relative; flex:1 1 auto; min-width:0; }
+.nm{ font-size:14.5px; font-weight:600; color:#fff; line-height:1.3;
+  display:flex; align-items:center; flex-wrap:wrap; gap:6px; }
 .tr{ font-size:12px; font-weight:300; color:rgba(255,255,255,.42); margin-top:1px; }
-.flag{ position:relative; font-size:9px; font-weight:600; letter-spacing:.16em;
-  text-transform:uppercase; padding:5px 9px; border-radius:7px; white-space:nowrap; }
+.flag{ position:relative; flex:none; margin-left:auto; font-size:8.5px; font-weight:600;
+  letter-spacing:.13em; text-transform:uppercase; padding:5px 8px; border-radius:7px;
+  white-space:nowrap; line-height:1; }
 .flag.now{ color:#04070a; font-weight:700; }
 .flag.soon{ border:1px solid currentColor; }
 .flag.off{ color:#ff6b6b; background:rgba(255,107,107,.13);
@@ -72,13 +75,13 @@ h1{ font-family:'Orbitron',sans-serif; font-weight:700; font-size:24px; margin:0
 .row.is-off .time, .row.is-off .nm{ color:rgba(255,255,255,.38);
   text-decoration:line-through; }
 .row.is-off .tr{ color:rgba(255,255,255,.22); }
-.note{ position:relative; width:100%; font-size:11px; font-weight:300;
-  color:rgba(255,255,255,.34); margin-top:5px; padding-left:60px; }
+.note{ position:relative; flex:0 0 100%; font-size:11px; font-weight:300;
+  color:rgba(255,255,255,.34); margin-top:2px; padding-left:58px; line-height:1.4; }
 
 /* ── badges ── */
-.tag-kids,.tag-men{ font-size:8.5px; font-weight:600; letter-spacing:.18em;
-  padding:2px 6px; border-radius:5px; margin-left:7px; text-transform:uppercase;
-  vertical-align:1.5px; white-space:nowrap; }
+.tag-kids,.tag-men{ flex:none; font-size:8px; font-weight:600; letter-spacing:.15em;
+  padding:2px 5px; border-radius:5px; text-transform:uppercase; white-space:nowrap;
+  line-height:1.3; }
 .tag-kids{ color:#ff8fc7; background:rgba(255,143,199,.13); border:1px solid rgba(255,143,199,.3); }
 .tag-men { color:#7cc4ff; background:rgba(124,196,255,.13); border:1px solid rgba(124,196,255,.3); }
 
@@ -89,18 +92,19 @@ h1{ font-family:'Orbitron',sans-serif; font-weight:700; font-size:24px; margin:0
   box-shadow:0 14px 34px -16px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.1); }
 .chg-h{ padding:14px 17px 11px; border-bottom:1px solid rgba(240,192,95,.14);
   display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
-.chg-h b{ font-size:13.5px; font-weight:600; color:#f0c05f; letter-spacing:.02em; }
-.chg-h span{ font-size:9.5px; font-weight:600; letter-spacing:.2em;
-  text-transform:uppercase; color:rgba(240,192,95,.5); }
+.chg-h b{ font-size:13px; font-weight:600; color:#f0c05f; letter-spacing:.01em;
+  line-height:1.35; }
+.chg-h span{ flex:none; font-size:9px; font-weight:600; letter-spacing:.14em;
+  text-transform:uppercase; color:rgba(240,192,95,.5); white-space:nowrap; }
 .chg-body{ padding:9px; }
 .chg-day{ font-size:10px; font-weight:600; letter-spacing:.24em; text-transform:uppercase;
   color:rgba(255,255,255,.3); padding:9px 8px 6px; }
-.chg-row{ position:relative; display:flex; align-items:center; gap:12px;
-  padding:10px 12px 10px 16px; border-radius:13px; margin-bottom:6px;
+.chg-row{ position:relative; display:flex; flex-wrap:wrap; align-items:center; gap:11px;
+  overflow:hidden; padding:10px 12px 10px 16px; border-radius:13px; margin-bottom:6px;
   background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.05); }
 .chg-row .bar{ position:absolute; left:0; top:0; bottom:0; width:3px; background:currentColor; }
-.chg-row .time{ position:relative; font-family:'Orbitron',sans-serif; font-weight:700;
-  font-size:14px; color:#fff; min-width:45px; }
+.chg-row .time{ position:relative; flex:none; font-family:'Orbitron',sans-serif;
+  font-weight:700; font-size:14px; color:#fff; min-width:44px; }
 .chg-row.gone .time,.chg-row.gone .nm{ color:rgba(255,255,255,.38); text-decoration:line-through; }
 
 /* ── ημέρες εβδομάδας ── */
@@ -115,7 +119,9 @@ h1{ font-family:'Orbitron',sans-serif; font-weight:700; font-size:24px; margin:0
 .day-h b{ font-size:14px; font-weight:600; letter-spacing:.03em; }
 .day.on .day-h b{ color:#5ff0ff; }
 .day-h em{ font-style:normal; font-size:11px; font-weight:300;
-  color:rgba(255,255,255,.34); margin-left:auto; margin-right:2px; }
+  color:rgba(255,255,255,.34); margin-left:auto; margin-right:2px; flex:none; }
+.chgdot{ width:6px; height:6px; border-radius:50%; background:#f0c05f; flex:none;
+  box-shadow:0 0 8px rgba(240,192,95,.8); margin-left:8px; }
 .chev{ width:9px; height:9px; border-right:1.6px solid rgba(255,255,255,.34);
   border-bottom:1.6px solid rgba(255,255,255,.34); transform:rotate(45deg) translate(-2px,-2px);
   transition:transform .22s ease; flex:none; }
@@ -254,58 +260,12 @@ function drawToday() {
   }).join("");
 }
 
-/* ---------- εβδομαδιαίο, σταθερό πρόγραμμα ---------- */
-function drawWeek() {
-  var C = inUse().filter(function (c) { return c.active !== false; });
-  var today = new Date().getDay();
-  var days = [1,2,3,4,5,6,0].filter(function (d) {
-    return C.some(function (c) { return c.day === d; });
-  });
-  if (openDay === null) openDay = (days.indexOf(today) >= 0) ? today : days[0];
-
-  document.getElementById("week").innerHTML = days.map(function (d) {
-    var list = C.filter(function (c) { return c.day === d; })
-                .sort(function (a, b) {
-                  return XSchedule.minutesOf(a.time) - XSchedule.minutesOf(b.time); });
-    var rows = list.map(function (c) {
-      var v = look(c);
-      return '<div class="row" style="color:' + v.color + '">' +
-               '<span class="bar"></span>' +
-               '<div class="time">' + c.time + '</div>' +
-               '<div class="info"><div class="nm">' + v.name + badge(v) + '</div>' +
-               '<div class="tr">' + c.trainer + '</div></div>' +
-             '</div>';
-    }).join("");
-    return '<div class="day' + (d === today ? " on" : "") +
-             (d === openDay ? " open" : "") + '" data-day="' + d + '">' +
-             '<div class="day-h"><b>' + XSchedule.DAY_NAMES[d] + '</b>' +
-               '<em>' + list.length + (list.length === 1 ? " τμήμα" : " τμήματα") + '</em>' +
-               '<span class="chev"></span></div>' +
-             '<div class="day-body">' + rows + '</div>' +
-           '</div>';
-  }).join("");
-
-  document.querySelectorAll(".day-h").forEach(function (h) {
-    h.addEventListener("click", function () {
-      var card = h.parentElement;
-      var was = card.classList.contains("open");
-      document.querySelectorAll(".day").forEach(function (x) { x.classList.remove("open"); });
-      if (!was) { card.classList.add("open"); openDay = +card.dataset.day; }
-      else openDay = -1;
-    });
-  });
-
-  document.getElementById("sub").textContent =
-    C.length + " τμήματα · " + days.length + (days.length === 1 ? " ημέρα" : " ημέρες");
-}
-
 /* ---------- αλλαγές των επόμενων ημερών ---------- */
 function drawChanges() {
   var wrap = document.getElementById("changesWrap");
   var todayK = XSchedule.dateKey(new Date());
   var horizon = XSchedule.dateKey(XSchedule.addDays(new Date(), 14));
 
-  /* ποιες μελλοντικές ημερομηνίες έχουν αλλαγές */
   var dates = {};
   OVR.forEach(function (o) {
     [o.date, o.newDate].forEach(function (k) {
@@ -363,6 +323,85 @@ function drawChanges() {
   wrap.innerHTML = '<div class="chg"><div class="chg-h"><b>Αλλαγές τις επόμενες ημέρες</b>' +
     '<span>' + total + (total === 1 ? " αλλαγή" : " αλλαγές") + '</span></div>' +
     '<div class="chg-body">' + blocks.join("") + '</div></div>';
+}
+
+/* ---------- εβδομαδιαίο: η ΕΠΟΜΕΝΗ πραγματική εμφάνιση κάθε ημέρας ----------
+   Έτσι οι ακυρώσεις και οι μεταθέσεις φαίνονται και εδώ, όχι μόνο στη
+   λίστα αλλαγών. Η «Δευτέρα» σημαίνει «η ερχόμενη Δευτέρα». */
+function nextDateFor(dow) {
+  var t = new Date(); t.setHours(0,0,0,0);
+  for (var i = 0; i < 7; i++) {
+    var d = XSchedule.addDays(t, i);
+    if (d.getDay() === dow) return d;
+  }
+  return t;
+}
+
+function drawWeek() {
+  var C = inUse().filter(function (c) { return c.active !== false; });
+  var today = new Date().getDay();
+  var days = [1,2,3,4,5,6,0].filter(function (d) {
+    return C.some(function (c) { return c.day === d; });
+  });
+  if (openDay === null) openDay = (days.indexOf(today) >= 0) ? today : days[0];
+
+  document.getElementById("week").innerHTML = days.map(function (d) {
+    var date = nextDateFor(d);
+    var occs = XSchedule.visibleOccurrences(
+      XSchedule.getScheduleForDate(date, inUse(), OVR));
+    var live = occs.filter(function (o) { return o.status !== "cancelled"; }).length;
+    var changed = occs.some(function (o) {
+      return o.status === "cancelled" || o.status === "moved_in" ||
+             o.status === "added" || o.trainerChanged;
+    });
+
+    var rows = occs.map(function (o) {
+      var cls = "row", flag = "", note = "";
+      if (o.status === "cancelled") {
+        cls += " is-off";
+        flag = '<span class="flag off">Ακυρώθηκε</span>';
+        if (o.note) note = '<div class="note">' + o.note + '</div>';
+      } else if (o.status === "moved_in") {
+        flag = '<span class="flag moved">Νέα ώρα</span>';
+        note = '<div class="note">αντί για ' + o.movedFrom.time + '</div>';
+      } else if (o.status === "added") {
+        flag = '<span class="flag moved">Έκτακτο</span>';
+      } else if (o.trainerChanged) {
+        flag = '<span class="flag moved">Αλλαγή</span>';
+      }
+      return '<div class="' + cls + '" style="color:' + o.color + '">' +
+               '<span class="bar"></span>' +
+               '<div class="time">' + o.time + '</div>' +
+               '<div class="info"><div class="nm">' +
+                 o.name.replace(" Kids","").replace(" Men","") +
+                 (o.kids ? '<small class="tag-kids">kids</small>' :
+                  (o.badge === "MEN" ? '<small class="tag-men">men</small>' : "")) +
+               '</div><div class="tr">' + o.trainer + '</div></div>' + flag + note +
+             '</div>';
+    }).join("");
+
+    return '<div class="day' + (d === today ? " on" : "") +
+             (d === openDay ? " open" : "") + '" data-day="' + d + '">' +
+             '<div class="day-h"><b>' + XSchedule.DAY_NAMES[d] + '</b>' +
+               (changed ? '<i class="chgdot" title="υπάρχουν αλλαγές"></i>' : '') +
+               '<em>' + live + (live === 1 ? " τμήμα" : " τμήματα") + '</em>' +
+               '<span class="chev"></span></div>' +
+             '<div class="day-body">' + rows + '</div>' +
+           '</div>';
+  }).join("");
+
+  document.querySelectorAll(".day-h").forEach(function (h) {
+    h.addEventListener("click", function () {
+      var card = h.parentElement;
+      var was = card.classList.contains("open");
+      document.querySelectorAll(".day").forEach(function (x) { x.classList.remove("open"); });
+      if (!was) { card.classList.add("open"); openDay = +card.dataset.day; }
+      else openDay = -1;
+    });
+  });
+
+  document.getElementById("sub").textContent =
+    C.length + " τμήματα · " + days.length + (days.length === 1 ? " ημέρα" : " ημέρες");
 }
 
 function render() { if (ready >= 1) { drawToday(); drawChanges(); drawWeek(); } }
