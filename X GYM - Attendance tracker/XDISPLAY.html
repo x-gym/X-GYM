@@ -1379,50 +1379,62 @@ align-self: center;          /* κάθετα στο grid row */
   /* ═══════════════ QR ΠΡΟΓΡΑΜΜΑΤΟΣ ═══════════════ */
 .xsq-slide{ color:#fff;
   background:
-    radial-gradient(110% 70% at 78% 50%, rgba(95,240,255,.07), transparent 58%),
+    radial-gradient(105% 65% at 76% 50%, rgba(95,240,255,.085), transparent 56%),
     linear-gradient(180deg, #0a1017 0%, #04070a 74%); }
-.xsq-aura{ position:absolute; right:12vw; top:50%; width:62vw; height:62vw;
-  transform:translate(50%,-50%); pointer-events:none; opacity:.11; color:#5ff0ff;
+.xsq-aura{ position:absolute; right:14vw; top:50%; width:58vw; height:58vw;
+  transform:translate(50%,-50%); pointer-events:none; opacity:.13; color:#5ff0ff;
   background:radial-gradient(circle, currentColor 0%, transparent 62%); filter:blur(2vw); }
 .xsq-wrap{ position:relative; height:100%; box-sizing:border-box; display:flex;
-  align-items:center; justify-content:center; gap:7vw; padding:9vh 7vw 4vh; }
-.xsq-left{ flex:0 1 auto; max-width:42vw; }
-.xsq-eyebrow{ font-family:'Poppins',sans-serif; font-weight:600; font-size:1.5vw;
-  letter-spacing:.44em; text-transform:uppercase; color:rgba(255,255,255,.42);
-  text-indent:.44em; }
-.xsq-title{ font-family:'Orbitron',sans-serif; font-weight:700; font-size:5vw;
-  line-height:1.02; margin-top:2vh; letter-spacing:-.025em; color:#fff;
-  text-shadow:0 0 8vw rgba(95,240,255,.28); }
-.xsq-rule{ width:7vw; height:.26vh; margin-top:3vh; border-radius:1vh;
-  background:linear-gradient(90deg, #5ff0ff, transparent); }
-.xsq-list{ list-style:none; margin:3.6vh 0 0; padding:0; }
-.xsq-list li{ position:relative; font-family:'Poppins',sans-serif; font-weight:300;
-  font-size:1.75vw; color:rgba(255,255,255,.6); padding-left:2.4vw; margin-bottom:1.9vh;
-  line-height:1.35; }
-.xsq-list li::before{ content:""; position:absolute; left:0; top:.62em;
-  width:.62vw; height:.62vw; border-radius:50%; background:#5ff0ff;
-  box-shadow:0 0 1.4vh rgba(95,240,255,.75); }
+  align-items:center; justify-content:center; gap:6vw; padding:9vh 6vw 4vh; }
+.xsq-left{ flex:1 1 auto; max-width:46vw; }
+.xsq-eyebrow{ font-family:'Poppins',sans-serif; font-weight:600; font-size:1.62vw;
+  letter-spacing:.26em; text-transform:uppercase; color:#5ff0ff; text-indent:.26em;
+  text-shadow:0 0 2.6vh rgba(95,240,255,.45); }
+.xsq-title{ font-family:'Orbitron',sans-serif; font-weight:700; font-size:6.4vw;
+  line-height:1; margin-top:1.8vh; letter-spacing:-.03em; color:#fff;
+  text-shadow:0 0 9vw rgba(95,240,255,.3), 0 .5vh 2.4vh rgba(0,0,0,.6); }
+.xsq-rule{ width:9vw; height:.3vh; margin-top:3.2vh; border-radius:1vh;
+  background:linear-gradient(90deg, #5ff0ff, rgba(95,240,255,.1));
+  box-shadow:0 0 2vh rgba(95,240,255,.5); }
+.xsq-list{ list-style:none; margin:4.4vh 0 0; padding:0; }
+.xsq-list li{ position:relative; display:flex; align-items:center; gap:1.5vw;
+  font-family:'Poppins',sans-serif; font-weight:300; font-size:2.15vw;
+  color:rgba(255,255,255,.78); margin-bottom:2.4vh; line-height:1.28; }
+.xsq-list li i{ flex:none; width:2.9vw; height:2.9vw; border-radius:1vh; font-style:normal;
+  display:flex; align-items:center; justify-content:center;
+  background:linear-gradient(135deg, rgba(95,240,255,.16), rgba(95,240,255,.04));
+  border:1px solid rgba(95,240,255,.26);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14); }
+.xsq-list li i::before{ content:""; width:.72vw; height:.72vw; border-radius:50%;
+  background:#5ff0ff; box-shadow:0 0 1.6vh rgba(95,240,255,.9); }
 .xsq-right{ flex:none; display:flex; flex-direction:column; align-items:center; }
-.xsq-card{ padding:1.9vh 1.9vh; border-radius:2.6vh; background:#fff;
-  box-shadow:0 0 9vh -1.5vh rgba(95,240,255,.55), 0 2.4vh 6vh -1.6vh rgba(0,0,0,.85);
-  animation:xsqBreathe 3.6s ease-in-out infinite; }
-.xsq-card img{ display:block; width:34vh; height:34vh; }
-@keyframes xsqBreathe{
-  0%,100%{ box-shadow:0 0 9vh -1.5vh rgba(95,240,255,.5),  0 2.4vh 6vh -1.6vh rgba(0,0,0,.85); }
-  50%    { box-shadow:0 0 13vh -1.5vh rgba(95,240,255,.85), 0 2.4vh 6vh -1.6vh rgba(0,0,0,.85); } }
-.xsq-cta{ display:flex; align-items:center; gap:1vw; margin-top:3.2vh;
-  padding:1.3vh 2.4vw; border-radius:6vh;
-  background:linear-gradient(135deg, rgba(255,255,255,.085), rgba(255,255,255,.022));
-  border:1px solid rgba(255,255,255,.12);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.16);
+.xsq-frame{ position:relative; padding:2.6vh; }
+.xsq-frame span{ position:absolute; width:4.4vh; height:4.4vh; pointer-events:none;
+  border:.42vh solid #5ff0ff; box-shadow:0 0 2.4vh rgba(95,240,255,.55);
+  animation:xsqPulse 2.6s ease-in-out infinite; }
+.xsq-frame span:nth-child(1){ top:0; left:0;     border-right:0; border-bottom:0; border-radius:1.4vh 0 0 0; }
+.xsq-frame span:nth-child(2){ top:0; right:0;    border-left:0;  border-bottom:0; border-radius:0 1.4vh 0 0; }
+.xsq-frame span:nth-child(3){ bottom:0; left:0;  border-right:0; border-top:0;    border-radius:0 0 0 1.4vh; }
+.xsq-frame span:nth-child(4){ bottom:0; right:0; border-left:0;  border-top:0;    border-radius:0 0 1.4vh 0; }
+@keyframes xsqPulse{ 0%,100%{ opacity:.55; } 50%{ opacity:1; } }
+.xsq-card{ padding:1.7vh; border-radius:2.2vh; background:#fff;
+  box-shadow:0 0 10vh -1.5vh rgba(95,240,255,.6), 0 2.6vh 6.5vh -1.6vh rgba(0,0,0,.9); }
+.xsq-card img{ display:block; width:38vh; height:38vh; }
+.xsq-cta{ display:flex; align-items:center; gap:1.1vw; margin-top:3.4vh;
+  padding:1.5vh 2.6vw; border-radius:6vh;
+  background:linear-gradient(135deg, rgba(95,240,255,.16), rgba(95,240,255,.04));
+  border:1px solid rgba(95,240,255,.32);
+  box-shadow:0 0 4vh -1vh rgba(95,240,255,.45), inset 0 1px 0 rgba(255,255,255,.2);
   backdrop-filter:blur(1.4vw) saturate(150%); -webkit-backdrop-filter:blur(1.4vw) saturate(150%);
-  font-family:'Poppins',sans-serif; font-weight:500; font-size:1.5vw;
-  letter-spacing:.06em; color:rgba(255,255,255,.82); white-space:nowrap; }
-.xsq-cam{ width:1.9vw; height:1.5vw; border-radius:.4vw; flex:none; position:relative;
-  border:.19vw solid #5ff0ff; box-shadow:0 0 1.6vh rgba(95,240,255,.55); }
+  font-family:'Poppins',sans-serif; font-weight:600; font-size:1.78vw;
+  letter-spacing:.03em; color:#fff; white-space:nowrap; }
+.xsq-cam{ position:relative; flex:none; width:2.3vw; height:1.85vw; border-radius:.45vw;
+  border:.2vw solid #5ff0ff; box-shadow:0 0 1.8vh rgba(95,240,255,.6); }
+.xsq-cam::before{ content:""; position:absolute; top:-.42vw; left:50%; transform:translateX(-50%);
+  width:.85vw; height:.34vw; border-radius:.2vw .2vw 0 0; background:#5ff0ff; }
 .xsq-cam::after{ content:""; position:absolute; left:50%; top:50%;
-  width:.66vw; height:.66vw; border-radius:50%; transform:translate(-50%,-50%);
-  background:#5ff0ff; }
+  width:.78vw; height:.78vw; border-radius:50%; transform:translate(-50%,-50%);
+  border:.14vw solid #5ff0ff; }
   </style>
   <script src="../schedule.js?v=1.2.0"></script>
 </head>
@@ -1514,25 +1526,28 @@ align-self: center;          /* κάθετα στο grid row */
       </div>
     </div>
 
-    <!-- ═══ QR ΠΡΟΓΡΑΜΜΑΤΟΣ ═══ -->
+   <!-- ═══ QR ΠΡΟΓΡΑΜΜΑΤΟΣ ═══ -->
     <div class="slide xsq-slide" data-duration="30000">
       <div class="xsq-aura"></div>
       <div class="xsq-wrap">
         <div class="xsq-left">
-          <div class="xsq-eyebrow">Ολο το προγραμμα</div>
+          <div class="xsq-eyebrow">Ολο το εβδομαδιαίο πρόγραμμα</div>
           <div class="xsq-title">Στο κινητό σου</div>
           <div class="xsq-rule"></div>
           <ul class="xsq-list">
-            <li>Το πρόγραμμα κάθε ημέρας</li>
-            <li>Ακυρώσεις και αλλαγές ωρών</li>
-            <li>Ενημερώνεται αυτόματα</li>
+            <li><i></i>Ημερήσιο &amp; εβδομαδιαίο πρόγραμμα</li>
+            <li><i></i>Live ενημερώσεις &amp; αλλαγές ωραρίου</li>
+            <li><i></i>Ανανέωση σε πραγματικό χρόνο</li>
           </ul>
         </div>
         <div class="xsq-right">
-          <div class="xsq-card">
-            <img src="../qr-programma.png" alt="QR πρόγραμμα">
+          <div class="xsq-frame">
+            <span></span><span></span><span></span><span></span>
+            <div class="xsq-card">
+              <img src="../qr-programma.png" alt="QR πρόγραμμα">
+            </div>
           </div>
-          <div class="xsq-cta"><span class="xsq-cam"></span>Σκάναρε με την κάμερα</div>
+          <div class="xsq-cta"><span class="xsq-cam"></span>Σκάναρε για Άμεση Πρόσβαση</div>
         </div>
       </div>
     </div>
