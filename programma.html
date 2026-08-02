@@ -82,6 +82,27 @@ h1{ font-family:'Orbitron',sans-serif; font-weight:700; font-size:24px; margin:0
 .tag-kids{ color:#ff8fc7; background:rgba(255,143,199,.13); border:1px solid rgba(255,143,199,.3); }
 .tag-men { color:#7cc4ff; background:rgba(124,196,255,.13); border:1px solid rgba(124,196,255,.3); }
 
+/* ── αλλαγές επόμενων ημερών ── */
+.chg{ margin-bottom:26px; border-radius:20px; overflow:hidden;
+  background:linear-gradient(135deg,rgba(240,192,95,.09),rgba(240,192,95,.022));
+  border:1px solid rgba(240,192,95,.24);
+  box-shadow:0 14px 34px -16px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.1); }
+.chg-h{ padding:14px 17px 11px; border-bottom:1px solid rgba(240,192,95,.14);
+  display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
+.chg-h b{ font-size:13.5px; font-weight:600; color:#f0c05f; letter-spacing:.02em; }
+.chg-h span{ font-size:9.5px; font-weight:600; letter-spacing:.2em;
+  text-transform:uppercase; color:rgba(240,192,95,.5); }
+.chg-body{ padding:9px; }
+.chg-day{ font-size:10px; font-weight:600; letter-spacing:.24em; text-transform:uppercase;
+  color:rgba(255,255,255,.3); padding:9px 8px 6px; }
+.chg-row{ position:relative; display:flex; align-items:center; gap:12px;
+  padding:10px 12px 10px 16px; border-radius:13px; margin-bottom:6px;
+  background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.05); }
+.chg-row .bar{ position:absolute; left:0; top:0; bottom:0; width:3px; background:currentColor; }
+.chg-row .time{ position:relative; font-family:'Orbitron',sans-serif; font-weight:700;
+  font-size:14px; color:#fff; min-width:45px; }
+.chg-row.gone .time,.chg-row.gone .nm{ color:rgba(255,255,255,.38); text-decoration:line-through; }
+
 /* ── ημέρες εβδομάδας ── */
 .wk-h{ font-size:10px; font-weight:600; letter-spacing:.34em; text-indent:.34em;
   text-transform:uppercase; color:rgba(255,255,255,.28); margin:0 4px 12px; }
@@ -123,6 +144,8 @@ footer{ text-align:center; margin-top:24px; font-size:10px; font-weight:300;
       <div class="empty">Φόρτωση προγράμματος…</div>
     </div>
   </div>
+
+  <div id="changesWrap"></div>
 
   <div class="wk-h">Εβδομαδιαίο πρόγραμμα</div>
   <div id="week"></div>
@@ -276,7 +299,73 @@ function drawWeek() {
     C.length + " τμήματα · " + days.length + (days.length === 1 ? " ημέρα" : " ημέρες");
 }
 
-function render() { if (ready >= 1) { drawToday(); drawWeek(); } }
+/* ---------- αλλαγές των επόμενων ημερών ---------- */
+function drawChanges() {
+  var wrap = document.getElementById("changesWrap");
+  var todayK = XSchedule.dateKey(new Date());
+  var horizon = XSchedule.dateKey(XSchedule.addDays(new Date(), 14));
+
+  /* ποιες μελλοντικές ημερομηνίες έχουν αλλαγές */
+  var dates = {};
+  OVR.forEach(function (o) {
+    [o.date, o.newDate].forEach(function (k) {
+      if (k && k > todayK && k <= horizon) dates[k] = 1;
+    });
+  });
+  var keys = Object.keys(dates).sort();
+  if (!keys.length) { wrap.innerHTML = ""; return; }
+
+  var blocks = [], total = 0;
+  keys.forEach(function (k) {
+    var d = XSchedule.parseKey(k);
+    var occs = XSchedule.getScheduleForDate(d, inUse(), OVR)
+      .filter(function (o) {
+        return o.status === "cancelled" || o.status === "moved_in" ||
+               o.status === "added" || o.trainerChanged;
+      });
+    if (!occs.length) return;
+    total += occs.length;
+
+    blocks.push('<div class="chg-day">' + XSchedule.DAY_NAMES[d.getDay()] + " " +
+      d.toLocaleDateString("el-GR", { day: "2-digit", month: "2-digit" }) + '</div>' +
+      occs.map(function (o) {
+        var cls = "chg-row", flag = "", note = "";
+        if (o.status === "cancelled") {
+          cls += " gone";
+          flag = '<span class="flag off">Ακυρώθηκε</span>';
+          if (o.note) note = '<div class="note">' + o.note + '</div>';
+        } else if (o.status === "moved_in") {
+          flag = '<span class="flag moved">Νέα ώρα</span>';
+          note = '<div class="note">αντί για ' + o.movedFrom.time +
+                 (o.movedFrom.date !== o.date ? " στις " +
+                   XSchedule.parseKey(o.movedFrom.date)
+                     .toLocaleDateString("el-GR",{day:"2-digit",month:"2-digit"}) : "") +
+                 '</div>';
+        } else if (o.status === "added") {
+          flag = '<span class="flag moved">Έκτακτο</span>';
+        } else if (o.trainerChanged) {
+          flag = '<span class="flag moved">Αλλαγή</span>';
+          note = '<div class="note">αλλαγή προπονητή</div>';
+        }
+        return '<div class="' + cls + '" style="color:' + o.color + '">' +
+                 '<span class="bar"></span>' +
+                 '<div class="time">' + o.time + '</div>' +
+                 '<div class="info"><div class="nm">' +
+                   o.name.replace(" Kids","").replace(" Men","") +
+                   (o.kids ? '<small class="tag-kids">kids</small>' :
+                    (o.badge === "MEN" ? '<small class="tag-men">men</small>' : "")) +
+                 '</div><div class="tr">' + o.trainer + '</div></div>' + flag + note +
+               '</div>';
+      }).join(""));
+  });
+
+  if (!blocks.length) { wrap.innerHTML = ""; return; }
+  wrap.innerHTML = '<div class="chg"><div class="chg-h"><b>Αλλαγές τις επόμενες ημέρες</b>' +
+    '<span>' + total + (total === 1 ? " αλλαγή" : " αλλαγές") + '</span></div>' +
+    '<div class="chg-body">' + blocks.join("") + '</div></div>';
+}
+
+function render() { if (ready >= 1) { drawToday(); drawChanges(); drawWeek(); } }
 
 function setLive(ok) {
   document.getElementById("live").className = ok ? "dot" : "dot off";
