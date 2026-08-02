@@ -2172,6 +2172,7 @@ function makeInitialAvatarDataURI(fullName = "") {
     .slice(0,2)
     .map(s => s[0]?.toUpperCase() || "")
     .join("");
+    xsmRefresh();
 
   // σταθερή απόχρωση ανά όνομα
   let hash = 0;
@@ -3087,6 +3088,7 @@ xsWatchSchedule();
    δεν αποθηκεύεται πουθενά. Καμία εξάρτηση από localStorage. */
 var xsyCounts = {};
 var xsySeen   = {};
+var xsySeenRaw = {};      /* docId -> τα δεδομένα, για το μηνιαίο */
 var xsyYear   = new Date().getFullYear();
 var xsyTotal  = 0;
 
@@ -3103,6 +3105,7 @@ function xsyAdd(data, id) {
   var name = String(data.name || "").trim();
   if (!name) return false;
   xsySeen[id] = 1;
+  xsySeenRaw[id] = data;
   xsyCounts[name] = (xsyCounts[name] || 0) + 1;
   xsyTotal++;
   return true;
@@ -3157,7 +3160,7 @@ function xsyRender() {
 
 function xsyLoad() {
   return db.collection("xgym_scans").get().then(function (snap) {
-    xsyCounts = {}; xsySeen = {}; xsyTotal = 0;
+    xsyCounts = {}; xsySeen = {}; xsySeenRaw = {}; xsyTotal = 0;
     xsyYear = new Date().getFullYear();
     snap.forEach(function (d) { xsyAdd(d.data() || {}, d.id); });
     console.log("🏆 ετήσιο leaderboard:", xsyTotal, "προπονήσεις", xsyYear,
@@ -3184,6 +3187,31 @@ setInterval(function () {
 }, 3600000);
 
 xsyLoad().then(xsyWatch);
+/* ═══ ΜΗΝΙΑΙΟ LEADERBOARD ΑΠΟ FIRESTORE ═══
+   Αντικαθιστά τη λογική localStorage, που άδειαζε κάθε 1η του μήνα
+   και ξαναγέμιζε μόνο από ζωντανές σαρώσεις. */
+function xsmMonthKey() { return new Date().toLocaleDateString("sv-SE").slice(0, 7); }
+
+function xsmRows(n) {
+  var mk = xsmMonthKey(), c = {};
+  Object.keys(xsySeenRaw).forEach(function (id) {
+    var d = xsySeenRaw[id];
+    if (String(d.dateKey || "").slice(0, 7) !== mk) return;
+    var nm = String(d.name || "").trim();
+    if (nm) c[nm] = (c[nm] || 0) + 1;
+  });
+  return Object.keys(c).map(function (k) { return { name: k, count: c[k] }; })
+    .sort(function (a, b) { return b.count - a.count || a.name.localeCompare(b.name, "el"); })
+    .slice(0, n || 8);
+}
+
+function xsmRefresh() {
+  if (typeof renderLeaderboardFromRows === "function") {
+    var r = xsmRows(8);
+    console.log("📅 μηνιαίο:", r.length, "άτομα", xsmMonthKey());
+    renderLeaderboardFromRows(r);
+  }
+}
 setInterval(xsRender, 15000);   /* κρατάει ζωντανή την αντίστροφη μέτρηση */
 
 
