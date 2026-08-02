@@ -2508,6 +2508,7 @@ body {
 .adm-field{ margin-bottom:12px; }
 .adm-field label{ display:block; font-size:11px; letter-spacing:.14em; text-transform:uppercase;
   color:rgba(255,255,255,.38); margin-bottom:6px; }
+  .adm-field input::placeholder{ color:rgba(255,255,255,.25); }
 .adm-field input, .adm-field select{ width:100%; padding:12px 14px; border-radius:11px;
   background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1);
   color:#e8edf2; font-size:15px; font-family:inherit; }
@@ -2531,6 +2532,24 @@ body {
 .adm-cal-day.off:hover{ background:rgba(255,255,255,.03); }
 .adm-field select option:disabled{ color:rgba(255,255,255,.28); }
 .adm-warn{ font-size:12.5px; color:#f0c05f; margin:-4px 0 12px; }
+.adm-disp{ font-size:13.5px; line-height:1.65; color:rgba(255,255,255,.62);
+  background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.07);
+  border-radius:12px; padding:13px 16px; margin-bottom:14px; }
+.adm-disp b{ color:#e8edf2; font-weight:500; }
+.adm-q{ font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+  color:rgba(255,255,255,.38); margin-bottom:9px; }
+  .adm-add{ display:block; width:100%; margin-top:10px; padding:14px; cursor:pointer;
+  border-radius:14px; background:rgba(95,240,255,.06); border:1px dashed rgba(95,240,255,.3);
+  color:#5ff0ff; font-size:14px; font-family:inherit; transition:.16s; }
+.adm-add:hover{ background:rgba(95,240,255,.12); border-style:solid; }
+.adm-seg{ display:flex; gap:8px; }
+.adm-seg button{ flex:1; padding:12px 10px; border-radius:11px; cursor:pointer;
+  background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1);
+  color:rgba(255,255,255,.6); font-size:13px; font-family:inherit; transition:.15s; }
+.adm-seg button.on{ background:rgba(95,240,255,.12); border-color:#5ff0ff; color:#5ff0ff; }
+.adm-sep{ font-size:10.5px; letter-spacing:.16em; text-transform:uppercase;
+  color:rgba(255,255,255,.25); margin:16px 0 8px; }
+.adm-tag.added{ background:rgba(81,207,102,.12); color:#51cf66; }
 .adm-act[disabled]{ opacity:.35; cursor:default; }
 .adm-sheet{ max-height:88vh; overflow-y:auto; }
 
@@ -2594,6 +2613,7 @@ body {
 
   .adm-empty{ flex:1; display:flex; align-items:center; justify-content:center;
               padding:0; font-size:17px; }
+              .adm-add{ font-size:15px; padding:15px; margin-top:12px; }
   .adm-foot{ margin-top:12px; }
   .adm-note{ font-size:12.5px; margin-top:0; }
   .adm-seed{ font-size:13.5px; padding:13px 26px; border-radius:14px; }
@@ -2612,7 +2632,7 @@ body {
   <script src="https://cdn.jsdelivr.net/npm/chart.js">
     
   </script>
-    <script src="schedule.js"></script>
+    <script src="schedule.js?v=1.2.0"></script>
 
 </head>
 
@@ -2662,6 +2682,7 @@ body {
     </div>
     <button class="adm-todaybtn hidden" id="admTodayBtn">Επιστροφή στο σήμερα</button>
     <div id="admList"></div>
+    <button class="adm-add" id="admAddBtn">+ Προσθήκη τμήματος</button>
     <div class="adm-foot" id="admFoot"></div>
   </div>
 
@@ -6468,6 +6489,7 @@ function admRender() {
       var tag = "";
       if (o.status === "cancelled")     tag = '<span class="adm-tag cancelled">Ακυρώθηκε</span>';
       else if (o.status === "moved_in") tag = '<span class="adm-tag movedin">Μεταφέρθηκε εδώ</span>';
+      else if (o.status === "added")    tag = '<span class="adm-tag added">Έκτακτο</span>';
       else if (o.trainerChanged)        tag = '<span class="adm-tag trainer">Αλλαγή προπονητή</span>';
 
       return '<div class="' + cls + '" data-idx="' + i + '" style="border-left-color:' + o.color + '">' +
@@ -6573,83 +6595,169 @@ function admCloseSheet() {
 
 function admSheetMenu() {
   var o = admSel, h = "";
+
+  if (o.status === "added") {
+    document.getElementById("admSheetBody").innerHTML =
+      '<div class="adm-disp">Έκτακτο τμήμα — υπάρχει μόνο για αυτή την ημέρα.</div>' +
+      '<button class="adm-act danger" data-act="delone">Διαγραφή</button>';
+    return;
+  }
+
   var changed = (o.status === "cancelled" || o.status === "moved_in" || o.trainerChanged);
+
   if (o.status !== "cancelled")
     h += '<button class="adm-act danger" data-act="cancel">Ακύρωση τμήματος</button>';
   h += '<button class="adm-act" data-act="move">Αλλαγή ώρας ή ημέρας</button>';
   h += '<button class="adm-act" data-act="trainer">Αλλαγή προπονητή</button>';
   if (changed)
     h += '<button class="adm-act ok" data-act="reset">Επαναφορά στο κανονικό</button>';
+
+  h += '<div class="adm-sep">Σταθερό πρόγραμμα</div>' +
+       '<button class="adm-act danger" data-act="delperm">Κατάργηση από κάθε εβδομάδα</button>';
+
   document.getElementById("admSheetBody").innerHTML = h;
 }
 
 let admPickMonth = null;
-let admPickSel   = null;
+let admPickSel    = null;
+let admMoveTarget = null;    /* ποιο τμήμα τοποθετούμε αυτή τη στιγμή */
+let admMoveMode   = "main";  /* "main" | "displaced" */
+let admPendingA   = null;    /* {occ, nd, nt} — η μετακίνηση που περιμένει */
+let admDisplaced  = null;    /* το τμήμα που εκτοπίζεται */
 
-/* Επιστρέφει το τμήμα που «πιάνει» τη θέση, αλλιώς null. */
+/* Στη φάση "displaced" η μετακίνηση του Α δεν έχει γραφτεί ακόμα.
+   Την προσθέτουμε εικονικά, αλλιώς το Β μπορεί να πάει πάνω στο Α. */
+function admEffectiveOverrides() {
+  if (admMoveMode === "displaced" && admPendingA) {
+    return admOverrides.concat([{
+      classId: admPendingA.occ.classId,
+      date:    admBaseDate(admPendingA.occ),
+      status:  "moved",
+      newDate: admPendingA.nd,
+      newTime: admPendingA.nt
+    }]);
+  }
+  return admOverrides;
+}
+
 function admConflictAt(dateK, time, dur, exceptId) {
   if (!dateK || !time) return null;
   var occs = XSchedule.visibleOccurrences(
-    XSchedule.getScheduleForDate(XSchedule.parseKey(dateK), admClassesInUse(), admOverrides));
+    XSchedule.getScheduleForDate(XSchedule.parseKey(dateK),
+                                 admClassesInUse(), admEffectiveOverrides()));
   var s = XSchedule.minutesOf(time), e = s + (dur || 60);
   for (var i = 0; i < occs.length; i++) {
     var o = occs[i];
     if (o.classId === exceptId) continue;
     if (o.status === "cancelled") continue;
-    if (o.startMin < e && s < o.endMin) return o;   /* επικάλυψη διαστημάτων */
+    if (o.startMin < e && s < o.endMin) return o;
   }
   return null;
 }
 
 function admTimeOptions() {
-  var dur = admSel.duration || 60, h = "", free = [];
+  var t0 = admMoveTarget, dur = t0.duration || 60, h = "";
   for (var hh = 7; hh <= 22; hh++) {
     var t = (hh < 10 ? "0" : "") + hh + ":00";
-    var c = admConflictAt(admPickSel, t, dur, admSel.classId);
-    if (!c) free.push(t);
-    h += '<option value="' + t + '"' + (c ? ' disabled' : '') + '>' + t +
-         (c ? '  —  ' + c.name + ' (' + c.trainer + ')' : '') + '</option>';
+    var c = admConflictAt(admPickSel, t, dur, t0.classId);
+    h += '<option value="' + t + '">' + t +
+         (c ? '  —  πιασμένη: ' + c.name + ' (' + c.trainer + ')' : '') + '</option>';
   }
-  return { html: h, free: free };
+  return h;
+}
+
+function admWarnConflict() {
+  var w = document.getElementById("admMoveWarn");
+  var sel = document.getElementById("admMoveTime");
+  if (!w || !sel) return;
+  var c = admConflictAt(admPickSel, sel.value, admMoveTarget.duration, admMoveTarget.classId);
+  w.textContent = !c ? ""
+    : (admMoveMode === "displaced"
+        ? "Πιασμένη από " + c.name + ". Διάλεξε ελεύθερη ώρα."
+        : "Η ώρα είναι πιασμένη από " + c.name + " (" + c.trainer + ").");
 }
 
 function admSyncTime(preferred) {
   var sel = document.getElementById("admMoveTime");
   if (!sel) return;
-  var prev = preferred || sel.value;
-  var to = admTimeOptions();
-  sel.innerHTML = to.html;
-  sel.value = (to.free.indexOf(prev) >= 0) ? prev
-            : (to.free.indexOf(admSel.time) >= 0 ? admSel.time : (to.free[0] || ""));
-  var w = document.getElementById("admMoveWarn");
-  if (w) w.textContent = to.free.length ? "" : "Όλες οι ώρες αυτής της ημέρας είναι κατειλημμένες.";
-  var sv = document.querySelector('[data-act="movesave"]');
-  if (sv) sv.disabled = !to.free.length;
+  var prev = preferred || sel.value || admMoveTarget.time;
+  sel.innerHTML = admTimeOptions();
+  sel.value = prev;
+  admWarnConflict();
 }
 
-function admSheetMove() {
-  var o = admSel, todayK = XSchedule.dateKey(new Date());
-  admPickSel   = (o.date < todayK) ? todayK : o.date;   /* ποτέ παρελθόν */
+/* ---------- εγγραφές ---------- */
+function admOvrPayload(occ, data) {
+  return Object.assign({ classId: occ.classId, date: admBaseDate(occ),
+                         updatedAt: new Date().toISOString() }, data);
+}
+function admFinish(p) {
+  return p.then(admLoad)
+          .then(function () { admResetMoveState(); admCloseSheet(); admRender(); })
+          .catch(function (e) { alert("Η αποθήκευση απέτυχε: " + e.message); });
+}
+function admResetMoveState() {
+  admMoveMode = "main"; admMoveTarget = admSel; admPendingA = null; admDisplaced = null;
+}
+/* Α μετακινείται, Β μετακινείται κι αυτό αλλού — μία εγγραφή batch */
+function admCommitPair(a, b) {
+  var batch = db.batch(), col = db.collection("xgym_class_overrides");
+  batch.set(col.doc(admDocId(a.occ)), admOvrPayload(a.occ, { status:"moved", newDate:a.nd, newTime:a.nt }));
+  batch.set(col.doc(admDocId(b.occ)), admOvrPayload(b.occ, { status:"moved", newDate:b.nd, newTime:b.nt }));
+  return admFinish(batch.commit());
+}
+/* Α μετακινείται, Β ακυρώνεται εντελώς */
+function admCommitCancel(a, b) {
+  var batch = db.batch(), col = db.collection("xgym_class_overrides");
+  batch.set(col.doc(admDocId(a.occ)), admOvrPayload(a.occ, { status:"moved", newDate:a.nd, newTime:a.nt }));
+  batch.set(col.doc(admDocId(b.occ)), admOvrPayload(b.occ, { status:"cancelled",
+            note: "Αντικαταστάθηκε από " + a.occ.name }));
+  return admFinish(batch.commit());
+}
+
+/* ---------- φύλλο μετάθεσης ---------- */
+function admSheetMove(target, mode) {
+  admMoveTarget = target || admSel;
+  admMoveMode   = mode || "main";
+  var o = admMoveTarget, todayK = XSchedule.dateKey(new Date());
+  admPickSel = (o.date < todayK) ? todayK : o.date;
   var d0 = XSchedule.parseKey(admPickSel);
   admPickMonth = new Date(d0.getFullYear(), d0.getMonth(), 1);
   document.getElementById("admSheetBody").innerHTML =
+    (admMoveMode === "displaced"
+      ? '<div class="adm-disp">Νέα θέση για <b>' + o.name + '</b> (' + o.trainer + ')</div>'
+      : '') +
     '<div class="adm-field"><label>Ημερομηνία</label><div id="admCal"></div></div>' +
-    '<div class="adm-field"><label>Ώρα</label>' +
-      '<select id="admMoveTime"></select></div>' +
+    '<div class="adm-field"><label>Ώρα</label><select id="admMoveTime"></select></div>' +
     '<div class="adm-warn" id="admMoveWarn"></div>' +
     '<button class="adm-act primary" data-act="movesave">Αποθήκευση</button>' +
-    '<button class="adm-act" data-act="back">Πίσω</button>';
+    '<button class="adm-act" data-act="back">Άκυρο</button>';
   admDrawCal();
   admSyncTime(o.time);
+  document.getElementById("admMoveTime").addEventListener("change", admWarnConflict);
+}
+
+/* ---------- τι κάνουμε με αυτό που εκτοπίστηκε ---------- */
+function admSheetDisplaced() {
+  var a = admPendingA, b = admDisplaced;
+  var dd = XSchedule.parseKey(a.nd);
+  var when = XSchedule.DAY_NAMES[dd.getDay()] + " " +
+             dd.toLocaleDateString("el-GR", { day: "2-digit", month: "2-digit" });
+  document.getElementById("admSheetBody").innerHTML =
+    '<div class="adm-disp">Το <b>' + a.occ.name + '</b> πάει ' + when +
+      ' στις ' + a.nt + '.<br>Εκεί υπάρχει ήδη <b>' + b.name + '</b> με ' + b.trainer + '.</div>' +
+    '<div class="adm-q">Τι κάνουμε με το ' + b.name + ';</div>' +
+    '<button class="adm-act primary" data-act="dispmove">Μεταφορά σε άλλη ώρα ή ημέρα</button>' +
+    '<button class="adm-act danger" data-act="dispcancel">Ακύρωνεται</button>' +
+    '<button class="adm-act" data-act="back">Άκυρο</button>';
 }
 
 function admDrawCal() {
   var y = admPickMonth.getFullYear(), m = admPickMonth.getMonth();
-  var start = (new Date(y, m, 1).getDay() + 6) % 7;      /* Δευτέρα = 0 */
+  var start = (new Date(y, m, 1).getDay() + 6) % 7;
   var days  = new Date(y, m + 1, 0).getDate();
   var todayK = XSchedule.dateKey(new Date());
   var label = new Date(y, m, 1).toLocaleDateString("el-GR", { month: "long", year: "numeric" });
-
   var h = '<div class="adm-cal-head">' +
             '<button class="adm-cal-nav" data-act="calprev">‹</button>' +
             '<span>' + label + '</span>' +
@@ -6673,7 +6781,7 @@ function admDrawCal() {
 
 function admSheetTrainer() {
   var o = admSel, h = "";
-  XSchedule.TRAINERS.forEach(function (t) {
+  admKnownTrainers().forEach(function (t) {
     h += '<button class="adm-act' + (t === o.trainer ? " current" : "") +
          '" data-act="trainerset" data-name="' + t + '">' + t + '</button>';
   });
@@ -6683,8 +6791,17 @@ function admSheetTrainer() {
 
 function admSheetClick(e) {
   var b = e.target.closest("[data-act]");
-  if (!b || !admSel) return;
+  if (!b) return;
   var act = b.getAttribute("data-act");
+
+  /* ενέργειες προσθήκης — δεν προϋποθέτουν επιλεγμένο τμήμα */
+  if (act === "addperm" || act === "addonce") {
+    admAddSync(); admAdd.perm = (act === "addperm"); return admDrawAdd();
+  }
+  if (act === "addsave")   return admAddSave();
+  if (act === "addcancel") return admCloseSheet();
+
+  if (!admSel) return;
   if (act === "calprev") { admPickMonth.setMonth(admPickMonth.getMonth()-1); return admDrawCal(); }
   if (act === "calnext") { admPickMonth.setMonth(admPickMonth.getMonth()+1); return admDrawCal(); }
   if (act === "calpick") {
@@ -6692,10 +6809,14 @@ function admSheetClick(e) {
     admPickSel = b.getAttribute("data-k");
     admDrawCal(); return admSyncTime();
   }
-  if (act === "back")    return admSheetMenu();
+  if (act === "back")     { admResetMoveState(); return admSheetMenu(); }
+  if (act === "dispmove") return admSheetMove(admDisplaced, "displaced");
+  if (act === "dispcancel") return admCommitCancel(admPendingA, { occ: admDisplaced });
   if (act === "move")    return admSheetMove();
   if (act === "trainer") return admSheetTrainer();
   if (act === "cancel")  return admWrite(admSel, { status: "cancelled" });
+  if (act === "delone")   return admDeleteOneOff(admSel);
+  if (act === "delperm")  return admDeletePermanent(admSel);
   if (act === "reset")   return admReset(admSel);
   if (act === "trainerset")
     return admWrite(admSel, { status: "trainer", newTrainer: b.getAttribute("data-name") });
@@ -6705,14 +6826,239 @@ function admSheetClick(e) {
     if (!nd) return alert("Διάλεξε ημερομηνία.");
     if (nd < XSchedule.dateKey(new Date()))
       return alert("Δεν γίνεται μετάθεση σε ημερομηνία που έχει περάσει.");
-    if (!nt) return alert("Δεν υπάρχει ελεύθερη ώρα αυτή την ημέρα.");
-    var cf = admConflictAt(nd, nt, admSel.duration, admSel.classId);
-    if (cf) return alert("Στις " + nt + " υπάρχει ήδη " + cf.name + " με " + cf.trainer + ".");
-    if (nd === admBaseDate(admSel) && nt === admSel.time) return admReset(admSel);
-    return admWrite(admSel, { status: "moved", newDate: nd, newTime: nt });
+
+    if (admMoveMode === "displaced") {
+      var cf2 = admConflictAt(nd, nt, admMoveTarget.duration, admMoveTarget.classId);
+      if (cf2) return alert("Στις " + nt + " υπάρχει ήδη " + cf2.name +
+                            ". Διάλεξε ελεύθερη ώρα για το " + admMoveTarget.name + ".");
+      return admCommitPair(admPendingA, { occ: admMoveTarget, nd: nd, nt: nt });
+    }
+
+    if (nd === admBaseDate(admMoveTarget) && nt === admMoveTarget.time)
+      return admReset(admMoveTarget);
+    var cf = admConflictAt(nd, nt, admMoveTarget.duration, admMoveTarget.classId);
+    if (cf) {
+      admPendingA  = { occ: admMoveTarget, nd: nd, nt: nt };
+      admDisplaced = cf;
+      return admSheetDisplaced();
+    }
+    return admWrite(admMoveTarget, { status: "moved", newDate: nd, newTime: nt });
   }
 }
+/* ═══════════ ΠΡΟΣΘΗΚΗ ΤΜΗΜΑΤΟΣ & ΣΤΑΘΕΡΟ ΠΡΟΓΡΑΜΜΑ ═══════════ */
+let admAdd = null;
 
+function admTimeOptionsFor(dateK, dur, exceptId, selected) {
+  var h = "";
+  for (var hh = 7; hh <= 22; hh++) {
+    var t = (hh < 10 ? "0" : "") + hh + ":00";
+    var c = admConflictAt(dateK, t, dur, exceptId);
+    h += '<option value="' + t + '"' + (t === selected ? ' selected' : '') + '>' + t +
+         (c ? '  —  πιασμένη: ' + c.name + ' (' + c.trainer + ')' : '') + '</option>';
+  }
+  return h;
+}
+
+/* ---------- προτεινόμενα από ό,τι υπάρχει ήδη ---------- */
+var ADM_PALETTE = ["#5ff0ff","#ffa94d","#c77dff","#51cf66","#ff6b6b",
+                   "#f0c05f","#74c0fc","#ff922b","#9775fa","#20c997"];
+
+function admSlug(s) {
+  var m = {'ά':'a','έ':'e','ή':'i','ί':'i','ό':'o','ύ':'y','ώ':'o','ϊ':'i','ϋ':'y','ΐ':'i','ΰ':'y',
+           'α':'a','β':'v','γ':'g','δ':'d','ε':'e','ζ':'z','η':'i','θ':'th','ι':'i','κ':'k','λ':'l',
+           'μ':'m','ν':'n','ξ':'x','ο':'o','π':'p','ρ':'r','σ':'s','ς':'s','τ':'t','υ':'y','φ':'f',
+           'χ':'ch','ψ':'ps','ω':'o'};
+  return String(s).toLowerCase().split("").map(function (ch) {
+    return m[ch] !== undefined ? m[ch] : ch;
+  }).join("").replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "") || "tmima";
+}
+
+/* Διαλέγει χρώμα που ΔΕΝ χρησιμοποιείται ήδη, ώστε να μη μπερδεύονται τα τμήματα */
+function admUsedColors() {
+  var s = {};
+  Object.keys(XSchedule.CLASS_TYPES).forEach(function (k) {
+    s[XSchedule.CLASS_TYPES[k].color.toLowerCase()] = 1;
+  });
+  (admClasses || []).forEach(function (c) { if (c.color) s[String(c.color).toLowerCase()] = 1; });
+  admOverrides.forEach(function (o) { if (o.color) s[String(o.color).toLowerCase()] = 1; });
+  return s;
+}
+
+function admColorFor(slug) {
+  var used = admUsedColors();
+  for (var i = 0; i < ADM_PALETTE.length; i++) {
+    if (!used[ADM_PALETTE[i].toLowerCase()]) return ADM_PALETTE[i];
+  }
+  var h = 0;   /* όλα πιασμένα — σταθερή επιλογή από το όνομα */
+  for (var j = 0; j < slug.length; j++) h = (h * 31 + slug.charCodeAt(j)) >>> 0;
+  return ADM_PALETTE[h % ADM_PALETTE.length];
+}
+
+/* slug -> ετικέτα, από τις προεπιλογές ΚΑΙ από ό,τι έχει δημιουργηθεί */
+function admKnownTypes() {
+  var m = {};
+  Object.keys(XSchedule.CLASS_TYPES).forEach(function (k) { m[k] = XSchedule.displayName(k); });
+  (admClasses || []).forEach(function (c) {
+    if (c.type) m[c.type] = c.label || m[c.type] || c.type;
+  });
+  admOverrides.forEach(function (o) {
+    if (o.status === "added" && o.type) m[o.type] = o.label || m[o.type] || o.type;
+  });
+  return m;
+}
+
+function admKnownTrainers() {
+  var s = {};
+  XSchedule.TRAINERS.forEach(function (t) { s[t] = 1; });
+  (admClasses || []).forEach(function (c) { if (c.trainer) s[c.trainer] = 1; });
+  admOverrides.forEach(function (o) {
+    if (o.trainer)    s[o.trainer] = 1;
+    if (o.newTrainer) s[o.newTrainer] = 1;
+  });
+  return Object.keys(s).sort(function (a, b) { return a.localeCompare(b, "el"); });
+}
+
+/* Γραμμένο κείμενο -> {type, label, isNew} */
+function admResolveType(text) {
+  var t = String(text || "").trim(), known = admKnownTypes();
+  for (var k in known) {
+    if (known[k].toLowerCase() === t.toLowerCase()) return { type: k, label: known[k], isNew: false };
+  }
+  return { type: admSlug(t), label: t, isNew: true };
+}
+
+function admSheetAdd() {
+  admSel = null;
+  admResetMoveState();
+ admAdd = { typeText: "", trainer: "", time: "18:00", duration: 60, perm: true };
+  var d = admDate;
+  document.getElementById("admSheetTitle").textContent = "Νέο τμήμα";
+  document.getElementById("admSheetSub").textContent =
+    XSchedule.DAY_NAMES[d.getDay()] + " " +
+    d.toLocaleDateString("el-GR", { day: "2-digit", month: "2-digit", year: "numeric" });
+  admDrawAdd();
+  document.getElementById("admSheet").classList.add("open");
+}
+
+function admDrawAdd() {
+  var d = admDate, dk = XSchedule.dateKey(d), a = admAdd;
+  var types = admKnownTypes(), typeOpts = "", trOpts = "", durs = "";
+  Object.keys(types).forEach(function (k) {
+    typeOpts += '<option value="' + types[k] + '"></option>';
+  });
+  admKnownTrainers().forEach(function (t) { trOpts += '<option value="' + t + '"></option>'; });
+  [30, 45, 60, 90].forEach(function (n) {
+    durs += '<option value="' + n + '"' + (n === a.duration ? ' selected' : '') + '>' + n + '΄</option>';
+  });
+  document.getElementById("admSheetBody").innerHTML =
+    '<div class="adm-field"><label>Τμήμα</label>' +
+      '<input id="admAddType" list="admTypeList" autocomplete="off" placeholder="Διάλεξε ή γράψε νέο" value="' +
+        a.typeText.replace(/"/g, "&quot;") + '">' +
+      '<datalist id="admTypeList">' + typeOpts + '</datalist></div>' +
+    '<div class="adm-field"><label>Προπονητής</label>' +
+      '<input id="admAddTrainer" list="admTrainerList" autocomplete="off" placeholder="Διάλεξε ή γράψε νέο" value="' +
+        a.trainer.replace(/"/g, "&quot;") + '">' +
+      '<datalist id="admTrainerList">' + trOpts + '</datalist></div>' +
+    '<div class="adm-field"><label>Ώρα</label><select id="admAddTime">' +
+      admTimeOptionsFor(dk, a.duration, null, a.time) + '</select></div>' +
+    '<div class="adm-field"><label>Διάρκεια</label><select id="admAddDur">' + durs + '</select></div>' +
+    '<div class="adm-field"><label>Επανάληψη</label><div class="adm-seg">' +
+      '<button class="' + (a.perm ? 'on' : '') + '" data-act="addperm">Κάθε ' +
+        XSchedule.DAY_NAMES[d.getDay()] + '</button>' +
+      '<button class="' + (a.perm ? '' : 'on') + '" data-act="addonce">Μόνο ' +
+        d.toLocaleDateString("el-GR", { day: "2-digit", month: "2-digit" }) + '</button>' +
+    '</div></div>' +
+    '<div class="adm-warn" id="admAddWarn"></div>' +
+    '<button class="adm-act primary" data-act="addsave">Αποθήκευση</button>' +
+    '<button class="adm-act" data-act="addcancel">Άκυρο</button>';
+  ["admAddTime", "admAddDur"].forEach(function (id) {
+    document.getElementById(id).addEventListener("change", admAddSync);
+  });
+  ["admAddType", "admAddTrainer"].forEach(function (id) {
+    var el = document.getElementById(id);
+    el.addEventListener("input",  admAddCapture);
+    el.addEventListener("change", admAddCapture);
+  });
+  admAddWarn();
+}
+
+/* κρατάει μόνο το κείμενο, χωρίς να ξαναχτίζει τη φόρμα */
+function admAddCapture() {
+  admAdd.typeText = document.getElementById("admAddType").value;
+  admAdd.trainer  = document.getElementById("admAddTrainer").value;
+}
+function admAddSync() {
+  admAddCapture();
+  admAdd.time     = document.getElementById("admAddTime").value;
+  admAdd.duration = +document.getElementById("admAddDur").value;
+  document.getElementById("admAddTime").innerHTML =
+    admTimeOptionsFor(XSchedule.dateKey(admDate), admAdd.duration, null, admAdd.time);
+  admAddWarn();
+}
+
+function admAddWarn() {
+  var w = document.getElementById("admAddWarn");
+  if (!w) return;
+  var c = admConflictAt(XSchedule.dateKey(admDate), admAdd.time, admAdd.duration, null);
+  w.textContent = c ? "Στις " + admAdd.time + " υπάρχει ήδη " + c.name + " (" + c.trainer + ")." : "";
+}
+
+/* Μοναδικό id: mon_1800_pilates, mon_1800_pilates_2, ... */
+function admClassIdFor(day, time, type) {
+  var codes = ["sun","mon","tue","wed","thu","fri","sat"];
+  var base = codes[day] + "_" + time.replace(":", "") + "_" + type, id = base, n = 2, have = {};
+  (admClasses || []).forEach(function (c) { have[c.id] = 1; });
+  while (have[id]) id = base + "_" + (n++);
+  return id;
+}
+
+function admAddSave() {
+  admAddSync();
+  var d = admDate, dk = XSchedule.dateKey(d), a = admAdd;
+  var rt = admResolveType(a.typeText);
+  var trainer = String(a.trainer || "").trim();
+
+  if (!rt.label)  return alert("Γράψε ή διάλεξε τμήμα.");
+  if (!trainer)   return alert("Γράψε ή διάλεξε προπονητή.");
+  if (!a.perm && dk < XSchedule.dateKey(new Date()))
+    return alert("Δεν γίνεται προσθήκη έκτακτου τμήματος σε ημερομηνία που έχει περάσει.");
+
+  var c = admConflictAt(dk, a.time, a.duration, null);
+  if (c && !confirm("Στις " + a.time + " υπάρχει ήδη " + c.name + " με " + c.trainer +
+                    ".\n\nΝα προστεθεί ούτως ή άλλως; Θα εμφανίζονται και τα δύο."))
+    return;
+
+  /* Νέος τύπος -> κουβαλάει δικά του label/color ώστε να εμφανίζεται σωστά παντού */
+  var look = rt.isNew ? { label: rt.label, color: admColorFor(rt.type), kids: false } : {};
+
+  var p;
+  if (a.perm) {
+    p = db.collection("xgym_classes").doc(admClassIdFor(d.getDay(), a.time, rt.type)).set(
+      Object.assign({ day: d.getDay(), time: a.time, duration: a.duration,
+                      type: rt.type, trainer: trainer, active: true }, look));
+  } else {
+    var cid = "add_" + Date.now();
+    p = db.collection("xgym_class_overrides").doc(XSchedule.overrideId(dk, cid)).set(
+      Object.assign({ classId: cid, date: dk, status: "added",
+                      type: rt.type, trainer: trainer, time: a.time, duration: a.duration,
+                      updatedAt: new Date().toISOString() }, look));
+  }
+  return admFinish(p);
+}
+
+function admDeleteOneOff(occ) {
+  return admFinish(db.collection("xgym_class_overrides").doc(admDocId(occ)).delete());
+}
+
+/* Κατάργηση από το ΣΤΑΘΕΡΟ πρόγραμμα — ισχύει για κάθε εβδομάδα */
+function admDeletePermanent(occ) {
+  var cls = admClassesInUse().filter(function (c) { return c.id === occ.classId; })[0];
+  var dayName = cls ? XSchedule.DAY_NAMES[cls.day] : "αυτή την ημέρα";
+  if (!confirm("Το " + occ.name + " " + (cls ? cls.time : occ.time) +
+               " θα καταργηθεί από ΚΑΘΕ " + dayName + ".\n\n" +
+               "Αυτό αλλάζει το σταθερό πρόγραμμα, όχι μόνο μία ημέρα.")) return;
+  return admFinish(db.collection("xgym_classes").doc(occ.classId).delete());
+}
 (function admWireSheet() {
   var s = document.getElementById("admSheet");
   if (!s) return;
@@ -6733,6 +7079,7 @@ function admSheetClick(e) {
   if ((b = document.getElementById("admTodayBtn"))) b.addEventListener("click", function () { admDate = new Date(); admRender(); });
   if ((b = document.getElementById("admClose")))    b.addEventListener("click", function () { showView("mainContent"); });
   if ((b = document.getElementById("adminBtn")))    b.addEventListener("click", openAdminView);
+  if ((b = document.getElementById("admAddBtn")))   b.addEventListener("click", admSheetAdd);
 })();
 
 // === Αρχικοποίηση σελίδας ===
