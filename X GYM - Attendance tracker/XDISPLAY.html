@@ -1478,75 +1478,73 @@ align-self: center;          /* κάθετα στο grid row */
   border-radius:50%;
   background:radial-gradient(circle, #ffd166 0%, rgba(255,209,102,.25) 38%, transparent 66%); }
 .xsy-wrap{ position:relative; height:100%; box-sizing:border-box; display:flex;
-  flex-direction:column; padding:6vh 5vw 3vh; overflow:hidden; }
-.xsy-head{ text-align:center; flex:none; }
-.xsy-kicker{ font-family:'Poppins',sans-serif; font-weight:600; font-size:1.25vw;
-  letter-spacing:.42em; text-transform:uppercase; color:rgba(255,209,102,.72);
-  text-indent:.42em; }
-.xsy-title{ font-family:'Orbitron',sans-serif; font-weight:700; font-size:3.5vw;
-  line-height:1; margin-top:1.2vh; letter-spacing:-.03em;
+  flex-direction:column; padding:5vh 4vw 3vh; overflow:hidden; }
+.xsy-head{ flex:none; text-align:center; }
+.xsy-kicker{ font-family:'Poppins',sans-serif; font-weight:600; font-size:1.4vw;
+  letter-spacing:.4em; text-transform:uppercase; color:rgba(255,209,102,.75);
+  text-indent:.4em; }
+.xsy-title{ font-family:'Orbitron',sans-serif; font-weight:700; font-size:3.9vw;
+  line-height:1; margin-top:1vh; letter-spacing:-.03em;
   background:linear-gradient(92deg,#fff 10%,#ffd166 52%,#c68b59);
   -webkit-background-clip:text; background-clip:text; color:transparent;
   filter:drop-shadow(0 0 4vh rgba(255,209,102,.34)); }
-.xsy-rule{ width:7vw; height:.2vh; margin:1.3vh auto 0; border-radius:1vh;
+.xsy-rule{ width:7vw; height:.2vh; margin:1.1vh auto 0; border-radius:1vh;
   background:linear-gradient(90deg,transparent,rgba(255,209,102,.7),transparent); }
-.xsy-sub{ font-family:'Poppins',sans-serif; font-weight:400; font-size:1.15vw;
-  letter-spacing:.3em; text-transform:uppercase; color:rgba(255,255,255,.34);
-  margin-top:1.1vh; text-indent:.3em; }
-.xsy-podium{ flex:none; display:flex; align-items:flex-end; justify-content:center;
-  gap:1.8vw; margin-top:2.6vh; }
-.xsy-pod{ position:relative; flex:0 1 21vw; display:flex; flex-direction:column;
-  align-items:center; padding:1.8vh 1.2vw 0; border-radius:2vh 2vh 0 0;
-  background:linear-gradient(180deg, rgba(255,255,255,.075), rgba(255,255,255,.012));
-  border:1px solid rgba(255,255,255,.09); border-bottom:0;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.14);
+.xsy-sub{ font-family:'Poppins',sans-serif; font-weight:400; font-size:1.3vw;
+  letter-spacing:.28em; text-transform:uppercase; color:rgba(255,255,255,.38);
+  margin-top:1vh; text-indent:.28em; }
+.xsy-podium{ flex:1 1 auto; min-height:0; display:flex; align-items:flex-end;
+  justify-content:center; gap:1.6vw; margin-top:2.4vh; }
+.xsy-pod{ position:relative; flex:1 1 0; max-width:24vw; overflow:hidden;
+  display:flex; flex-direction:column; align-items:center;
+  padding:2vh 1.1vw 2.2vh; border-radius:2vh;
+  background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.014));
+  border:1px solid rgba(255,255,255,.1);
+  box-shadow:0 1.6vh 4vh -1.6vh rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.15);
   backdrop-filter:blur(1.2vw) saturate(150%); -webkit-backdrop-filter:blur(1.2vw) saturate(150%); }
 .xsy-pod.empty{ background:none; border:0; box-shadow:none; }
-.xsy-medal{ width:3.9vh; height:3.9vh; border-radius:50%; flex:none;
+.xsy-pod::after{ content:""; position:absolute; left:0; right:0; bottom:0; height:1.1vh;
+  background:currentColor; box-shadow:0 0 3vh currentColor; }
+.xsy-pod.gold  { color:#ffd166; }
+.xsy-pod.silver{ color:#d6e4f0; }
+.xsy-pod.bronze{ color:#c68b59; }
+.xsy-medal{ width:4.6vh; height:4.6vh; border-radius:50%; flex:none;
   display:flex; align-items:center; justify-content:center;
-  font-family:'Orbitron',sans-serif; font-weight:700; font-size:1.75vh; color:#0b0f14;
-  margin-bottom:1.2vh; }
+  font-family:'Orbitron',sans-serif; font-weight:700; font-size:2vh; color:#0b0f14;
+  margin-bottom:1.4vh; }
 .xsy-pod.gold   .xsy-medal{ background:linear-gradient(145deg,#fff2c4,#ffd166 45%,#e0a83c);
-  box-shadow:0 0 3.4vh rgba(255,209,102,.75); }
+  box-shadow:0 0 3.4vh rgba(255,209,102,.8); }
 .xsy-pod.silver .xsy-medal{ background:linear-gradient(145deg,#fff,#d6e4f0 45%,#9fb3c4);
-  box-shadow:0 0 2.6vh rgba(214,228,240,.5); }
+  box-shadow:0 0 2.6vh rgba(214,228,240,.55); }
 .xsy-pod.bronze .xsy-medal{ background:linear-gradient(145deg,#f0c39a,#c68b59 45%,#9a6535);
-  box-shadow:0 0 2.6vh rgba(198,139,89,.5); }
-.xsy-pname{ font-family:'Poppins',sans-serif; font-weight:600; font-size:1.42vw;
-  color:#fff; text-align:center; line-height:1.22; letter-spacing:-.01em;
-  min-height:3.4em; display:flex; align-items:center; justify-content:center;
-  overflow:hidden; }
-.xsy-pcount{ margin-top:.4vh; text-align:center; }
+  box-shadow:0 0 2.6vh rgba(198,139,89,.55); }
+.xsy-pname{ font-family:'Poppins',sans-serif; font-weight:600; font-size:1.72vw;
+  color:#fff; text-align:center; line-height:1.2; letter-spacing:-.012em; width:100%; }
+.xsy-pcount{ margin-top:1.2vh; text-align:center; }
 .xsy-pcount b{ display:block; font-family:'Orbitron',sans-serif; font-weight:700;
-  font-size:2.5vw; line-height:1; letter-spacing:-.02em; }
-.xsy-pcount span{ display:block; font-family:'Poppins',sans-serif; font-weight:300;
-  font-size:.92vw; letter-spacing:.22em; text-transform:uppercase;
-  color:rgba(255,255,255,.36); margin-top:.5vh; }
-.xsy-pod.gold   .xsy-pcount b{ color:#ffd166; text-shadow:0 0 3.4vh rgba(255,209,102,.6); }
-.xsy-pod.silver .xsy-pcount b{ color:#d6e4f0; }
-.xsy-pod.bronze .xsy-pcount b{ color:#c68b59; }
-.xsy-plinth{ width:100%; margin-top:1.2vh; border-radius:.6vh .6vh 0 0; }
-.xsy-pod.gold   .xsy-plinth{ height:3.4vh; background:linear-gradient(180deg,rgba(255,209,102,.42),rgba(255,209,102,.05)); }
-.xsy-pod.silver .xsy-plinth{ height:2.1vh; background:linear-gradient(180deg,rgba(214,228,240,.32),rgba(214,228,240,.04)); }
-.xsy-pod.bronze .xsy-plinth{ height:1.4vh; background:linear-gradient(180deg,rgba(198,139,89,.32),rgba(198,139,89,.04)); }
-.xsy-pod.first{ padding-top:2.4vh; }
-.xsy-pod.first .xsy-medal{ width:4.7vh; height:4.7vh; font-size:2vh; }
-.xsy-pod.first .xsy-pname{ font-size:1.62vw; }
-.xsy-pod.first .xsy-pcount b{ font-size:3vw; }
-.xsy-pod.first{ border-color:rgba(255,209,102,.3);
-  box-shadow:0 0 7vh -1.6vh rgba(255,209,102,.5), inset 0 1px 0 rgba(255,255,255,.2); }
-.xsy-rest{ flex:none; display:flex; flex-direction:column; gap:.75vh; margin-top:3vh; }
-.xsy-row{ display:flex; align-items:center; gap:1.6vw; padding:.9vh 1.8vw;
-  border-radius:1.3vh; background:rgba(255,255,255,.028);
-  border:1px solid rgba(255,255,255,.055);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.06); }
-.xsy-rank{ flex:none; width:3.4vh; font-family:'Orbitron',sans-serif; font-weight:700;
-  font-size:1.55vw; color:rgba(255,255,255,.32); text-align:center; }
-.xsy-name{ flex:1; font-family:'Poppins',sans-serif; font-weight:400; font-size:1.5vw;
-  color:rgba(255,255,255,.88); min-width:0; white-space:nowrap;
-  overflow:hidden; text-overflow:ellipsis; }
+  font-size:3vw; line-height:1; letter-spacing:-.02em; color:currentColor; }
+.xsy-pcount span{ display:block; font-family:'Poppins',sans-serif; font-weight:400;
+  font-size:1.05vw; letter-spacing:.2em; text-transform:uppercase;
+  color:rgba(255,255,255,.4); margin-top:.7vh; }
+.xsy-pod.gold .xsy-pcount b{ text-shadow:0 0 3.4vh rgba(255,209,102,.7); }
+.xsy-pod.first{ padding-top:3.4vh; padding-bottom:3vh;
+  border-color:rgba(255,209,102,.34);
+  box-shadow:0 0 8vh -1.6vh rgba(255,209,102,.55), inset 0 1px 0 rgba(255,255,255,.22); }
+.xsy-pod.first .xsy-medal{ width:5.6vh; height:5.6vh; font-size:2.4vh; margin-bottom:1.8vh; }
+.xsy-pod.first .xsy-pname{ font-size:2vw; }
+.xsy-pod.first .xsy-pcount b{ font-size:3.9vw; }
+.xsy-pod.first::after{ height:1.5vh; }
+.xsy-rest{ flex:none; display:flex; flex-direction:column; gap:.85vh; margin-top:2.4vh; }
+.xsy-row{ display:flex; align-items:center; gap:1.6vw; padding:1.1vh 2vw;
+  border-radius:1.4vh; background:rgba(255,255,255,.032);
+  border:1px solid rgba(255,255,255,.06);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07); }
+.xsy-rank{ flex:none; width:4vh; font-family:'Orbitron',sans-serif; font-weight:700;
+  font-size:1.85vw; color:rgba(255,209,102,.45); text-align:center; }
+.xsy-name{ flex:1; font-family:'Poppins',sans-serif; font-weight:500; font-size:1.82vw;
+  color:#fff; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .xsy-count{ flex:none; font-family:'Orbitron',sans-serif; font-weight:700;
-  font-size:1.6vw; color:rgba(255,255,255,.6); }
+  font-size:1.95vw; color:rgba(255,255,255,.72); }
 
   </style>
   <script src="../schedule.js?v=1.2.0"></script>
@@ -3145,7 +3143,6 @@ function xsyRender() {
              '<div class="xsy-medal">' + (i + 1) + '</div>' +
              '<div class="xsy-pname">' + xsyShort(r.name) + '</div>' +
              '<div class="xsy-pcount"><b>' + r.count + '</b><span>προπονήσεις</span></div>' +
-             '<div class="xsy-plinth"></div>' +
            '</div>';
   }).join("");
 
