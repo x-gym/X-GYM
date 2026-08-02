@@ -1356,6 +1356,25 @@ align-self: center;          /* κάθετα στο grid row */
   color:rgba(255,255,255,.44); margin-top:.35vh; }
 .xsw-name .tag-kids, .xsw-name .tag-men{ font-size:.8vw; padding:.28vh .6vw;
   margin-left:.8vw; vertical-align:.3em; }
+  /* ── αλλαγές μέσα στο εβδομαδιαίο ── */
+.xsw-day{ position:relative; }
+.xsw-dot{ position:absolute; top:50%; right:1vw; transform:translateY(-50%);
+  width:.55vw; height:.55vw; border-radius:50%; background:#f0c05f;
+  box-shadow:0 0 1.4vh rgba(240,192,95,.85); }
+.xsw-flag{ position:relative; flex:none; font-family:'Poppins',sans-serif; font-weight:600;
+  font-size:.86vw; letter-spacing:.16em; text-transform:uppercase;
+  padding:.6vh .9vw; border-radius:.8vh; white-space:nowrap; }
+.xsw-flag.off{ color:#ff6b6b; background:rgba(255,107,107,.13);
+  border:1px solid rgba(255,107,107,.28); }
+.xsw-flag.chg{ color:#5ff0ff; background:rgba(95,240,255,.11);
+  border:1px solid rgba(95,240,255,.26); }
+.xsw-row.off{ background:rgba(255,107,107,.03); border-color:rgba(255,107,107,.13); }
+.xsw-row.off .xsw-bar{ opacity:.32; box-shadow:none; }
+.xsw-row.off .xsw-time,
+.xsw-row.off .xsw-name{ color:rgba(255,255,255,.32); text-decoration:line-through;
+  text-decoration-thickness:.15vh; }
+.xsw-row.off .xsw-tr{ color:rgba(255,255,255,.2); }
+.xsw-row.off .tag-kids, .xsw-row.off .tag-men{ opacity:.4; box-shadow:none; }
 
   /* ═══════════════ QR ΠΡΟΓΡΑΜΜΑΤΟΣ ═══════════════ */
 .xsq-slide{ color:#fff;
@@ -2822,8 +2841,8 @@ function xsRenderToday() {
 }
 
 /* ═══════════ ΕΒΔΟΜΑΔΙΑΙΟ ΠΡΟΓΡΑΜΜΑ (δύο μέρη) ═══════════
-   Δείχνει το ΣΤΑΘΕΡΟ πρόγραμμα, όχι τις εξαιρέσεις ημέρας —
-   οι ακυρώσεις αφορούν συγκεκριμένες ημερομηνίες και ζουν στο «σήμερα». */
+   Κάθε ημέρα δείχνει την ΕΠΟΜΕΝΗ πραγματική της εμφάνιση, με τις
+   ακυρώσεις και τις μεταθέσεις εκείνης της ημερομηνίας. */
 
 function xsWeekDays() {
   var C = xsClassesInUse().filter(function (c) { return c.active !== false; });
@@ -2837,9 +2856,18 @@ function xsWeekSplit(half) {
   return half === 0 ? d.slice(0, cut) : d.slice(cut);
 }
 
+/* η επόμενη ημερομηνία που πέφτει σε αυτή την ημέρα (σήμερα συμπεριλαμβάνεται) */
+function xsNextDateFor(dow) {
+  var t = new Date(); t.setHours(0, 0, 0, 0);
+  for (var i = 0; i < 7; i++) {
+    var d = XSchedule.addDays(t, i);
+    if (d.getDay() === dow) return d;
+  }
+  return t;
+}
+
 function xsRenderWeek() {
   if (typeof XSchedule === "undefined") return;
-  var C = xsClassesInUse().filter(function (c) { return c.active !== false; });
   var today = new Date().getDay();
 
   [0, 1].forEach(function (half) {
@@ -2854,28 +2882,44 @@ function xsRenderWeek() {
       return xsUp(XSchedule.DAY_NAMES[d]); }).join("  ·  ");
 
     document.getElementById("xswCols" + half).innerHTML = days.map(function (d) {
-      var list = C.filter(function (c) { return c.day === d; })
-                  .sort(function (a, b) {
-                    return XSchedule.minutesOf(a.time) - XSchedule.minutesOf(b.time); });
-      var rows = list.map(function (c) {
-        var t = XSchedule.CLASS_TYPES[c.type] || {};
-        var col  = c.color || t.color || "#8892a0";
-        var nm   = (c.label || XSchedule.displayName(c.type))
-                     .replace(" Kids", "").replace(" Men", "");
-        var kids = (c.kids !== undefined) ? c.kids : !!t.kids;
-        var badge = kids ? '<small class="tag-kids">kids</small>'
-                  : (t.badge === "MEN" ? '<small class="tag-men">men</small>' : "");
-        return '<div class="xsw-row" style="color:' + col + '">' +
+      var date = xsNextDateFor(d);
+      var occs = XSchedule.visibleOccurrences(
+        XSchedule.getScheduleForDate(date, xsClassesInUse(), xsOverrides));
+
+      var rows = occs.map(function (o) {
+        var cls = "xsw-row", flag = "";
+        if (o.status === "cancelled") {
+          cls += " off";
+          flag = '<span class="xsw-flag off">Ακυρώθηκε</span>';
+        } else if (o.status === "moved_in") {
+          flag = '<span class="xsw-flag chg">Νέα ώρα</span>';
+        } else if (o.status === "added") {
+          flag = '<span class="xsw-flag chg">Έκτακτο</span>';
+        } else if (o.trainerChanged) {
+          flag = '<span class="xsw-flag chg">Αλλαγή</span>';
+        }
+        return '<div class="' + cls + '" style="color:' + o.color + '">' +
                  '<span class="xsw-bar"></span>' +
-                 '<div class="xsw-time">' + c.time + '</div>' +
+                 '<div class="xsw-time">' + o.time + '</div>' +
                  '<div class="xsw-body">' +
-                   '<div class="xsw-name">' + nm + badge + '</div>' +
-                   '<div class="xsw-tr">' + c.trainer + '</div>' +
-                 '</div>' +
+                   '<div class="xsw-name">' +
+                     o.name.replace(" Kids", "").replace(" Men", "") +
+                     (o.kids ? '<small class="tag-kids">kids</small>' :
+                      (o.badge === "MEN" ? '<small class="tag-men">men</small>' : "")) +
+                   '</div>' +
+                   '<div class="xsw-tr">' + o.trainer + '</div>' +
+                 '</div>' + flag +
                '</div>';
       }).join("");
+
+      var changed = occs.some(function (o) {
+        return o.status === "cancelled" || o.status === "moved_in" ||
+               o.status === "added" || o.trainerChanged;
+      });
+
       return '<div class="xsw-col' + (d === today ? " today" : "") + '">' +
-               '<div class="xsw-day">' + xsUp(XSchedule.DAY_NAMES[d]) + '</div>' +
+               '<div class="xsw-day">' + xsUp(XSchedule.DAY_NAMES[d]) +
+                 (changed ? '<i class="xsw-dot"></i>' : '') + '</div>' +
                '<div class="xsw-rows">' + rows + '</div>' +
              '</div>';
     }).join("");
