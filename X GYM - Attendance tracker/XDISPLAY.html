@@ -1437,6 +1437,37 @@ align-self: center;          /* κάθετα στο grid row */
 .xsq-cam::after{ content:""; position:absolute; left:50%; top:50%;
   width:.78vw; height:.78vw; border-radius:50%; transform:translate(-50%,-50%);
   border:.14vw solid #5ff0ff; }
+
+  /* ═══════════════ INSTAGRAM ═══════════════ */
+.xsi-slide{ color:#fff;
+  background:
+    radial-gradient(95% 60% at 50% 55%, rgba(193,53,132,.12), transparent 58%),
+    linear-gradient(180deg, #120a15 0%, #05070a 72%); }
+.xsi-aura{ position:absolute; left:50%; top:58%; width:92vh; height:92vh;
+  transform:translate(-50%,-50%); pointer-events:none; opacity:.3; filter:blur(3vw);
+  border-radius:50%;
+  background:conic-gradient(from 210deg,
+    #feda75 0deg, #fa7e1e 60deg, #d62976 130deg, #962fbf 200deg, #4f5bd5 270deg, #feda75 360deg); }
+.xsi-wrap{ position:relative; height:100%; box-sizing:border-box; display:flex;
+  flex-direction:column; align-items:center; justify-content:center; padding:8vh 5vw 4vh; }
+.xsi-title{ font-family:'Orbitron',sans-serif; font-weight:700; font-size:6.2vw;
+  line-height:1; letter-spacing:-.03em; margin-bottom:4.6vh; text-align:center;
+  background:linear-gradient(92deg, #feda75, #fa7e1e 26%, #d62976 58%, #962fbf 82%, #4f5bd5);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  filter:drop-shadow(0 0 5vh rgba(214,41,118,.5)); }
+.xsi-frame{ position:relative; padding:2.8vh; }
+.xsi-frame span{ position:absolute; width:5vh; height:5vh; pointer-events:none;
+  border:.45vh solid #d62976; box-shadow:0 0 2.8vh rgba(214,41,118,.7);
+  animation:xsiPulse 2.6s ease-in-out infinite; }
+.xsi-frame span:nth-child(1){ top:0; left:0;     border-right:0; border-bottom:0; border-radius:1.6vh 0 0 0; }
+.xsi-frame span:nth-child(2){ top:0; right:0;    border-left:0;  border-bottom:0; border-radius:0 1.6vh 0 0; border-color:#962fbf; }
+.xsi-frame span:nth-child(3){ bottom:0; left:0;  border-right:0; border-top:0;    border-radius:0 0 0 1.6vh; border-color:#fa7e1e; }
+.xsi-frame span:nth-child(4){ bottom:0; right:0; border-left:0;  border-top:0;    border-radius:0 0 1.6vh 0; border-color:#4f5bd5; }
+@keyframes xsiPulse{ 0%,100%{ opacity:.6; } 50%{ opacity:1; } }
+.xsi-card{ padding:1.8vh; border-radius:2.4vh; background:#fff;
+  box-shadow:0 0 11vh -1.5vh rgba(214,41,118,.65), 0 2.8vh 7vh -1.8vh rgba(0,0,0,.9); }
+.xsi-card img{ display:block; width:58vh; height:58vh; }
+
   </style>
   <script src="../schedule.js?v=1.2.0"></script>
 </head>
@@ -1553,6 +1584,20 @@ align-self: center;          /* κάθετα στο grid row */
         </div>
       </div>
     </div>
+    <!-- ═══ INSTAGRAM ═══ -->
+    <div class="slide xsi-slide" data-duration="24000">
+      <div class="xsi-aura"></div>
+      <div class="xsi-wrap">
+        <div class="xsi-title">Ακολούθησε μας</div>
+        <div class="xsi-frame">
+          <span></span><span></span><span></span><span></span>
+          <div class="xsi-card">
+            <img src="../qr-instagram.png" alt="Instagram">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
   </div>
 
   <script>
