@@ -87,7 +87,7 @@ async function checkSubscriptionForId(scannedId) {
 
 
 
-    showPopup(displayName, !!data.active, sheetName);
+    showPopup(displayName, !!data.active, scannedId);
   } catch (e) {
     console.error(e);
     hideLoadingPopup();
@@ -1616,6 +1616,13 @@ align-self: center;          /* κάθετα στο grid row */
   font-size:clamp(10px, 1.05vw, 18px); letter-spacing:.2em; text-indent:.2em;
   text-transform:uppercase; color:rgba(255,255,255,.4); margin-top:1vh; }
 #popup-overlay .xsp-stat.hi b{ color:currentColor; text-shadow:0 0 3vh currentColor; }
+/* χρώμα κατάταξης για τους τρεις πρώτους */
+#popup-overlay .xsp-stat.r1 b{ color:#ffd166; text-shadow:0 0 3.4vh rgba(255,209,102,.8); }
+#popup-overlay .xsp-stat.r2 b{ color:#d6e4f0; text-shadow:0 0 3vh rgba(214,228,240,.6); }
+#popup-overlay .xsp-stat.r3 b{ color:#c68b59; text-shadow:0 0 3vh rgba(198,139,89,.6); }
+#popup-overlay .xsp-stat.r1{ border-color:rgba(255,209,102,.34); background:rgba(255,209,102,.07); }
+#popup-overlay .xsp-stat.r2{ border-color:rgba(214,228,240,.28); background:rgba(214,228,240,.05); }
+#popup-overlay .xsp-stat.r3{ border-color:rgba(198,139,89,.3);  background:rgba(198,139,89,.06); }
 #popup-overlay .xsp-msg{
   font-family:'Poppins',sans-serif; font-weight:300;
   font-size:clamp(15px, 1.9vw, 32px); color:rgba(255,255,255,.55);
@@ -2139,11 +2146,12 @@ setInterval(loadStatsHistory, 6 * 60 * 60 * 1000);
       return name;
     }
 
-function showPopup(name, isActive, fullName) {
+function showPopup(name, isActive, scanId) {
   var hour = new Date().getHours();
+  var greeting = hour < 12 ? "Καλημέρα" : "Καλησπέρα";
   var shown = String(name || "").trim();
 
-  var st = isActive ? xspStats(fullName || shown, shown) : null;
+  var st = (isActive && typeof xspStats === "function") ? xspStats(scanId) : null;
 
   var overlay = document.createElement("div");
   overlay.id = "popup-overlay";
@@ -2151,19 +2159,16 @@ function showPopup(name, isActive, fullName) {
 
   var stats = "";
   if (st) {
+    var medal = st.rank === 1 ? " r1" : st.rank === 2 ? " r2" : st.rank === 3 ? " r3" : "";
     stats =
       '<div class="xsp-stats">' +
         '<div class="xsp-stat"><b>' + st.year + '</b><span>Φέτος</span></div>' +
         '<div class="xsp-stat"><b>' + st.month + '</b><span>Τον μήνα</span></div>' +
-        '<div class="xsp-stat hi"><b>#' + st.rank + '</b><span>Κατάταξη</span></div>' +
+        '<div class="xsp-stat hi' + medal + '"><b>#' + st.rank + '</b><span>Κατάταξη</span></div>' +
       '</div>';
   }
 
-  var msg = isActive
-    ? (st && st.rank === 1 ? "Είσαι στην κορυφή. Συνέχισε έτσι!"
-       : st && st.month >= 12 ? "Εξαιρετικός μήνας. Καλή προπόνηση!"
-       : "Καλή προπόνηση!")
-    : "Η ομάδα μας σε περιμένει!";
+  var msg = xspMessage(st, isActive);
 
   overlay.innerHTML =
     '<div class="xsp-card">' +
@@ -2298,7 +2303,6 @@ function makeInitialAvatarDataURI(fullName = "") {
     .slice(0,2)
     .map(s => s[0]?.toUpperCase() || "")
     .join("");
-    xsmRefresh();
 
   // σταθερή απόχρωση ανά όνομα
   let hash = 0;
@@ -2781,7 +2785,7 @@ async function checkSubscriptionForId(scannedId) {
     const firstOnly = sheetName.split(/\s+/)[0] || "";
     const displayedName = formatName(firstOnly); // ή βάλε κατευθείαν firstOnly αν δεν θες vocative
 
-    showPopup(displayedName, !!data.active, sheetName);
+    showPopup(displayedName, !!data.active, scannedId);
   } catch (error) {
     console.error("❌ Σφάλμα κατά το fetch:", error);
     hideLoadingPopup();
@@ -3252,18 +3256,36 @@ function xsyShort(full) {
 }
 
 function xsyRender() {
-  var xsmBusy = false;
-function xsmRefresh() {
-  if (xsmBusy) return;                     /* φραγή επανεισόδου */
-  if (typeof renderLeaderboardFromRows !== "function") return;
-  xsmBusy = true;
-  try {
-    var r = xsmRows(8);
-    console.log("📅 μηνιαίο:", r.length, "άτομα", xsmMonthKey());
-    renderLeaderboardFromRows(r);
-  } catch (e) { console.warn("📅", e.message); }
-  xsmBusy = false;
-}
+  var slide = document.querySelector(".xsy-slide");
+  if (!slide) return;
+  var rows = xsyTop(8);
+
+  if (!rows.length) { slide.classList.add("xsl-skip"); return; }
+  slide.classList.remove("xsl-skip");
+
+  var sub = document.getElementById("xsySub");
+  if (sub) sub.textContent = xsyYear + "  ·  " + xsyTotal.toLocaleString("el-GR") + " προπονήσεις";
+
+  var podOrder = [1, 0, 2];   /* 2ος, 1ος, 3ος — ο νικητής στο κέντρο */
+  var medals = ["gold", "silver", "bronze"];
+
+  document.getElementById("xsyPodium").innerHTML = podOrder.map(function (i) {
+    var r = rows[i];
+    if (!r) return '<div class="xsy-pod empty"></div>';
+    return '<div class="xsy-pod ' + medals[i] + (i === 0 ? " first" : "") + '">' +
+             '<div class="xsy-medal">' + (i + 1) + '</div>' +
+             '<div class="xsy-pname">' + xsyShort(r.name) + '</div>' +
+             '<div class="xsy-pcount"><b>' + r.count + '</b><span>προπονήσεις</span></div>' +
+           '</div>';
+  }).join("");
+
+  document.getElementById("xsyRest").innerHTML = rows.slice(3).map(function (r, i) {
+    return '<div class="xsy-row">' +
+             '<div class="xsy-rank">' + (i + 4) + '</div>' +
+             '<div class="xsy-name">' + xsyShort(r.name) + '</div>' +
+             '<div class="xsy-count">' + r.count + '</div>' +
+           '</div>';
+  }).join("");
 }
 
 function xsyLoad() {
@@ -3283,7 +3305,7 @@ function xsyWatch() {
     .onSnapshot(function (snap) {
       var n = 0;
       snap.forEach(function (d) { if (xsyAdd(d.data() || {}, d.id)) n++; });
-      if (n) { console.log("🏆 +" + n); xsyRender(); xsmRefresh(); }
+      if (n) { console.log("🏆 +" + n); xsyRender(); }
     }, function (e) { console.warn("🏆 listener:", e.message); });
 }
 
@@ -3294,7 +3316,7 @@ setInterval(function () {
   }
 }, 3600000);
 
-xsyLoad().then(function () { xsyWatch(); xsmRefresh(); });
+xsyLoad().then(xsyWatch);
 /* ═══════════ ΣΤΑΤΙΣΤΙΚΑ ΠΕΛΑΤΗ ΓΙΑ ΤΟ POPUP ═══════════
    Χρησιμοποιεί τα δεδομένα που έχει ήδη φορτώσει το ετήσιο leaderboard.
    Καμία επιπλέον ανάγνωση από Firestore — μηδενικό κόστος. */
@@ -3304,38 +3326,43 @@ function xspNorm(s) {
     .toUpperCase().replace(/\s+/g, " ").trim();
 }
 
-function xspStats(fullName, firstName) {
-  if (typeof xsySeenRaw === "undefined") return null;
-  var want = xspNorm(fullName);
-  var first = xspNorm(firstName || String(fullName || "").split(/\s+/)[0]);
-  var firstAlt = first ? first + "Σ" : "";   /* κλητική -> ονομαστική */
+/* ═══════════ ΣΤΑΤΙΣΤΙΚΑ ΠΕΛΑΤΗ ΓΙΑ ΤΟ POPUP ═══════════
+   Ταύτιση με το ID της κάρτας — ακριβής, ανεξάρτητη από
+   ελληνικά/λατινικά ονόματα. */
+/* ═══════════ ΣΤΑΤΙΣΤΙΚΑ ΠΕΛΑΤΗ ΓΙΑ ΤΟ POPUP ═══════════
+   Ταύτιση με το ID της κάρτας.
+   Η σύγκριση με τον προηγούμενο μήνα είναι ΑΝΑΛΟΓΙΚΗ: μετράει
+   τις ίδιες ημέρες (1..σήμερα), αλλιώς στις αρχές κάθε μήνα
+   θα έβγαινε πτώση για όλους. */
+function xspStats(scanId) {
+  if (typeof xsySeenRaw === "undefined" || !scanId) return null;
+  var want = String(scanId).trim();
 
-  var mk = new Date().toLocaleDateString("sv-SE").slice(0, 7);
+  var now = new Date(), day = now.getDate();
+  var mk = now.toLocaleDateString("sv-SE").slice(0, 7);
+  var pv = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+             .toLocaleDateString("sv-SE").slice(0, 7);
 
-  var hits = {}, exact = false;
-  Object.keys(xsySeenRaw).forEach(function (id) {
-    var n = xspNorm(xsySeenRaw[id].name);
-    if (want && n === want) { hits[id] = n; exact = true; }
+  var year = 0, byMonth = {}, prevSame = 0, myName = null;
+
+  Object.keys(xsySeenRaw).forEach(function (k) {
+    var d = xsySeenRaw[k];
+    if (String(d.id || "").trim() !== want) return;
+    year++;
+    if (!myName) myName = d.name;
+    var dk = String(d.dateKey || ""), m = dk.slice(0, 7);
+    if (!m) return;
+    byMonth[m] = (byMonth[m] || 0) + 1;
+    if (m === pv && +dk.slice(8, 10) <= day) prevSame++;
   });
+  if (!year) return null;
 
-  if (!exact && first) {
-    Object.keys(xsySeenRaw).forEach(function (id) {
-      var f = xspNorm(xsySeenRaw[id].name).split(" ")[0];
-      if (f === first || f === firstAlt) hits[id] = xspNorm(xsySeenRaw[id].name);
-    });
-  }
+  var month = byMonth[mk] || 0;
+  var prevFull = byMonth[pv] || 0;
 
-  var ids = Object.keys(hits);
-  if (!ids.length) return null;
-
-  /* αν το μικρό όνομα ταιριάζει σε πολλούς, δεν δίνουμε λάθος στατιστικά */
-  var uniq = {};
-  ids.forEach(function (id) { uniq[hits[id]] = 1; });
-  if (!exact && Object.keys(uniq).length > 1) return null;
-
-  var year = ids.length, month = 0;
-  ids.forEach(function (id) {
-    if (String(xsySeenRaw[id].dateKey || "").slice(0, 7) === mk) month++;
+  var best = month >= 4;
+  Object.keys(byMonth).forEach(function (m) {
+    if (m !== mk && byMonth[m] >= month) best = false;
   });
 
   var rank = 1, total = 0;
@@ -3344,32 +3371,27 @@ function xspStats(fullName, firstName) {
     if (xsyCounts[n] > year) rank++;
   });
 
-  return { year: year, month: month, rank: rank, total: total };
-}
-/* ═══ ΜΗΝΙΑΙΟ LEADERBOARD ΑΠΟ FIRESTORE ═══
-   Αντικαθιστά τη λογική localStorage, που άδειαζε κάθε 1η του μήνα
-   και ξαναγέμιζε μόνο από ζωντανές σαρώσεις. */
-function xsmMonthKey() { return new Date().toLocaleDateString("sv-SE").slice(0, 7); }
-
-function xsmRows(n) {
-  var mk = xsmMonthKey(), c = {};
-  Object.keys(xsySeenRaw).forEach(function (id) {
-    var d = xsySeenRaw[id];
-    if (String(d.dateKey || "").slice(0, 7) !== mk) return;
-    var nm = String(d.name || "").trim();
-    if (nm) c[nm] = (c[nm] || 0) + 1;
-  });
-  return Object.keys(c).map(function (k) { return { name: k, count: c[k] }; })
-    .sort(function (a, b) { return b.count - a.count || a.name.localeCompare(b.name, "el"); })
-    .slice(0, n || 8);
+  return { year: year, month: month, prevFull: prevFull, prevSame: prevSame,
+           diff: month - prevSame, best: best, day: day,
+           rank: rank, total: total, name: myName };
 }
 
-function xsmRefresh() {
-  if (typeof renderLeaderboardFromRows === "function") {
-    var r = xsmRows(8);
-    console.log("📅 μηνιαίο:", r.length, "άτομα", xsmMonthKey());
-    renderLeaderboardFromRows(r);
-  }
+/* Μία πρόταση, με σαφή προτεραιότητα. */
+function xspMessage(st, isActive) {
+  if (!isActive) return "Η ομάδα μας σε περιμένει!";
+  if (!st) return "Καλή προπόνηση!";
+
+  if (st.best)
+    return "Ο καλύτερός σου μήνας μέχρι σήμερα!";
+  if (st.diff >= 5)
+    return "+" + st.diff + " προπονήσεις σε σχέση με τον προηγούμενο μήνα!";
+  if (st.diff <= -5)
+    return Math.abs(st.diff) + " λιγότερες από τον προηγούμενο μήνα — ανέβασε ρυθμό!";
+  if (st.rank === 1)
+    return "Είσαι στην κορυφή της χρονιάς!";
+  if (st.rank <= 3)
+    return "Στο βάθρο της χρονιάς. Εντυπωσιακό!";
+  return "Καλή προπόνηση!";
 }
 setInterval(xsRender, 15000);   /* κρατάει ζωντανή την αντίστροφη μέτρηση */
 
