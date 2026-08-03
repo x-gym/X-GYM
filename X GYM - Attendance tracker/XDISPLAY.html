@@ -1546,6 +1546,87 @@ align-self: center;          /* κάθετα στο grid row */
 .xsy-count{ flex:none; font-family:'Orbitron',sans-serif; font-weight:700;
   font-size:1.95vw; color:rgba(255,255,255,.72); }
 
+/* ═══ POPUP ΣΑΡΩΣΗΣ — βελτιστοποιημένο για τηλεοράσεις ═══ */
+#popup-overlay{
+  position:fixed; inset:0; z-index:9999; display:flex;
+  align-items:center; justify-content:center;
+  background:rgba(3,6,10,.9);
+  backdrop-filter:none; -webkit-backdrop-filter:none;
+  opacity:0; animation:xspFade .28s ease forwards;
+  contain:layout style paint; }
+@keyframes xspFade{ to{ opacity:1; } }
+#popup-overlay .xsp-card{
+  position:relative; box-sizing:border-box;
+  width:min(74vw, 128vh); padding:4.4vh 5vw 4.8vh;
+  border-radius:2.6vh; text-align:center;
+  background:linear-gradient(180deg, rgba(16,22,32,.97), rgba(7,11,17,.99));
+  border:1px solid rgba(255,255,255,.1);
+  transform:scale(.94) translateY(2vh);
+  animation:xspIn .42s cubic-bezier(.22,1,.36,1) .05s forwards;
+  will-change:transform; }
+@keyframes xspIn{ to{ transform:scale(1) translateY(0); } }
+#popup-overlay .xsp-card::before{
+  content:""; position:absolute; left:12%; right:12%; top:0; height:.42vh;
+  border-radius:0 0 1vh 1vh; background:currentColor;
+  box-shadow:0 0 3.4vh currentColor; }
+#popup-overlay.active   .xsp-card{ color:#00ffb0;
+  box-shadow:0 0 9vh -2vh rgba(0,255,176,.55), 0 2.6vh 7vh -2vh rgba(0,0,0,.9); }
+#popup-overlay.inactive .xsp-card{ color:#ff4664;
+  box-shadow:0 0 9vh -2vh rgba(255,70,100,.5), 0 2.6vh 7vh -2vh rgba(0,0,0,.9); }
+#popup-overlay .xsp-logo{
+  width:13vh; height:13vh; border-radius:50%; margin:0 auto 2.4vh;
+  overflow:hidden; border:.28vh solid currentColor;
+  box-shadow:0 0 4vh -1vh currentColor; }
+#popup-overlay .xsp-logo img{ width:100%; height:100%; object-fit:cover; display:block; }
+#popup-overlay .xsp-name{
+  font-family:'Orbitron',sans-serif; font-weight:700;
+  font-size:clamp(34px, 5.6vw, 82px); line-height:1.02; letter-spacing:-.01em;
+  color:currentColor; text-shadow:0 0 4.5vh currentColor; }
+#popup-overlay .xsp-hi{
+  display:block; font-family:'Poppins',sans-serif; font-weight:500;
+  font-size:clamp(14px, 1.5vw, 26px); letter-spacing:.34em; text-indent:.34em;
+  text-transform:uppercase; color:rgba(255,255,255,.42); margin-bottom:1.4vh; }
+#popup-overlay .xsp-status{
+  display:inline-flex; align-items:center; gap:.9vw; margin-top:2.4vh;
+  padding:1.1vh 2.4vw; border-radius:6vh;
+  font-family:'Poppins',sans-serif; font-weight:600;
+  font-size:clamp(14px, 1.6vw, 28px); letter-spacing:.1em; }
+#popup-overlay .xsp-status i{ width:1.1vh; height:1.1vh; border-radius:50%;
+  background:currentColor; box-shadow:0 0 1.8vh currentColor; flex:none; }
+#popup-overlay.active   .xsp-status{ background:rgba(0,255,176,.12);
+  border:1px solid rgba(0,255,176,.3); color:#00ffb0; }
+#popup-overlay.inactive .xsp-status{ background:rgba(255,70,100,.12);
+  border:1px solid rgba(255,70,100,.3); color:#ff4664; }
+#popup-overlay .xsp-stats{
+  display:flex; gap:1.6vw; justify-content:center; margin-top:3.4vh; }
+#popup-overlay .xsp-stat{
+  flex:1 1 0; max-width:22vh; padding:2vh 1vw; border-radius:1.8vh;
+  background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.075);
+  opacity:0; transform:translateY(1.6vh);
+  animation:xspUp .38s ease forwards; }
+#popup-overlay .xsp-stat:nth-child(1){ animation-delay:.30s; }
+#popup-overlay .xsp-stat:nth-child(2){ animation-delay:.40s; }
+#popup-overlay .xsp-stat:nth-child(3){ animation-delay:.50s; }
+@keyframes xspUp{ to{ opacity:1; transform:none; } }
+#popup-overlay .xsp-stat b{
+  display:block; font-family:'Orbitron',sans-serif; font-weight:700;
+  font-size:clamp(26px, 3.4vw, 58px); line-height:1; color:#fff; }
+#popup-overlay .xsp-stat span{
+  display:block; font-family:'Poppins',sans-serif; font-weight:400;
+  font-size:clamp(10px, 1.05vw, 18px); letter-spacing:.2em; text-indent:.2em;
+  text-transform:uppercase; color:rgba(255,255,255,.4); margin-top:1vh; }
+#popup-overlay .xsp-stat.hi b{ color:currentColor; text-shadow:0 0 3vh currentColor; }
+#popup-overlay .xsp-msg{
+  font-family:'Poppins',sans-serif; font-weight:300;
+  font-size:clamp(15px, 1.9vw, 32px); color:rgba(255,255,255,.55);
+  margin-top:3vh; }
+#popup-overlay.xsp-out{ animation:xspOut .32s ease forwards; }
+@keyframes xspOut{ to{ opacity:0; } }
+@media (prefers-reduced-motion: reduce){
+  #popup-overlay, #popup-overlay .xsp-card, #popup-overlay .xsp-stat{
+    animation-duration:.01s !important; }
+}
+
   </style>
   <script src="../schedule.js?v=1.2.0"></script>
 </head>
@@ -2013,49 +2094,50 @@ setInterval(loadStatsHistory, 6 * 60 * 60 * 1000);
     }
 
 function showPopup(name, isActive) {
-  // Καλημέρα / Καλησπέρα με βάση την ώρα
-  const hour = new Date().getHours();
-  const greeting = hour < 12 ? "Καλημέρα" : "Καλησπέρα";
+  var hour = new Date().getHours();
+  var greeting = hour < 12 ? "Καλημέρα" : "Καλησπέρα";
+  var firstOnly = String(name || "").trim().split(/\s+/)[0] || "";
+  var fixedName = formatName(firstOnly);
 
-  // Μόνο το πρώτο όνομα, μορφοποιημένο
-  const firstOnly = String(name || "").trim().split(/\s+/)[0] || "";
-  const fixedName = formatName(firstOnly);
+  var st = isActive ? xspStats(name) : null;
 
-  // Δημιουργία overlay
-  const overlay = document.createElement("div");
+  var overlay = document.createElement("div");
   overlay.id = "popup-overlay";
-  overlay.classList.add(isActive ? "active" : "inactive");
+  overlay.className = isActive ? "active" : "inactive";
 
-  // Δημιουργία κάρτας
-  const card = document.createElement("div");
-  card.className = "popup-card";
+  var stats = "";
+  if (st) {
+    stats =
+      '<div class="xsp-stats">' +
+        '<div class="xsp-stat"><b>' + st.year + '</b><span>Φέτος</span></div>' +
+        '<div class="xsp-stat"><b>' + st.month + '</b><span>Τον μήνα</span></div>' +
+        '<div class="xsp-stat hi"><b>#' + st.rank + '</b><span>Κατάταξη</span></div>' +
+      '</div>';
+  }
 
-  // Περιεχόμενο
-  card.innerHTML = `
-    <div class="holo-logo">
-      <img src="https://i.postimg.cc/Y9HZXm3q/f26ceef4-3445-4c9a-a15d-64ea3cac2a95-removalai-preview.png" alt="Logo" />
-    </div>
-    <div class="popup-title">${greeting} ${fixedName}</div>
-    <div class="popup-line">Η συνδρομή σου είναι <b>${isActive ? "ενεργή" : "ανενεργή"}</b>.</div>
-    <div class="popup-line">${isActive ? "Καλή προπόνηση!" : "Η ομάδα μας σε περιμένει!"}</div>
-    <div class="popup-line">
-      <span class="badge ${isActive ? "active" : "inactive"}">
-        ${isActive ? "🟢 Active Member" : "🔴 Inactive Member"}
-      </span>
-    </div>
-  `;
+  var msg = isActive
+    ? (st && st.rank === 1 ? "Είσαι στην κορυφή. Συνέχισε έτσι!"
+       : st && st.month >= 12 ? "Εξαιρετικός μήνας. Καλή προπόνηση!"
+       : "Καλή προπόνηση!")
+    : "Η ομάδα μας σε περιμένει!";
 
-  // Τοποθέτηση στο DOM
-  overlay.appendChild(card);
+  overlay.innerHTML =
+    '<div class="xsp-card">' +
+      '<div class="xsp-logo"><img src="https://i.postimg.cc/Y9HZXm3q/f26ceef4-3445-4c9a-a15d-64ea3cac2a95-removalai-preview.png" alt=""></div>' +
+      '<div class="xsp-name"><span class="xsp-hi">' + greeting + '</span>' + fixedName + '</div>' +
+      '<div class="xsp-status"><i></i>' +
+        (isActive ? "Ενεργή συνδρομή" : "Ανενεργή συνδρομή") + '</div>' +
+      stats +
+      '<div class="xsp-msg">' + msg + '</div>' +
+    '</div>';
+
   document.body.appendChild(overlay);
 
-  // Αυτόματο κλείσιμο μετά από 6.3 δευτερόλεπτα
-  setTimeout(() => {
-    overlay.style.opacity = "0";
-    overlay.style.transition = "opacity 0.4s ease";
-    setTimeout(() => overlay.remove(), 400);
+  setTimeout(function () {
+    overlay.classList.add("xsp-out");
+    setTimeout(function () { overlay.remove(); }, 340);
     localStorage.removeItem("lastScannedId");
-  }, 6300);
+  }, 8000);
 }
 
   function getMonthlyCounts() {
@@ -3187,6 +3269,35 @@ setInterval(function () {
 }, 3600000);
 
 xsyLoad().then(xsyWatch);
+/* ═══════════ ΣΤΑΤΙΣΤΙΚΑ ΠΕΛΑΤΗ ΓΙΑ ΤΟ POPUP ═══════════
+   Χρησιμοποιεί τα δεδομένα που έχει ήδη φορτώσει το ετήσιο leaderboard.
+   Καμία επιπλέον ανάγνωση από Firestore — μηδενικό κόστος. */
+function xspStats(fullName) {
+  var key = String(fullName || "").trim().toUpperCase();
+  if (!key || typeof xsySeenRaw === "undefined") return null;
+
+  var mk = new Date().toLocaleDateString("sv-SE").slice(0, 7);
+  var year = 0, month = 0, last = null;
+
+  Object.keys(xsySeenRaw).forEach(function (id) {
+    var d = xsySeenRaw[id];
+    if (String(d.name || "").trim().toUpperCase() !== key) return;
+    year++;
+    var dk = String(d.dateKey || "");
+    if (dk.slice(0, 7) === mk) month++;
+    if (!last || dk > last) last = dk;
+  });
+
+  if (!year) return null;
+
+  var rank = 1, total = 0;
+  Object.keys(xsyCounts).forEach(function (n) {
+    total++;
+    if (xsyCounts[n] > year) rank++;
+  });
+
+  return { year: year, month: month, rank: rank, total: total, last: last };
+}
 /* ═══ ΜΗΝΙΑΙΟ LEADERBOARD ΑΠΟ FIRESTORE ═══
    Αντικαθιστά τη λογική localStorage, που άδειαζε κάθε 1η του μήνα
    και ξαναγέμιζε μόνο από ζωντανές σαρώσεις. */
