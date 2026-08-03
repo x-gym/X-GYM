@@ -3252,36 +3252,18 @@ function xsyShort(full) {
 }
 
 function xsyRender() {
-  var slide = document.querySelector(".xsy-slide");
-  if (!slide) return;
-  var rows = xsyTop(8);
-
-  if (!rows.length) { slide.classList.add("xsl-skip"); return; }
-  slide.classList.remove("xsl-skip");
-
-  var sub = document.getElementById("xsySub");
-  if (sub) sub.textContent = xsyYear + "  ·  " + xsyTotal.toLocaleString("el-GR") + " προπονήσεις";
-
-  var podOrder = [1, 0, 2];   /* 2ος, 1ος, 3ος — ο νικητής στο κέντρο */
-  var medals = ["gold", "silver", "bronze"];
-
-  document.getElementById("xsyPodium").innerHTML = podOrder.map(function (i) {
-    var r = rows[i];
-    if (!r) return '<div class="xsy-pod empty"></div>';
-    return '<div class="xsy-pod ' + medals[i] + (i === 0 ? " first" : "") + '">' +
-             '<div class="xsy-medal">' + (i + 1) + '</div>' +
-             '<div class="xsy-pname">' + xsyShort(r.name) + '</div>' +
-             '<div class="xsy-pcount"><b>' + r.count + '</b><span>προπονήσεις</span></div>' +
-           '</div>';
-  }).join("");
-
-  document.getElementById("xsyRest").innerHTML = rows.slice(3).map(function (r, i) {
-    return '<div class="xsy-row">' +
-             '<div class="xsy-rank">' + (i + 4) + '</div>' +
-             '<div class="xsy-name">' + xsyShort(r.name) + '</div>' +
-             '<div class="xsy-count">' + r.count + '</div>' +
-           '</div>';
-  }).join("");
+  var xsmBusy = false;
+function xsmRefresh() {
+  if (xsmBusy) return;                     /* φραγή επανεισόδου */
+  if (typeof renderLeaderboardFromRows !== "function") return;
+  xsmBusy = true;
+  try {
+    var r = xsmRows(8);
+    console.log("📅 μηνιαίο:", r.length, "άτομα", xsmMonthKey());
+    renderLeaderboardFromRows(r);
+  } catch (e) { console.warn("📅", e.message); }
+  xsmBusy = false;
+}
 }
 
 function xsyLoad() {
@@ -3301,7 +3283,7 @@ function xsyWatch() {
     .onSnapshot(function (snap) {
       var n = 0;
       snap.forEach(function (d) { if (xsyAdd(d.data() || {}, d.id)) n++; });
-      if (n) { console.log("🏆 +" + n); xsyRender(); }
+      if (n) { console.log("🏆 +" + n); xsyRender(); xsmRefresh(); }
     }, function (e) { console.warn("🏆 listener:", e.message); });
 }
 
@@ -3312,7 +3294,7 @@ setInterval(function () {
   }
 }, 3600000);
 
-xsyLoad().then(xsyWatch);
+xsyLoad().then(function () { xsyWatch(); xsmRefresh(); });
 /* ═══════════ ΣΤΑΤΙΣΤΙΚΑ ΠΕΛΑΤΗ ΓΙΑ ΤΟ POPUP ═══════════
    Χρησιμοποιεί τα δεδομένα που έχει ήδη φορτώσει το ετήσιο leaderboard.
    Καμία επιπλέον ανάγνωση από Firestore — μηδενικό κόστος. */
