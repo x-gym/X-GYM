@@ -87,7 +87,7 @@ async function checkSubscriptionForId(scannedId) {
 
 
 
-    showPopup(displayName, !!data.active);
+    showPopup(displayName, !!data.active, sheetName);
   } catch (e) {
     console.error(e);
     hideLoadingPopup();
@@ -1620,8 +1620,54 @@ align-self: center;          /* κάθετα στο grid row */
   font-family:'Poppins',sans-serif; font-weight:300;
   font-size:clamp(15px, 1.9vw, 32px); color:rgba(255,255,255,.55);
   margin-top:3vh; }
-#popup-overlay.xsp-out{ animation:xspOut .32s ease forwards; }
+/* έξοδος: η κάρτα υποχωρεί απαλά, το φόντο σβήνει λίγο πιο αργά */
+#popup-overlay.xsp-out{ animation:xspOut .46s cubic-bezier(.4,0,.6,1) forwards; }
+#popup-overlay.xsp-out .xsp-card{
+  animation:xspCardOut .4s cubic-bezier(.4,0,.6,1) forwards; }
 @keyframes xspOut{ to{ opacity:0; } }
+@keyframes xspCardOut{ to{ opacity:0; transform:scale(.965) translateY(-1.2vh); } }
+
+/* ── POPUP ΦΟΡΤΩΣΗΣ, στο ίδιο ύφος ── */
+#popup-loading{
+  position:fixed; inset:0; z-index:9999; display:flex;
+  align-items:center; justify-content:center;
+  background:rgba(3,6,10,.9);
+  backdrop-filter:none; -webkit-backdrop-filter:none;
+  opacity:0; animation:xspFade .24s ease forwards;
+  contain:layout style paint; }
+#popup-loading .loading-card{
+  position:relative; box-sizing:border-box; color:#5ff0ff;
+  width:min(52vw, 86vh); padding:4.4vh 4vw 4.6vh;
+  border-radius:2.6vh; text-align:center;
+  background:linear-gradient(180deg, rgba(16,22,32,.97), rgba(7,11,17,.99));
+  border:1px solid rgba(255,255,255,.1);
+  box-shadow:0 0 8vh -2vh rgba(95,240,255,.4), 0 2.4vh 6vh -2vh rgba(0,0,0,.9);
+  transform:scale(.96); animation:xspIn .38s cubic-bezier(.22,1,.36,1) forwards; }
+#popup-loading .loading-card::before{
+  content:""; position:absolute; left:14%; right:14%; top:0; height:.38vh;
+  border-radius:0 0 1vh 1vh; background:currentColor;
+  box-shadow:0 0 3vh currentColor; }
+#popup-loading .holo-logo{
+  width:11vh; height:11vh; border-radius:50%; margin:0 auto 2.2vh;
+  overflow:hidden; border:.26vh solid currentColor;
+  box-shadow:0 0 3.4vh -1vh currentColor; }
+#popup-loading .holo-logo img{ width:100%; height:100%; object-fit:cover; display:block; }
+#popup-loading .loading-title{
+  font-family:'Orbitron',sans-serif; font-weight:700;
+  font-size:clamp(22px, 3vw, 46px); color:#fff; letter-spacing:-.01em;
+  text-shadow:0 0 4vh rgba(95,240,255,.5); }
+#popup-loading .popup-line{
+  font-family:'Poppins',sans-serif; font-weight:300;
+  font-size:clamp(13px, 1.6vw, 26px); color:rgba(255,255,255,.5);
+  margin-top:1.6vh; text-shadow:none; }
+#popup-loading .loading-card::after{
+  content:""; position:absolute; left:0; right:0; bottom:0; height:.36vh;
+  border-radius:1vh; background:currentColor; transform-origin:left center;
+  animation:xspBar 1.3s ease-in-out infinite; }
+@keyframes xspBar{
+  0%  { transform:scaleX(0);   opacity:.85; }
+  55% { transform:scaleX(1);   opacity:.85; }
+  100%{ transform:scaleX(1);   opacity:0;   } }
 @media (prefers-reduced-motion: reduce){
   #popup-overlay, #popup-overlay .xsp-card, #popup-overlay .xsp-stat{
     animation-duration:.01s !important; }
@@ -2093,13 +2139,11 @@ setInterval(loadStatsHistory, 6 * 60 * 60 * 1000);
       return name;
     }
 
-function showPopup(name, isActive) {
+function showPopup(name, isActive, fullName) {
   var hour = new Date().getHours();
-  var greeting = hour < 12 ? "Καλημέρα" : "Καλησπέρα";
-  var firstOnly = String(name || "").trim().split(/\s+/)[0] || "";
-  var fixedName = formatName(firstOnly);
+  var shown = String(name || "").trim();
 
-  var st = isActive ? xspStats(name) : null;
+  var st = isActive ? xspStats(fullName || shown, shown) : null;
 
   var overlay = document.createElement("div");
   overlay.id = "popup-overlay";
@@ -2124,7 +2168,7 @@ function showPopup(name, isActive) {
   overlay.innerHTML =
     '<div class="xsp-card">' +
       '<div class="xsp-logo"><img src="https://i.postimg.cc/Y9HZXm3q/f26ceef4-3445-4c9a-a15d-64ea3cac2a95-removalai-preview.png" alt=""></div>' +
-      '<div class="xsp-name"><span class="xsp-hi">' + greeting + '</span>' + fixedName + '</div>' +
+      '<div class="xsp-name"><span class="xsp-hi">' + greeting + '</span>' + shown + '</div>' +
       '<div class="xsp-status"><i></i>' +
         (isActive ? "Ενεργή συνδρομή" : "Ανενεργή συνδρομή") + '</div>' +
       stats +
@@ -2737,7 +2781,7 @@ async function checkSubscriptionForId(scannedId) {
     const firstOnly = sheetName.split(/\s+/)[0] || "";
     const displayedName = formatName(firstOnly); // ή βάλε κατευθείαν firstOnly αν δεν θες vocative
 
-    showPopup(displayedName, !!data.active);
+    showPopup(displayedName, !!data.active, sheetName);
   } catch (error) {
     console.error("❌ Σφάλμα κατά το fetch:", error);
     hideLoadingPopup();
@@ -3272,23 +3316,45 @@ xsyLoad().then(xsyWatch);
 /* ═══════════ ΣΤΑΤΙΣΤΙΚΑ ΠΕΛΑΤΗ ΓΙΑ ΤΟ POPUP ═══════════
    Χρησιμοποιεί τα δεδομένα που έχει ήδη φορτώσει το ετήσιο leaderboard.
    Καμία επιπλέον ανάγνωση από Firestore — μηδενικό κόστος. */
-function xspStats(fullName) {
-  var key = String(fullName || "").trim().toUpperCase();
-  if (!key || typeof xsySeenRaw === "undefined") return null;
+/* ═══════════ ΣΤΑΤΙΣΤΙΚΑ ΠΕΛΑΤΗ ΓΙΑ ΤΟ POPUP ═══════════ */
+function xspNorm(s) {
+  return String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .toUpperCase().replace(/\s+/g, " ").trim();
+}
+
+function xspStats(fullName, firstName) {
+  if (typeof xsySeenRaw === "undefined") return null;
+  var want = xspNorm(fullName);
+  var first = xspNorm(firstName || String(fullName || "").split(/\s+/)[0]);
+  var firstAlt = first ? first + "Σ" : "";   /* κλητική -> ονομαστική */
 
   var mk = new Date().toLocaleDateString("sv-SE").slice(0, 7);
-  var year = 0, month = 0, last = null;
 
+  var hits = {}, exact = false;
   Object.keys(xsySeenRaw).forEach(function (id) {
-    var d = xsySeenRaw[id];
-    if (String(d.name || "").trim().toUpperCase() !== key) return;
-    year++;
-    var dk = String(d.dateKey || "");
-    if (dk.slice(0, 7) === mk) month++;
-    if (!last || dk > last) last = dk;
+    var n = xspNorm(xsySeenRaw[id].name);
+    if (want && n === want) { hits[id] = n; exact = true; }
   });
 
-  if (!year) return null;
+  if (!exact && first) {
+    Object.keys(xsySeenRaw).forEach(function (id) {
+      var f = xspNorm(xsySeenRaw[id].name).split(" ")[0];
+      if (f === first || f === firstAlt) hits[id] = xspNorm(xsySeenRaw[id].name);
+    });
+  }
+
+  var ids = Object.keys(hits);
+  if (!ids.length) return null;
+
+  /* αν το μικρό όνομα ταιριάζει σε πολλούς, δεν δίνουμε λάθος στατιστικά */
+  var uniq = {};
+  ids.forEach(function (id) { uniq[hits[id]] = 1; });
+  if (!exact && Object.keys(uniq).length > 1) return null;
+
+  var year = ids.length, month = 0;
+  ids.forEach(function (id) {
+    if (String(xsySeenRaw[id].dateKey || "").slice(0, 7) === mk) month++;
+  });
 
   var rank = 1, total = 0;
   Object.keys(xsyCounts).forEach(function (n) {
@@ -3296,7 +3362,7 @@ function xspStats(fullName) {
     if (xsyCounts[n] > year) rank++;
   });
 
-  return { year: year, month: month, rank: rank, total: total, last: last };
+  return { year: year, month: month, rank: rank, total: total };
 }
 /* ═══ ΜΗΝΙΑΙΟ LEADERBOARD ΑΠΟ FIRESTORE ═══
    Αντικαθιστά τη λογική localStorage, που άδειαζε κάθε 1η του μήνα
