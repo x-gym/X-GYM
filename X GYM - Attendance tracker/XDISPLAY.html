@@ -3343,7 +3343,8 @@ function xspStats(scanId) {
   var pv = new Date(now.getFullYear(), now.getMonth() - 1, 1)
              .toLocaleDateString("sv-SE").slice(0, 7);
 
-  var year = 0, byMonth = {}, prevSame = 0, myName = null;
+var todayK = now.toLocaleDateString("sv-SE");
+  var year = 0, byMonth = {}, prevSame = 0, myName = null, lastBefore = null;
 
   Object.keys(xsySeenRaw).forEach(function (k) {
     var d = xsySeenRaw[k];
@@ -3354,6 +3355,8 @@ function xspStats(scanId) {
     if (!m) return;
     byMonth[m] = (byMonth[m] || 0) + 1;
     if (m === pv && +dk.slice(8, 10) <= day) prevSame++;
+    /* τελευταία επίσκεψη ΠΡΙΝ από σήμερα */
+    if (dk < todayK && (!lastBefore || dk > lastBefore)) lastBefore = dk;
   });
   if (!year) return null;
 
@@ -3365,32 +3368,74 @@ function xspStats(scanId) {
     if (m !== mk && byMonth[m] >= month) best = false;
   });
 
+  /* πόσες μέρες έλειψε */
+  var away = null;
+  if (lastBefore) {
+    var a = new Date(todayK), b = new Date(lastBefore);
+    away = Math.round((a - b) / 86400000);
+  }
   var rank = 1, total = 0;
   Object.keys(xsyCounts).forEach(function (n) {
     total++;
     if (xsyCounts[n] > year) rank++;
   });
 
-  return { year: year, month: month, prevFull: prevFull, prevSame: prevSame,
-           diff: month - prevSame, best: best, day: day,
-           rank: rank, total: total, name: myName };
+return { year: year, month: month, prevFull: prevFull, prevSame: prevSame,
+           diff: month - prevSame, best: best, day: day, away: away,
+           lastVisit: lastBefore, rank: rank, total: total, name: myName };
 }
 
 /* Μία πρόταση, με σαφή προτεραιότητα. */
+/* Μία πρόταση, με προτεραιότητα από το σπανιότερο προς το γενικό. */
 function xspMessage(st, isActive) {
-  if (!isActive) return "Η ομάδα μας σε περιμένει!";
-  if (!st) return "Καλή προπόνηση!";
+ /* 1. επιστροφή μετά από απουσία — συνδυάζεται με ορόσημο αν συμπέσουν */
+  if (st.away != null && st.away >= 14) {
+    var ml = null, ms0 = [200, 150, 100, 50];
+    for (var j = 0; j < ms0.length; j++) {
+      if (st.year >= ms0[j] && st.year < ms0[j] + 3) { ml = ms0[j]; break; }
+    }
+    if (ml) return "Επιστροφή μετά από " + st.away + " ημέρες — και " + ml +
+                   "ή προπόνηση φέτος!";
+    if (st.away >= 60) return "Δυναμική επιστροφή μετά από καιρό. Καλώς όρισες!";
+    if (st.away >= 30) return "Δυναμικό restart. Καλώς όρισες πίσω!";
+    return "Επιστροφή μετά από " + st.away + " ημέρες. Καλή προπόνηση!";
+  }
+  /* πρώτη φορά — όχι «πίσω» */
+  if (st.away == null && st.year <= 1)
+    return "Καλώς ήρθες στην ομάδα!";
 
+  /* 2. καλύτερος μήνας της χρονιάς */
   if (st.best)
-    return "Ο καλύτερός σου μήνας μέχρι σήμερα!";
-  if (st.diff >= 5)
+    return "Ο καλύτερός σου μήνας για φέτος!";
+
+  /* 3. ορόσημο — παράθυρο 3 προπονήσεων ώστε να μη χαθεί */
+  var ms = [200, 150, 100, 50];
+  for (var i = 0; i < ms.length; i++) {
+    if (st.year >= ms[i] && st.year < ms[i] + 3) {
+      if (st.rank <= 8) return ms[i] + " προπονήσεις φέτος — και Top 8!";
+      return ms[i] + " προπονήσεις φέτος. Ορόσημο!";
+    }
+  }
+
+  /* 4. μεταβολή σε σχέση με τον προηγούμενο μήνα */
+  if (st.diff >= 5 && st.month > 0)
     return "+" + st.diff + " προπονήσεις σε σχέση με τον προηγούμενο μήνα!";
-  if (st.diff <= -5)
-    return Math.abs(st.diff) + " λιγότερες από τον προηγούμενο μήνα — ανέβασε ρυθμό!";
-  if (st.rank === 1)
-    return "Είσαι στην κορυφή της χρονιάς!";
-  if (st.rank <= 3)
-    return "Στο βάθρο της χρονιάς. Εντυπωσιακό!";
+  if (st.diff <= -5 && st.prevSame > 0)
+    return Math.abs(st.diff) + " λιγότερες από τον προηγούμενο μήνα";
+
+  /* 5. ρυθμός — μόνο όταν ο μήνας έχει προχωρήσει αρκετά για να έχει νόημα */
+  if (st.day >= 10 && st.month >= 4) {
+    var pw = st.month / st.day * 7;
+    if (pw >= 4) return "Ρυθμός " + pw.toFixed(1) + " προπονήσεις/εβδομάδα!";
+  }
+
+  /* 6. κατάταξη */
+  if (st.rank === 1) return "Είσαι στην κορυφή της κατάταξης!";
+  if (st.rank === 2) return "Μία θέση από την κορυφή!";
+  if (st.rank === 3) return "Στο βάθρο της χρονιάς!";
+  if (st.rank <= 8)  return "Στο Top 8 της χρονιάς!";
+  if (st.rank <= 20) return "Λίγο ακόμα για το Top 8!";
+
   return "Καλή προπόνηση!";
 }
 setInterval(xsRender, 15000);   /* κρατάει ζωντανή την αντίστροφη μέτρηση */
