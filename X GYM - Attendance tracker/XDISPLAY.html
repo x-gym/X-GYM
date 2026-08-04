@@ -2090,7 +2090,13 @@ function watchStatsLive() {
 }
 
 loadStatsHistory().then(() => watchStatsLive());
-setInterval(loadStatsHistory, 6 * 60 * 60 * 1000);
+/* Αντί για πλήρη σάρωση κάθε 6 ώρες (≈43.000 reads/ημέρα),
+   μία καθαρή επαναφόρτωση στις 05:00. Τα σημερινά τα φέρνει
+   ούτως ή άλλως ο live listener. */
+setInterval(function () {
+  var n = new Date();
+  if (n.getHours() === 5 && n.getMinutes() < 2) location.reload();
+}, 60000);
 
     function retriggerRankAnims(root = document) {
         root.querySelectorAll('.xlb-item.rank-up').forEach(el => {
