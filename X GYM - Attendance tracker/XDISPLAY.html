@@ -2071,10 +2071,10 @@ function renderStatsSlide() {
 }
 
 function loadStatsHistory() {
-  return db.collection("xgym_scans").get().then(snap => {
+  return XScanCache.load(db).then(() => {
     statHours = new Array(24).fill(0); statDows = new Array(7).fill(0);
     statGrid = {}; statTotal = 0; statSeen = new Set();
-    snap.forEach(doc => addScanToStats(doc.data() || {}, doc.id));
+    XScanCache.forEach((data, id) => addScanToStats(data, id));
     console.log("📊 Στατιστικά οθόνης:", statTotal, "καταγραφές");
     renderStatsSlide();
   }).catch(err => console.error("❌ Λήψη στατιστικών απέτυχε:", err));
@@ -3441,10 +3441,10 @@ function xsmRender(force) {
  
 /* ═══════════ ΦΟΡΤΩΣΗ & LIVE ═══════════ */
 function xsyLoad() {
-  return db.collection("xgym_scans").get().then(function (snap) {
+  return XScanCache.load(db).then(function () {
     xsySeen = {}; xsySeenRaw = {};
     xsyYear = new Date().getFullYear();
-    snap.forEach(function (d) { xsyAdd(d.data() || {}, d.id); });
+    XScanCache.forEach(function (data, id) { xsyAdd(data, id); });
  
     var y = xsyTally(""), m = xsyTally(xsmMonthKey());
     console.log("🏆 ετήσιο: " + y.total + " προπονήσεις · " + y.rows.length + " άτομα");
