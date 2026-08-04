@@ -1228,8 +1228,10 @@ align-self: center;          /* κάθετα στο grid row */
 .xsd-sub{ font-family:'Poppins',sans-serif; font-weight:600; font-size:1.25vw;
   letter-spacing:.5em; text-transform:uppercase; color:rgba(255,255,255,.34);
   text-align:center; margin-top:1.7vh; text-indent:.5em; }
-.xsd-list{ margin-top:3.8vh; display:flex; flex-direction:column; gap:1vh; }
-.xsd-row{ position:relative; display:flex; align-items:center; gap:2.2vw;
+.xsd-list{ margin-top:3.8vh; min-height:0; }
+.xsd-inner{ display:flex; flex-direction:column; gap:1vh;
+  transform-origin:top center; will-change:transform; }
+.xsd-wrap{ overflow:hidden; }.xsd-row{ position:relative; display:flex; align-items:center; gap:2.2vw;
   padding:1.6vh 2.4vw 1.6vh 3.6vw; border-radius:1.9vh; overflow:hidden;
   background:linear-gradient(135deg, rgba(255,255,255,.062), rgba(255,255,255,.016));
   border:1px solid rgba(255,255,255,.075);
@@ -3067,53 +3069,137 @@ function xsNextIndex(i) {
 
 /* ---------- slide 2: το πρόγραμμα σήμερα ---------- */
 /* ---------- slide 2: το πρόγραμμα σήμερα ---------- */
+function xsdFit(slide) {
+  var wrap  = slide.querySelector(".xsd-wrap");
+  var list  = slide.querySelector(".xsd-list");
+  var inner = list && list.firstElementChild;
+  if (!wrap || !inner) return;
+ 
+  inner.style.transform = "none";
+  list.style.height = "auto";
+ 
+  var cs = getComputedStyle(wrap);
+  var avail = wrap.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+ 
+  /* αφαιρούμε ό,τι είναι πάνω από τη λίστα (τίτλος, γραμμή, ημερομηνία) */
+  for (var el = wrap.firstElementChild; el && el !== list; el = el.nextElementSibling) {
+    var ecs = getComputedStyle(el);
+    avail -= el.offsetHeight + parseFloat(ecs.marginTop) + parseFloat(ecs.marginBottom);
+  }
+  avail -= parseFloat(getComputedStyle(list).marginTop);
+  if (avail <= 0) return;
+ 
+  /* έως 3 γύροι: κόψε ένα ολοκληρωμένο τμήμα και ξαναμέτρα */
+  for (var pass = 0; pass < 4; pass++) {
+    var need = inner.scrollHeight;
+    if (need <= avail) { list.style.height = ""; return; }
+ 
+    var k = avail / need;
+    var done = inner.querySelectorAll(".xsd-row.done");
+ 
+    /* αν η σμίκρυνση θα ήταν κάτω από 88% και υπάρχει περιθώριο, κόψε */
+    if (k < 0.88 && done.length > 1 && pass < 3) {
+      done[0].remove();
+      continue;
+    }
+ 
+    k = Math.max(0.62, k);
+    inner.style.transform = "scale(" + k + ")";
+    list.style.height = Math.floor(need * k) + "px";
+    return;
+  }
+}
+ 
+ 
 function xsRenderToday() {
   var slide = document.querySelector(".xsd-slide");
   if (!slide || typeof XSchedule === "undefined") return;
-  var now = new Date();
+ 
+  var now  = new Date();
+  var mins = now.getHours() * 60 + now.getMinutes();
+ 
   var occs = XSchedule.visibleOccurrences(
     XSchedule.getScheduleForDate(now, xsClassesInUse(), xsOverrides));
-
-  if (!occs.length) { slide.classList.add("xsl-skip"); return; }
-  slide.classList.remove("xsl-skip");
-
-  document.getElementById("xsdDate").textContent =
-    xsUp(XSchedule.DAY_NAMES[now.getDay()]) + " " +
-    now.toLocaleDateString("el-GR", { day: "2-digit", month: "2-digit" });
-
-  var mins = now.getHours() * 60 + now.getMinutes();
-  var nextIdx = -1, auraColor = null;
-  for (var i = 0; i < occs.length; i++) {
-    if (occs[i].status !== "cancelled" && occs[i].startMin > mins) { nextIdx = i; break; }
+ 
+  /* πότε τελειώνει το τελευταίο μη-ακυρωμένο τμήμα */
+  var lastEnd = -1;
+  for (var q = 0; q < occs.length; q++) {
+    if (occs[q].status !== "cancelled" && occs[q].endMin > lastEnd) lastEnd = occs[q].endMin;
   }
-  for (var j = 0; j < occs.length; j++) {
-    if (occs[j].status !== "cancelled" && mins >= occs[j].startMin && mins < occs[j].endMin) {
-      auraColor = occs[j].color; break;
+ 
+  /* τελείωσαν όλα → ψάξε την επόμενη μέρα που έχει τμήματα */
+  var dayOffset = 0;
+  if (!occs.length || mins >= lastEnd) {
+    for (var n = 1; n <= 7; n++) {
+      var d = XSchedule.addDays(now, n);
+      var o = XSchedule.visibleOccurrences(
+        XSchedule.getScheduleForDate(d, xsClassesInUse(), xsOverrides));
+      var live = o.filter(function (x) { return x.status !== "cancelled"; });
+      if (live.length) { occs = o; dayOffset = n; break; }
     }
   }
-  if (!auraColor && nextIdx >= 0) auraColor = occs[nextIdx].color;
+ 
+  if (!occs.length) { slide.classList.add("xsl-skip"); return; }
+  slide.classList.remove("xsl-skip");
+ 
+  var isToday = (dayOffset === 0);
+  var shown   = isToday ? now : XSchedule.addDays(now, dayOffset);
+ 
+  var titleEl = slide.querySelector(".xsd-title");
+  if (titleEl) {
+    titleEl.textContent = isToday   ? "Σημερινό πρόγραμμα τμημάτων"
+                        : dayOffset === 1 ? "Αυριανό πρόγραμμα τμημάτων"
+                        : "Επόμενο πρόγραμμα τμημάτων";
+  }
+ 
+  document.getElementById("xsdDate").textContent =
+    xsUp(XSchedule.DAY_NAMES[shown.getDay()]) + " " +
+    shown.toLocaleDateString("el-GR", { day: "2-digit", month: "2-digit" });
+ 
+  /* όταν δείχνουμε μελλοντική μέρα, καμία γραμμή δεν είναι "τώρα"/"έγινε" */
+  var mm = isToday ? mins : -1;
+ 
+  var nextIdx = -1, auraColor = null;
+  for (var i = 0; i < occs.length; i++) {
+    if (occs[i].status !== "cancelled" && occs[i].startMin > mm) { nextIdx = i; break; }
+  }
+  if (isToday) {
+    for (var j = 0; j < occs.length; j++) {
+      if (occs[j].status !== "cancelled" && mm >= occs[j].startMin && mm < occs[j].endMin) {
+        auraColor = occs[j].color; break;
+      }
+    }
+  } else {
+    nextIdx = -1;                       /* χωρίς "σε Χ΄" για αυριανά */
+  }
+  if (!auraColor && occs.length) {
+    for (var a = 0; a < occs.length; a++) {
+      if (occs[a].status !== "cancelled") { auraColor = occs[a].color; break; }
+    }
+  }
   var aura = document.getElementById("xsdAura");
   if (aura) aura.style.color = auraColor || "#5ff0ff";
-
-  document.getElementById("xsdList").innerHTML = occs.map(function (o, i) {
+ 
+  var rows = occs.map(function (o, i) {
     var cls = "xsd-row", flag = "", prog = "";
+ 
     if (o.status === "cancelled") {
       cls += " off";
       flag = '<span class="xsd-flag off">Ακυρώθηκε</span>';
-    } else if (mins >= o.startMin && mins < o.endMin) {
+    } else if (mm >= o.startMin && mm < o.endMin) {
       cls += " now";
-      /* το φόντο μπαίνει inline — το currentColor θα έδινε σκούρο σε σκούρο */
       flag = '<span class="xsd-flag now" style="background:' + o.color +
              ';box-shadow:0 0 2.4vh -.4vh ' + o.color + '">Τώρα</span>';
       prog = '<div class="xsd-track"></div><div class="xsd-prog" style="width:' +
-             Math.round(((mins - o.startMin) / o.duration) * 100) + '%"></div>';
-    } else if (mins >= o.endMin) {
+             Math.round(((mm - o.startMin) / o.duration) * 100) + '%"></div>';
+    } else if (mm >= o.endMin) {
       cls += " done";
     } else if (i === nextIdx) {
-      var d = o.startMin - mins;
+      var dd = o.startMin - mm;
       flag = '<span class="xsd-flag soon">σε ' +
-             (d < 60 ? d + "΄" : Math.floor(d / 60) + "ω " + (d % 60) + "΄") + '</span>';
+             (dd < 60 ? dd + "΄" : Math.floor(dd / 60) + "ω " + (dd % 60) + "΄") + '</span>';
     }
+ 
     return '<div class="' + cls + '" style="color:' + o.color + '">' +
              '<span class="xsd-bar"></span>' +
              '<div class="xsd-time">' + xsT(o.time) + '</div>' +
@@ -3123,6 +3209,9 @@ function xsRenderToday() {
              '</div>' + flag + prog +
            '</div>';
   }).join("");
+ 
+  document.getElementById("xsdList").innerHTML = '<div class="xsd-inner">' + rows + '</div>';
+  xsdFit(slide);
 }
 
 /* ═══════════ ΕΒΔΟΜΑΔΙΑΙΟ ΠΡΟΓΡΑΜΜΑ (δύο μέρη) ═══════════
@@ -3403,11 +3492,15 @@ function xspMessage(st, isActive) {
   /* πρώτη φορά — όχι «πίσω» */
   if (st.away == null && st.year <= 1)
     return "Καλώς ήρθες στην ομάδα!";
+  /* πρώτη φορά — όχι «πίσω» */
+  if (st.away == null && st.year <= 1)
+    return "Καλώς ήρθες στην ομάδα!";
 
   /* 2. καλύτερος μήνας της χρονιάς */
   if (st.best)
     return "Ο καλύτερός σου μήνας για φέτος!";
 
+  /* 3. ορόσημο — παράθυρο 3 προπονήσεων ώστε να μη χαθεί */
   /* 3. ορόσημο — παράθυρο 3 προπονήσεων ώστε να μη χαθεί */
   var ms = [200, 150, 100, 50];
   for (var i = 0; i < ms.length; i++) {
@@ -3440,6 +3533,10 @@ function xspMessage(st, isActive) {
 }
 setInterval(xsRender, 15000);   /* κρατάει ζωντανή την αντίστροφη μέτρηση */
 
+window.addEventListener("resize", function () {
+  var s = document.querySelector(".xsd-slide");
+  if (s && !s.classList.contains("xsl-skip")) xsdFit(s);
+});
 
   </script>
 </body>
