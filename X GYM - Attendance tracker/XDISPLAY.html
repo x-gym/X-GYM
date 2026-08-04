@@ -2109,16 +2109,8 @@ setInterval(function () {
     // Εκκίνηση Slideshow και Λειτουργιών
     window.addEventListener("DOMContentLoaded", () => {
         // Φόρτωση Leaderboard (διατήρηση της δικής σου λογικής)
-        if (typeof getRowsFromMonthlyMemory === 'function') {
-            const initialRows = getRowsFromMonthlyMemory(8);
-            if (initialRows.length) {
-                renderLeaderboardFromRows(initialRows);
-            } else if (typeof populateLeaderboard === 'function') {
-                populateLeaderboard();
-            }
-        }
-
-        if (typeof startRealtimeLeaderboard === 'function') startRealtimeLeaderboard();
+        // Το μηνιαίο leaderboard τρέφεται πλέον από το xsySeenRaw (xsmRender).
+        // Ούτε localStorage ούτε ξεχωριστός listener.
         if (typeof startScanSignalListener === 'function') startScanSignalListener();
         
         // Αρχικοποίηση Slides
@@ -2517,7 +2509,7 @@ const countCell = `<div class="xlb-count">${r.count}</div>`;
         <span class="c tl"></span><span class="c tr"></span><span class="c bl"></span><span class="c br"></span>
       </div>
       <div class="xlb-head">
-        <div class="xlb-kicker">ΜΗΝΙΑΙΟ • TOP 8 σε προπονήσεις</div>
+       <div class="xlb-kicker">${xsmKicker()}</div>
         <div class="xlb-title-row">
           <div class="xlb-logo"><img src="https://i.postimg.cc/Y9HZXm3q/f26ceef4-3445-4c9a-a15d-64ea3cac2a95-removalai-preview.png" alt="logo left"></div>
           <div class="xlb-title">Leaderboard</div>
@@ -3307,63 +3299,98 @@ function xsRenderWeek() {
 }
 
 xsWatchSchedule();
-/* ═══════════ ΕΤΗΣΙΟ LEADERBOARD (top 8) ═══════════
-   Μετράει καταγραφές του ΤΡΕΧΟΝΤΟΣ έτους από το xgym_scans.
-   Μηδενίζει μόνο του την 1η Ιανουαρίου — το έτος βγαίνει από την ημερομηνία,
-   δεν αποθηκεύεται πουθενά. Καμία εξάρτηση από localStorage. */
-var xsyCounts = {};
-var xsySeen   = {};
-var xsySeenRaw = {};      /* docId -> τα δεδομένα, για το μηνιαίο */
-var xsyYear   = new Date().getFullYear();
-var xsyTotal  = 0;
-
+/* ═══════════ LEADERBOARD — ετήσιο & μηνιαίο ═══════════
+   Μία σάρωση τρέφει και τα δύο. Μία προπόνηση ανά ημέρα ανά μέλος,
+   ίδιος κανόνας με τα μηνιαία email. Κλειδί το ID, όχι το όνομα. */
+ 
+var xsySeenRaw = {};                       /* docId -> δεδομένα σκαναρίσματος */
+var xsySeen    = {};                       /* docId -> 1  (αποφυγή διπλών) */
+var xsyYear    = new Date().getFullYear();
+var xsyTotal   = 0;
+var xsyCounts  = {};                       /* συμβατότητα με παλιό κώδικα */
+ 
 function xsyKeyYear(d) {
   var k = d.dateKey || d.date || "";
   if (typeof k === "string" && k.length >= 4) return +k.slice(0, 4);
   if (d.timestamp && d.timestamp.toDate) return d.timestamp.toDate().getFullYear();
   return null;
 }
-
+ 
+/* Ταυτότητα μέλους — ID πρώτα, όνομα μόνο ως εφεδρεία */
+function xsyKeyOf(d) {
+  var id = String(d.id || "").trim();
+  if (id) return id;
+  var nm = String(d.name || "").trim().toUpperCase();
+  return nm ? ("n:" + nm) : "";
+}
+ 
 function xsyAdd(data, id) {
   if (!data || xsySeen[id]) return false;
   if (xsyKeyYear(data) !== xsyYear) return false;
-  var name = String(data.name || "").trim();
-  if (!name) return false;
+  if (!xsyKeyOf(data)) return false;
   xsySeen[id] = 1;
   xsySeenRaw[id] = data;
-  xsyCounts[name] = (xsyCounts[name] || 0) + 1;
-  xsyTotal++;
   return true;
 }
-
-function xsyTop(n) {
-  return Object.keys(xsyCounts)
-    .map(function (k) { return { name: k, count: xsyCounts[k] }; })
+ 
+/* Καταμέτρηση. monthPrefix = "2026-08" για μηνιαίο, κενό για ετήσιο. */
+function xsyTally(monthPrefix) {
+  var counts = {}, names = {}, seen = {}, total = 0;
+ 
+  for (var docId in xsySeenRaw) {
+    var d  = xsySeenRaw[docId] || {};
+    var dk = String(d.dateKey || "");
+    if (dk.length < 10) continue;
+    if (monthPrefix && dk.slice(0, 7) !== monthPrefix) continue;
+ 
+    var k = xsyKeyOf(d);
+    if (!k) continue;
+ 
+    var u = k + "|" + dk;
+    if (seen[u]) continue;                 /* ίδια μέρα → μία προπόνηση */
+    seen[u] = 1;
+ 
+    counts[k] = (counts[k] || 0) + 1;
+    total++;
+    var nm = String(d.name || "").trim();
+    if (nm) names[k] = nm;
+  }
+ 
+  var rows = Object.keys(counts)
+    .map(function (k) { return { name: names[k] || k, count: counts[k] }; })
     .sort(function (a, b) {
       return b.count - a.count || a.name.localeCompare(b.name, "el");
-    })
-    .slice(0, n || 8);
+    });
+ 
+  return { rows: rows, total: total, counts: counts, names: names };
 }
-
-/* Πλήρες όνομα, καθαρισμένο από διπλά κενά */
-function xsyShort(full) {
-  return String(full).trim().replace(/\s+/g, " ");
-}
-
+ 
+function xsyShort(full) { return String(full).trim().replace(/\s+/g, " "); }
+ 
+function xsyTop(n) { return xsyTally("").rows.slice(0, n || 8); }
+ 
+ 
+/* ═══════════ ΕΤΗΣΙΟ SLIDE (podium) ═══════════ */
 function xsyRender() {
   var slide = document.querySelector(".xsy-slide");
   if (!slide) return;
-  var rows = xsyTop(8);
-
+ 
+  var t = xsyTally("");
+  var rows = t.rows.slice(0, 8);
+  xsyTotal = t.total;
+ 
+  xsyCounts = {};                          /* συμβατότητα */
+  for (var k in t.counts) xsyCounts[t.names[k] || k] = t.counts[k];
+ 
   if (!rows.length) { slide.classList.add("xsl-skip"); return; }
   slide.classList.remove("xsl-skip");
-
+ 
   var sub = document.getElementById("xsySub");
   if (sub) sub.textContent = xsyYear + "  ·  " + xsyTotal.toLocaleString("el-GR") + " προπονήσεις";
-
-  var podOrder = [1, 0, 2];   /* 2ος, 1ος, 3ος — ο νικητής στο κέντρο */
+ 
+  var podOrder = [1, 0, 2];
   var medals = ["gold", "silver", "bronze"];
-
+ 
   document.getElementById("xsyPodium").innerHTML = podOrder.map(function (i) {
     var r = rows[i];
     if (!r) return '<div class="xsy-pod empty"></div>';
@@ -3373,7 +3400,7 @@ function xsyRender() {
              '<div class="xsy-pcount"><b>' + r.count + '</b><span>προπονήσεις</span></div>' +
            '</div>';
   }).join("");
-
+ 
   document.getElementById("xsyRest").innerHTML = rows.slice(3).map(function (r, i) {
     return '<div class="xsy-row">' +
              '<div class="xsy-rank">' + (i + 4) + '</div>' +
@@ -3382,36 +3409,99 @@ function xsyRender() {
            '</div>';
   }).join("");
 }
-
+ 
+ 
+/* ═══════════ ΜΗΝΙΑΙΟ SLIDE ═══════════ */
+var xsmLastKey = "";
+var xsmLastSig = "";
+ 
+function xsmMonthKey() { return new Date().toLocaleDateString("sv-SE").slice(0, 7); }
+ 
+function xsmTop(n) { return xsyTally(xsmMonthKey()).rows.slice(0, n || 8); }
+ 
+function xsmRender(force) {
+  if (typeof renderLeaderboardFromRows !== "function") return;
+ 
+  var rows = xsmTop(8);
+ 
+  /* Το render ξαναχτίζει ολόκληρο το slide — αν είναι ενεργό τη στιγμή
+     εκείνη, ο θεατής βλέπει αναλαμπή. Ξαναζωγραφίζουμε μόνο όταν
+     όντως άλλαξε κάτι. */
+  var sig = xsmMonthKey() + "|" + rows.map(function (r) {
+    return r.name + ":" + r.count;
+  }).join(",");
+  if (!force && sig === xsmLastSig) return;
+  xsmLastSig = sig;
+  xsmLastKey = xsmMonthKey();
+ 
+  renderLeaderboardFromRows(rows);
+}
+ 
+ 
+/* ═══════════ ΦΟΡΤΩΣΗ & LIVE ═══════════ */
 function xsyLoad() {
   return db.collection("xgym_scans").get().then(function (snap) {
-    xsyCounts = {}; xsySeen = {}; xsySeenRaw = {}; xsyTotal = 0;
+    xsySeen = {}; xsySeenRaw = {};
     xsyYear = new Date().getFullYear();
     snap.forEach(function (d) { xsyAdd(d.data() || {}, d.id); });
-    console.log("🏆 ετήσιο leaderboard:", xsyTotal, "προπονήσεις", xsyYear,
-                "·", Object.keys(xsyCounts).length, "άτομα");
+ 
+    var y = xsyTally(""), m = xsyTally(xsmMonthKey());
+    console.log("🏆 ετήσιο: " + y.total + " προπονήσεις · " + y.rows.length + " άτομα");
+    console.log("📅 μηνιαίο (" + xsmMonthKey() + "): " + m.total + " προπονήσεις · " + m.rows.length + " άτομα");
+ 
     xsyRender();
+    xsmRender(true);
   }).catch(function (e) { console.warn("🏆 αποτυχία:", e.message); });
 }
-
+ 
+var xsyUnsub = null;
+var xsyWatchKey = "";
+ 
 function xsyWatch() {
   var todayKey = new Date().toLocaleDateString("sv-SE");
-  db.collection("xgym_scans").where("dateKey", "==", todayKey)
+  if (xsyWatchKey === todayKey && xsyUnsub) return;
+ 
+  if (xsyUnsub) { try { xsyUnsub(); } catch (e) {} }
+  xsyWatchKey = todayKey;
+ 
+  xsyUnsub = db.collection("xgym_scans").where("dateKey", "==", todayKey)
     .onSnapshot(function (snap) {
       var n = 0;
       snap.forEach(function (d) { if (xsyAdd(d.data() || {}, d.id)) n++; });
-      if (n) { console.log("🏆 +" + n); xsyRender(); }
+      if (n) {
+        console.log("🏆 +" + n);
+        xsyRender();
+        xsmRender();
+      }
     }, function (e) { console.warn("🏆 listener:", e.message); });
 }
-
+ 
+ 
+/* ═══════════ ΡΟΛΟΪ — αλλαγή ημέρας, μήνα, έτους ═══════════ */
 setInterval(function () {
+  var todayKey = new Date().toLocaleDateString("sv-SE");
+ 
+  /* νέα μέρα → ο listener ζητούσε τη χθεσινή, ξαναδένουμε */
+  if (xsyWatchKey && xsyWatchKey !== todayKey) {
+    console.log("🏆 αλλαγή ημέρας — ανανέωση listener");
+    xsyWatch();
+  }
+ 
+  /* νέος μήνας → το μηνιαίο ξεκινά από την αρχή */
+  if (xsmLastKey && xsmLastKey !== xsmMonthKey()) {
+    console.log("📅 νέος μήνας — μηδενισμός μηνιαίου");
+    xsmRender(true);
+  }
+ 
+  /* νέο έτος → πλήρης επαναφόρτωση */
   if (new Date().getFullYear() !== xsyYear) {
     console.log("🏆 νέο έτος — μηδενισμός");
-    xsyLoad();
+    xsyLoad().then(xsyWatch);
   }
-}, 3600000);
-
+}, 60000);
+ 
 xsyLoad().then(xsyWatch);
+ 
 /* ═══════════ ΣΤΑΤΙΣΤΙΚΑ ΠΕΛΑΤΗ ΓΙΑ ΤΟ POPUP ═══════════
    Χρησιμοποιεί τα δεδομένα που έχει ήδη φορτώσει το ετήσιο leaderboard.
    Καμία επιπλέον ανάγνωση από Firestore — μηδενικό κόστος. */
@@ -3543,6 +3633,12 @@ window.addEventListener("resize", function () {
   var s = document.querySelector(".xsd-slide");
   if (s && !s.classList.contains("xsl-skip")) xsdFit(s);
 });
+
+function xsmKicker() {
+  var M = ["ΙΑΝΟΥΑΡΙΟΣ","ΦΕΒΡΟΥΑΡΙΟΣ","ΜΑΡΤΙΟΣ","ΑΠΡΙΛΙΟΣ","ΜΑΪΟΣ","ΙΟΥΝΙΟΣ",
+           "ΙΟΥΛΙΟΣ","ΑΥΓΟΥΣΤΟΣ","ΣΕΠΤΕΜΒΡΙΟΣ","ΟΚΤΩΒΡΙΟΣ","ΝΟΕΜΒΡΙΟΣ","ΔΕΚΕΜΒΡΙΟΣ"];
+  return M[new Date().getMonth()] + " • TOP 8 σε προπονήσεις";
+}
 
   </script>
 </body>
