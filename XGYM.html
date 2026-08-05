@@ -3371,7 +3371,7 @@ document.getElementById("todayBtn").addEventListener("click", () => {
   reloadScanHistory().then(() => renderTodayLog());
 });
 
-const CUSTOMER_LIST_URL = "https://script.google.com/macros/s/AKfycby2OyAf_vG3GVccysg97lnEIYJLstC5BJ-dDMBqceQ4c4nGzkoX70PaNOGmJGEewuU/exec?listIds=1";
+const CUSTOMER_LIST_URL = "https://script.google.com/macros/s/AKfycbzxFrrfTz9LGux2WxNJGdxAabKC5ca9fPNSYNLTejyMrVn2qCljaFb4_nPoNmSrE1TzUQ/exec?listIds=1";
 const CUSTOMER_LIST_REFRESH_MS = 5 * 60 * 1000; // ανανέωση κάθε 5 λεπτά
 
 let knownCustomerIds = null; // IDs που υπάρχουν στο sheet
@@ -4237,7 +4237,7 @@ async function loadDailyIncome() {
   try {
     // 🔗 Τράβηγμα δεδομένων από Apps Script
     const response = await fetch(
-      "https://script.google.com/macros/s/AKfycby2OyAf_vG3GVccysg97lnEIYJLstC5BJ-dDMBqceQ4c4nGzkoX70PaNOGmJGEewuU/exec",
+      "https://script.google.com/macros/s/AKfycbzxFrrfTz9LGux2WxNJGdxAabKC5ca9fPNSYNLTejyMrVn2qCljaFb4_nPoNmSrE1TzUQ/exec",
       { cache: "no-store" }
     );
     if (!response.ok) {
