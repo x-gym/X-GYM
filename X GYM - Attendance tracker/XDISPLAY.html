@@ -3381,10 +3381,34 @@ function xsyAdd(data, id) {
   xsySeenRaw[id] = data;
   return true;
 }
+
+var XG_SESSION_GAP = 60;          /* λεπτά */
+ 
+/* "21:33" → 1293 λεπτά. -1 αν λείπει ή είναι άκυρη. */
+function xsyMinutes(t) {
+  var p = String(t || "").split(":");
+  if (p.length < 2) return -1;
+  var h = +p[0], m = +p[1];
+  return (isNaN(h) || isNaN(m)) ? -1 : h * 60 + m;
+}
+ 
+/* Πόσες ξεχωριστές προπονήσεις αντιπροσωπεύουν τα σκαναρίσματα μιας ημέρας */
+function xsySessions(minsList) {
+  var v = [];
+  for (var i = 0; i < minsList.length; i++) if (minsList[i] >= 0) v.push(minsList[i]);
+  if (!v.length) return 1;                     /* χωρίς ώρα → μετράει ως μία */
+  v.sort(function (a, b) { return a - b; });
+ 
+  var n = 1, anchor = v[0];
+  for (var j = 1; j < v.length; j++) {
+    if (v[j] - anchor >= XG_SESSION_GAP) { n++; anchor = v[j]; }
+  }
+  return n;
+}
  
 /* Καταμέτρηση. monthPrefix = "2026-08" για μηνιαίο, κενό για ετήσιο. */
 function xsyTally(monthPrefix) {
-  var counts = {}, names = {}, seen = {}, total = 0;
+  var P = {};                                  /* key -> { name, days:{dk:[λεπτά]} } */
  
   for (var docId in xsySeenRaw) {
     var d  = xsySeenRaw[docId] || {};
@@ -3395,18 +3419,24 @@ function xsyTally(monthPrefix) {
     var k = xsyKeyOf(d);
     if (!k) continue;
  
-    var u = k + "|" + dk;
-    if (seen[u]) continue;                 /* ίδια μέρα → μία προπόνηση */
-    seen[u] = 1;
- 
-    counts[k] = (counts[k] || 0) + 1;
-    total++;
+    var p = P[k] || (P[k] = { name: "", days: {} });
     var nm = String(d.name || "").trim();
-    if (nm) names[k] = nm;
+    if (nm) p.name = nm;
+ 
+    (p.days[dk] || (p.days[dk] = [])).push(xsyMinutes(d.time));
+  }
+ 
+  var counts = {}, names = {}, total = 0;
+  for (var key in P) {
+    var per = P[key], n = 0;
+    for (var day in per.days) n += xsySessions(per.days[day]);
+    counts[key] = n;
+    names[key]  = per.name || key;
+    total += n;
   }
  
   var rows = Object.keys(counts)
-    .map(function (k) { return { name: names[k] || k, count: counts[k] }; })
+    .map(function (k2) { return { name: names[k2], count: counts[k2] }; })
     .sort(function (a, b) {
       return b.count - a.count || a.name.localeCompare(b.name, "el");
     });
