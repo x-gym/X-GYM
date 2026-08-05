@@ -612,6 +612,38 @@ function todayEL() {
   animation-play-state: running;
 }
 .slide.leaderboard-slide.active .xlb-item.rank-up{ animation-play-state: running; }
+@keyframes xlbRankDown {
+  0%   { transform: translateY(-46px) scale(1.015); opacity:.3; }
+  58%  { transform: translateY(4px)   scale(1);     opacity:1; }
+  78%  { transform: translateY(-2px); }
+  100% { transform: translateY(0); }
+}
+.xlb-item.rank-down{
+  animation: xlbRankDown 1.05s cubic-bezier(.22,1,.36,1) both;
+  animation-play-state: paused;
+}
+.slide.leaderboard-slide.active .xlb-item.rank-down{ animation-play-state: running; }
+ 
+/* φωτεινό ίχνος στη γραμμή που ανεβαίνει */
+.xlb-item.rank-up::before{
+  content:""; position:absolute; inset:0; border-radius:inherit;
+  pointer-events:none; opacity:0;
+  background:linear-gradient(90deg, rgba(95,240,255,.22), transparent 62%);
+  animation: xlbTrail 1.25s ease-out both;
+  animation-play-state: paused;
+}
+.slide.leaderboard-slide.active .xlb-item.rank-up::before{ animation-play-state: running; }
+@keyframes xlbTrail { 0%{ opacity:1; } 100%{ opacity:0; } }
+ 
+/* διακριτικό σβήσιμο στη γραμμή που κατεβαίνει */
+.xlb-item.rank-down::before{
+  content:""; position:absolute; inset:0; border-radius:inherit;
+  pointer-events:none; opacity:0;
+  background:linear-gradient(90deg, rgba(255,255,255,.10), transparent 55%);
+  animation: xlbTrail 1.25s ease-out both;
+  animation-play-state: paused;
+}
+.slide.leaderboard-slide.active .xlb-item.rank-down::before{ animation-play-state: running; }
 
 /* responsive tweaks */
 @media (max-width:720px){
@@ -1691,6 +1723,10 @@ align-self: center;          /* κάθετα στο grid row */
 
 <div class="slideshow-container">
 
+<div class="slide" data-duration="90000" style="background-image: url('https://i.postimg.cc/L4BQR5R8/processed-2-DA30989-5818-4-DF0-A5-A1-A9-A04-F93091-B.jpg')"></div>
+  <div class="slide portrait" data-duration="90000" style="background-image: url('https://i.postimg.cc/nc4RB2Fs/IMG-5142.jpg')"></div>
+<div class="slide portrait" data-duration="90000" style="background-image: url('https://i.postimg.cc/J0B3rrnD/IMG-5141.jpg')"></div>
+
 
     <div class="slide leaderboard-slide">
         <div class="xlb-safe">
@@ -1698,6 +1734,7 @@ align-self: center;          /* κάθετα στο grid row */
                 </div>
         </div>
     </div>
+    <div class="slide portrait" data-duration="90000" style="background-image: url('https://i.postimg.cc/wjMFMJbN/IMG-4936.jpg')"></div>
     <div class="slide stats-slide xst-hours">
       <div class="xst-wrap">
         <div class="xst-title">Επισκεψιμότητα ανά Ώρα</div>
@@ -1721,8 +1758,9 @@ align-self: center;          /* κάθετα στο grid row */
         </div>
       </div>
     </div>
+    <div class="slide" data-duration="90000" style="background-image: url('https://i.postimg.cc/L4BQR5R8/processed-2-DA30989-5818-4-DF0-A5-A1-A9-A04-F93091-B.jpg')"></div>
     <!-- ═══ ΕΠΟΜΕΝΟ ΤΜΗΜΑ ═══ -->
-    <div class="slide xsn-slide" data-duration="20000">
+    <div class="slide xsn-slide" data-duration="210000">
       <div class="xsn-glow" id="xsnGlow"></div>
       <div class="xsn-ring" id="xsnRingA"></div>
       <div class="xsn-ring b" id="xsnRingB"></div>
@@ -1740,9 +1778,10 @@ align-self: center;          /* κάθετα στο grid row */
         <div class="xsn-after" id="xsnAfter"></div>
       </div>
     </div>
+    <div class="slide" data-duration="90000" style="background-image: url('https://i.postimg.cc/631b9KMG/Your-paragraph-text-2.jpg')"></div>
 
     <!-- ═══ ΤΟ ΠΡΟΓΡΑΜΜΑ ΣΗΜΕΡΑ ═══ -->
-    <div class="slide xsd-slide" data-duration="28000">
+    <div class="slide xsd-slide" data-duration="210000">
       <div class="xsd-aura" id="xsdAura"></div>
       <div class="xsd-wrap">
         <div class="xsd-title">Σημερινό πρόγραμμα τμημάτων</div>
@@ -1751,6 +1790,7 @@ align-self: center;          /* κάθετα στο grid row */
         <div class="xsd-list" id="xsdList"></div>
       </div>
     </div>
+    <div class="slide" data-duration="90000" style="background-image: url('https://i.postimg.cc/02S01bpP/IMG-4933.jpg')"></div>
 
     <!-- ═══ ΕΒΔΟΜΑΔΙΑΙΟ · ΜΕΡΟΣ Α ═══ -->
     <div class="slide xsw-slide" data-duration="24000" data-half="0">
@@ -1764,7 +1804,7 @@ align-self: center;          /* κάθετα στο grid row */
     </div>
 
     <!-- ═══ ΕΒΔΟΜΑΔΙΑΙΟ · ΜΕΡΟΣ Β ═══ -->
-    <div class="slide xsw-slide" data-duration="24000" data-half="1">
+    <div class="slide xsw-slide" data-duration="210000" data-half="1">
       <div class="xsw-aura"></div>
       <div class="xsw-wrap">
         <div class="xsw-title">Εβδομαδιαίο πρόγραμμα</div>
@@ -1775,7 +1815,7 @@ align-self: center;          /* κάθετα στο grid row */
     </div>
 
    <!-- ═══ QR ΠΡΟΓΡΑΜΜΑΤΟΣ ═══ -->
-    <div class="slide xsq-slide" data-duration="30000">
+    <div class="slide xsq-slide" data-duration="210000">
       <div class="xsq-aura"></div>
       <div class="xsq-wrap">
         <div class="xsq-left">
@@ -1800,7 +1840,7 @@ align-self: center;          /* κάθετα στο grid row */
       </div>
     </div>
     <!-- ═══ INSTAGRAM ═══ -->
-    <div class="slide xsi-slide" data-duration="24000">
+    <div class="slide xsi-slide" data-duration="210000">
       <div class="xsi-aura"></div>
       <div class="xsi-wrap">
         <div class="xsi-title">Ακολούθησε μας</div>
@@ -1813,8 +1853,9 @@ align-self: center;          /* κάθετα στο grid row */
       </div>
     </div>
   </div>
+  <div class="slide" data-duration="90000" style="background-image: url('https://i.postimg.cc/SKZpMBLK/IMG-4926.jpg')"></div>
   <!-- ═══ ΕΤΗΣΙΟ LEADERBOARD ═══ -->
-    <div class="slide xsy-slide" data-duration="26000">
+    <div class="slide xsy-slide" data-duration="210000">
       <div class="xsy-aura"></div>
       <div class="xsy-wrap">
         <div class="xsy-head">
@@ -1838,8 +1879,8 @@ align-self: center;          /* κάθετα στο grid row */
     let slideTimer;
 
     // Χρόνοι σε milliseconds
-    const DURATION_DEFAULT = 50000;      // 40 δευτερόλεπτα
-const DURATION_LEADERBOARD = 10000;  
+    const DURATION_DEFAULT = 210000;      
+const DURATION_LEADERBOARD = 210000;  
 
     function showSlide(index, _hops) {
         clearTimeout(slideTimer);
@@ -2456,6 +2497,9 @@ rows = rows.slice(0, 8); // Κρατά μόνο τους πρώτους 8
   const newSlide = document.createElement("div");
   newSlide.className = "slide leaderboard-slide xlb-slide";
 
+
+   const prevRanks  = JSON.parse(localStorage.getItem("previousRanks") || "{}");
+  const xlbPending = JSON.parse(localStorage.getItem("xlbPending") || "{}");
   const rowsHTML = rows.map((r, i) => {
     const rank = i + 1;
     const medalClass = i === 0 ? "gold" : i === 1 ? "silver" : i === 2 ? "bronze" : "";
@@ -2463,22 +2507,25 @@ rows = rows.slice(0, 8); // Κρατά μόνο τους πρώτους 8
     const pct = maxCount ? Math.round((r.count / maxCount) * 100) : 0;
 
     const idKey = r.name;
-    const prevRanks = JSON.parse(localStorage.getItem("previousRanks") || "{}");
-    const deltaMemory = JSON.parse(localStorage.getItem("deltaMemory") || "{}");
-
-    let delta = 0, deltaClass = "same", deltaText = "–";
+ 
+    /* Νέα μεταβολή θέσης → μπαίνει στα εκκρεμή.
+       Τα εκκρεμή ΔΕΝ σβήνονται εδώ — μόνο αφού προβληθεί το slide,
+       ώστε να μη χαθεί το animation όταν η αλλαγή γίνεται ενώ
+       παίζει άλλο slide. */
     if (prevRanks[idKey] !== undefined) {
-      delta = prevRanks[idKey] - i;
-      if (delta > 0) { deltaClass = "up"; deltaText = "⇧"+delta; }
-      else if (delta < 0) { deltaClass = "down"; deltaText = "⇩"+Math.abs(delta); }
+      const d = prevRanks[idKey] - i;
+      if (d !== 0) {
+        xlbPending[idKey] = { dir: d > 0 ? "up" : "down", step: Math.abs(d), seen: false };
+      }
     }
-    if (delta === 0 && deltaMemory[idKey]) {
-      const mem = deltaMemory[idKey];
-      deltaClass = mem.dir === "up" ? "up" : mem.dir === "down" ? "down" : "same";
-      deltaText  = mem.dir === "up" ? "⇧"+(mem.step||1)
-                 : mem.dir === "down" ? "⇩"+(mem.step||1) : "–";
-    } else if (delta !== 0) {
-      deltaMemory[idKey] = { dir: delta>0 ? "up":"down", step: Math.abs(delta) };
+ 
+    const pend = xlbPending[idKey];
+    let deltaClass = "same", deltaText = "–", rankAnimClass = "";
+    if (pend) {
+      deltaClass = pend.dir;                                  /* up | down */
+      deltaText  = (pend.dir === "up" ? "⇧" : "⇩") + pend.step;
+      /* το animation παίζει ΜΙΑ φορά· το βελάκι μένει */
+      if (!pend.seen) rankAnimClass = pend.dir === "up" ? "rank-up" : "rank-down";
     }
 
     const avatarUrl = getAvatarFor(idKey, r.name);
@@ -2489,7 +2536,7 @@ rows = rows.slice(0, 8); // Κρατά μόνο τους πρώτους 8
 const countCell = `<div class="xlb-count">${r.count}</div>`;
 
     const extraFirst = i === 0 ? "xlb-first" : "";
-    const rankAnimClass = delta > 0 ? "rank-up" : "";
+
 
     return `
       <div class="xlb-item ${extraFirst} ${isMedal ? "medal " + medalClass : ""} ${rankAnimClass}"
@@ -2562,6 +2609,7 @@ requestAnimationFrame(() => {
   const newRanks = {};
   rows.forEach((r, i) => { newRanks[r.name] = i; });
   localStorage.setItem("previousRanks", JSON.stringify(newRanks));
+  localStorage.setItem("xlbPending", JSON.stringify(xlbPending));
 }
 
 function populateLeaderboard() {
@@ -3640,6 +3688,50 @@ function xsmKicker() {
            "ΙΟΥΛΙΟΣ","ΑΥΓΟΥΣΤΟΣ","ΣΕΠΤΕΜΒΡΙΟΣ","ΟΚΤΩΒΡΙΟΣ","ΝΟΕΜΒΡΙΟΣ","ΔΕΚΕΜΒΡΙΟΣ"];
   return M[new Date().getMonth()] + " • TOP 8 σε προπονήσεις";
 }
+
+(function preloadSlideImages() {
+  document.querySelectorAll(".slide[style*='background-image']").forEach(function (el) {
+    var m = /url\(['"]?([^'")]+)/.exec(el.getAttribute("style") || "");
+    if (m) { var i = new Image(); i.src = m[1]; }
+  });
+})();
+
+function xlbMarkSeen() {
+  try {
+    var p = JSON.parse(localStorage.getItem("xlbPending") || "{}");
+    var changed = false;
+    for (var k in p) { if (!p[k].seen) { p[k].seen = true; changed = true; } }
+    if (changed) localStorage.setItem("xlbPending", JSON.stringify(p));
+  } catch (e) {}
+}
+ 
+/* Παρακολουθεί πότε το leaderboard slide γίνεται ενεργό.
+   Δεν χρειάζεται πείραγμα της showSlide. */
+(function watchLeaderboardActive() {
+  var sc = document.querySelector(".slideshow-container");
+  if (!sc || !window.MutationObserver) return;
+ 
+  var timer = null;
+ 
+  new MutationObserver(function () {
+    var lb = sc.querySelector(".leaderboard-slide.active");
+    if (!lb) { if (timer) { clearTimeout(timer); timer = null; } return; }
+    if (timer) return;
+    timer = setTimeout(function () { xlbMarkSeen(); timer = null; }, 2600);
+  }).observe(sc, { subtree: true, attributes: true, attributeFilter: ["class"] });
+})();
+ 
+/* Νέος μήνας → καθαρή αφετηρία, χωρίς ψεύτικα βελάκια */
+(function resetRanksOnNewMonth() {
+  var mk = new Date().toLocaleDateString("sv-SE").slice(0, 7);
+  if (localStorage.getItem("xlbRankMonth") !== mk) {
+    localStorage.removeItem("previousRanks");
+    localStorage.removeItem("xlbPending");
+    localStorage.removeItem("deltaMemory");
+    localStorage.setItem("xlbRankMonth", mk);
+  }
+})();
+ 
 
   </script>
 </body>
