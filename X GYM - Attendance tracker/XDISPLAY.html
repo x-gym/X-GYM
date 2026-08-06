@@ -2127,7 +2127,13 @@ function watchStatsLive() {
     .onSnapshot(snap => {
       let added = 0;
       snap.docs.forEach(doc => { if (addScanToStats(doc.data() || {}, doc.id)) added++; });
-      if (added) renderStatsSlide();
+      if (added) {
+        if (statsRedrawTimer) clearTimeout(statsRedrawTimer);
+        statsRedrawTimer = setTimeout(function () {
+          statsRedrawTimer = null;
+          renderStatsSlide();
+        }, 3000);
+      }
     }, err => console.error("❌ Live στατιστικά:", err));
 }
 
@@ -3356,7 +3362,10 @@ var xsySeenRaw = {};                       /* docId -> δεδομένα σκαν
 var xsySeen    = {};                       /* docId -> 1  (αποφυγή διπλών) */
 var xsyYear    = new Date().getFullYear();
 var xsyTotal   = 0;
-var xsyCounts  = {};                       /* συμβατότητα με παλιό κώδικα */
+var xsyCounts  = {};            
+var xsyPeople      = {};     /* σύνολα ανά μέλος, ενημερώνονται σταδιακά */
+var xsyRedrawTimer = null;   /* περιορισμός ρυθμού ξαναζωγραφίσματος */           
+var statsRedrawTimer = null;
  
 function xsyKeyYear(d) {
   var k = d.dateKey || d.date || "";
@@ -3376,11 +3385,39 @@ function xsyKeyOf(d) {
 function xsyAdd(data, id) {
   if (!data || xsySeen[id]) return false;
   if (xsyKeyYear(data) !== xsyYear) return false;
-  if (!xsyKeyOf(data)) return false;
+ 
+  var k = xsyKeyOf(data);
+  if (!k) return false;
+ 
+  var dk = String(data.dateKey || "").slice(0, 10);
+  if (dk.length !== 10) return false;
+ 
   xsySeen[id] = 1;
-  xsySeenRaw[id] = data;
+  xsySeenRaw[id] = data;                 /* το χρειάζεται το popup πελάτη */
+ 
+  var p = xsyPeople[k];
+  if (!p) p = xsyPeople[k] = { name: "", days: {}, total: 0, months: {} };
+ 
+  var nm = String(data.name || "").trim();
+  if (nm) p.name = nm;
+ 
+  var day = p.days[dk];
+  if (!day) day = p.days[dk] = { t: [], n: 0 };
+  day.t.push(xsyMinutes(data.time));
+ 
+  /* ξαναϋπολογίζουμε ΜΟΝΟ αυτή την ημέρα */
+  var newN = xsySessions(day.t);
+  var delta = newN - day.n;
+  if (delta) {
+    day.n = newN;
+    p.total += delta;
+    var mk = dk.slice(0, 7);
+    p.months[mk] = (p.months[mk] || 0) + delta;
+  }
+ 
   return true;
 }
+
 
 var XG_SESSION_GAP = 60;          /* λεπτά */
  
@@ -3408,30 +3445,14 @@ function xsySessions(minsList) {
  
 /* Καταμέτρηση. monthPrefix = "2026-08" για μηνιαίο, κενό για ετήσιο. */
 function xsyTally(monthPrefix) {
-  var P = {};                                  /* key -> { name, days:{dk:[λεπτά]} } */
- 
-  for (var docId in xsySeenRaw) {
-    var d  = xsySeenRaw[docId] || {};
-    var dk = String(d.dateKey || "");
-    if (dk.length < 10) continue;
-    if (monthPrefix && dk.slice(0, 7) !== monthPrefix) continue;
- 
-    var k = xsyKeyOf(d);
-    if (!k) continue;
- 
-    var p = P[k] || (P[k] = { name: "", days: {} });
-    var nm = String(d.name || "").trim();
-    if (nm) p.name = nm;
- 
-    (p.days[dk] || (p.days[dk] = [])).push(xsyMinutes(d.time));
-  }
- 
   var counts = {}, names = {}, total = 0;
-  for (var key in P) {
-    var per = P[key], n = 0;
-    for (var day in per.days) n += xsySessions(per.days[day]);
-    counts[key] = n;
-    names[key]  = per.name || key;
+ 
+  for (var k in xsyPeople) {
+    var p = xsyPeople[k];
+    var n = monthPrefix ? (p.months[monthPrefix] || 0) : p.total;
+    if (!n) continue;
+    counts[k] = n;
+    names[k]  = p.name || k;
     total += n;
   }
  
@@ -3443,7 +3464,7 @@ function xsyTally(monthPrefix) {
  
   return { rows: rows, total: total, counts: counts, names: names };
 }
- 
+
 function xsyShort(full) { return String(full).trim().replace(/\s+/g, " "); }
  
 function xsyTop(n) { return xsyTally("").rows.slice(0, n || 8); }
@@ -3520,7 +3541,7 @@ function xsmRender(force) {
 /* ═══════════ ΦΟΡΤΩΣΗ & LIVE ═══════════ */
 function xsyLoad() {
   return XScanCache.load(db).then(function () {
-    xsySeen = {}; xsySeenRaw = {};
+    xsySeen = {}; xsySeenRaw = {}; xsyPeople = {};
     xsyYear = new Date().getFullYear();
     XScanCache.forEach(function (data, id) { xsyAdd(data, id); });
  
@@ -3549,8 +3570,12 @@ function xsyWatch() {
       snap.forEach(function (d) { if (xsyAdd(d.data() || {}, d.id)) n++; });
       if (n) {
         console.log("🏆 +" + n);
-        xsyRender();
-        xsmRender();
+        if (xsyRedrawTimer) clearTimeout(xsyRedrawTimer);
+        xsyRedrawTimer = setTimeout(function () {
+          xsyRedrawTimer = null;
+          xsyRender();
+          xsmRender();
+        }, 3000);
       }
     }, function (e) { console.warn("🏆 listener:", e.message); });
 }
@@ -3652,7 +3677,20 @@ return { year: year, month: month, prevFull: prevFull, prevSame: prevSame,
 /* Μία πρόταση, με σαφή προτεραιότητα. */
 /* Μία πρόταση, με προτεραιότητα από το σπανιότερο προς το γενικό. */
 function xspMessage(st, isActive) {
- /* 1. επιστροφή μετά από απουσία — συνδυάζεται με ορόσημο αν συμπέσουν */
+ 
+  /* ── Οι δύο περιπτώσεις που έσπαγαν ── */
+ 
+  if (!isActive) {
+    return "Η συνδρομή σου έχει λήξει. Πέρασε από τη ρεσεψιόν για ανανέωση.";
+  }
+ 
+  /* Ενεργός αλλά χωρίς σκαναρίσματα φέτος — επιστρέφει μετά από καιρό.
+     Το πιο σημαντικό μήνυμα εμπορικά, και ήταν αυτό που δεν έβγαινε ποτέ. */
+  if (!st) {
+    return "Καλώς όρισες πίσω! Χαιρόμαστε που σε βλέπουμε ξανά.";
+  }
+ 
+  /* ── 1. Επιστροφή μετά από απουσία ── */
   if (st.away != null && st.away >= 14) {
     var ml = null, ms0 = [200, 150, 100, 50];
     for (var j = 0; j < ms0.length; j++) {
@@ -3664,19 +3702,18 @@ function xspMessage(st, isActive) {
     if (st.away >= 30) return "Δυναμικό restart. Καλώς όρισες πίσω!";
     return "Επιστροφή μετά από " + st.away + " ημέρες. Καλή προπόνηση!";
   }
-  /* πρώτη φορά — όχι «πίσω» */
-  if (st.away == null && st.year <= 1)
+ 
+  /* ── Πρώτη φορά ── */
+  if (st.away == null && st.year <= 1) {
     return "Καλώς ήρθες στην ομάδα!";
-  /* πρώτη φορά — όχι «πίσω» */
-  if (st.away == null && st.year <= 1)
-    return "Καλώς ήρθες στην ομάδα!";
-
-  /* 2. καλύτερος μήνας της χρονιάς */
-  if (st.best)
+  }
+ 
+  /* ── 2. Καλύτερος μήνας της χρονιάς ── */
+  if (st.best) {
     return "Ο καλύτερός σου μήνας για φέτος!";
-
-  /* 3. ορόσημο — παράθυρο 3 προπονήσεων ώστε να μη χαθεί */
-  /* 3. ορόσημο — παράθυρο 3 προπονήσεων ώστε να μη χαθεί */
+  }
+ 
+  /* ── 3. Ορόσημο — παράθυρο 3 προπονήσεων ώστε να μη χαθεί ── */
   var ms = [200, 150, 100, 50];
   for (var i = 0; i < ms.length; i++) {
     if (st.year >= ms[i] && st.year < ms[i] + 3) {
@@ -3684,26 +3721,28 @@ function xspMessage(st, isActive) {
       return ms[i] + " προπονήσεις φέτος. Ορόσημο!";
     }
   }
-
-  /* 4. μεταβολή σε σχέση με τον προηγούμενο μήνα */
-  if (st.diff >= 5 && st.month > 0)
+ 
+  /* ── 4. Μεταβολή σε σχέση με τον προηγούμενο μήνα ── */
+  if (st.diff >= 5 && st.month > 0) {
     return "+" + st.diff + " προπονήσεις σε σχέση με τον προηγούμενο μήνα!";
-  if (st.diff <= -5 && st.prevSame > 0)
+  }
+  if (st.diff <= -5 && st.prevSame > 0) {
     return Math.abs(st.diff) + " λιγότερες από τον προηγούμενο μήνα";
-
-  /* 5. ρυθμός — μόνο όταν ο μήνας έχει προχωρήσει αρκετά για να έχει νόημα */
+  }
+ 
+  /* ── 5. Ρυθμός ── */
   if (st.day >= 10 && st.month >= 4) {
     var pw = st.month / st.day * 7;
     if (pw >= 4) return "Ρυθμός " + pw.toFixed(1) + " προπονήσεις/εβδομάδα!";
   }
-
-  /* 6. κατάταξη */
+ 
+  /* ── 6. Κατάταξη ── */
   if (st.rank === 1) return "Είσαι στην κορυφή της κατάταξης!";
   if (st.rank === 2) return "Μία θέση από την κορυφή!";
   if (st.rank === 3) return "Στο βάθρο της χρονιάς!";
   if (st.rank <= 8)  return "Στο Top 8 της χρονιάς!";
   if (st.rank <= 20) return "Λίγο ακόμα για το Top 8!";
-
+ 
   return "Καλή προπόνηση!";
 }
 setInterval(xsRender, 15000);   /* κρατάει ζωντανή την αντίστροφη μέτρηση */
