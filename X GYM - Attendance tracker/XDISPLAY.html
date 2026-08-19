@@ -3821,7 +3821,7 @@ function xlbMarkSeen() {
     var dur = parseInt(el.dataset.duration, 10) || DURATION_DEFAULT;
     if (Date.now() - since < dur + 30000) return;
  
-    revives++;
+        revives++; window.__slideRevives = revives;
     console.warn("♻️ Κόλλησε στο '" + el.className.replace("slide ", "")
                + "' — επανεκκίνηση #" + revives);
  
@@ -3850,6 +3850,16 @@ var XD_VERSION = "v4-20260819";
 (function remoteDiagnostics() {
  
   var started   = Date.now();
+    /* Σταθερό αναγνωριστικό ανά συσκευή — η τηλεόραση και το λάπτοπ
+     γράφουν σε ΞΕΧΩΡΙΣΤΑ έγγραφα, αλλιώς σβήνει το ένα το άλλο. */
+  var deviceId;
+  try {
+    deviceId = localStorage.getItem("xdDeviceId");
+    if (!deviceId) {
+      deviceId = "dev-" + Math.random().toString(36).slice(2, 8);
+      localStorage.setItem("xdDeviceId", deviceId);
+    }
+  } catch (e) { deviceId = "dev-anon"; }
   var errors    = [];
   var lastError = null;
   var pushTimer = null;
@@ -3906,15 +3916,29 @@ var XD_VERSION = "v4-20260819";
     pushTimer = setTimeout(function () { pushTimer = null; pushState(); }, 20000);
   }
  
-  function pushState() {
+    function pushState() {
     if (typeof db === "undefined") return;
+
     var slide = document.querySelector(".slide.active");
+
+    /* Καθαρό όνομα slide: "slide xsn-slide active" → "xsn-slide" */
+    var slideName = "—";
+    if (slide) {
+      slideName = slide.className.replace(/\bslide\b|\bactive\b/g, "").trim();
+      if (!slideName) slideName = "φωτογραφία";
+    }
+
+    var label = "";
+    try { label = localStorage.getItem("xdLabel") || ""; } catch (e) {}
+
     try {
-      db.collection("xgym_health").doc("xdisplay").set({
+      db.collection("xgym_health").doc(deviceId).set({
+        device    : deviceId,
+        label     : label,
         version   : XD_VERSION,
         updatedAt : new Date().toISOString(),
         uptimeH   : +((Date.now() - started) / 3600000).toFixed(2),
-        slide     : slide ? slide.className.replace("slide ", "") : "—",
+        slide     : slideName,
         revives   : window.__slideRevives || 0,
         errorCount: errors.length,
         lastError : lastError || "",
