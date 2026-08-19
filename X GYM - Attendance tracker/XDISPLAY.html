@@ -1963,29 +1963,43 @@ const DURATION_LEADERBOARD = 210000;
 }
  
  
+var slideStartedAt = Date.now();
+var slideDuration  = DURATION_DEFAULT;
+
 function startTimer(ms) {
   clearTimeout(slideTimer);
- 
-  /* λογική τιμή — προστασία από NaN ή παράλογες διάρκειες */
   if (!(ms > 0) || ms > 900000) ms = DURATION_DEFAULT;
- 
-  slideTimer = setTimeout(function () {
-    var next;
-    try {
-      next = (typeof xsNextIndex === "function")
-           ? xsNextIndex(currentSlide)
-           : (currentSlide + 1) % slides.length;
-    } catch (e) {
-      console.error("❌ xsNextIndex:", e);
-      next = (currentSlide + 1) % slides.length;
-    }
- 
-    if (!(next >= 0 && next < slides.length)) next = (currentSlide + 1) % slides.length;
- 
-    currentSlide = next;
-    showSlide(currentSlide);
-  }, ms);
+  slideDuration  = ms;
+  slideStartedAt = Date.now();
+  slideTimer = setTimeout(advanceSlide, ms);
 }
+
+function advanceSlide() {
+  clearTimeout(slideTimer);
+  var next;
+  try {
+    next = (typeof xsNextIndex === "function")
+         ? xsNextIndex(currentSlide)
+         : (currentSlide + 1) % slides.length;
+  } catch (e) {
+    console.error("xsNextIndex:", e);
+    next = (currentSlide + 1) % slides.length;
+  }
+  if (!(next >= 0 && next < slides.length)) next = (currentSlide + 1) % slides.length;
+  currentSlide = next;
+  showSlide(currentSlide);
+}
+
+/* Κεντρικό ρολόι — ανεξάρτητο από την αλυσίδα των setTimeout.
+   Αν το χρονόμετρο χαθεί (π.χ. σε επανασύνδεση Firestore),
+   η οθόνη προχωράει μέσα σε 2΄΄ αντί για 4 λεπτά. */
+setInterval(function () {
+  if (document.hidden) { slideStartedAt = Date.now(); return; }
+  if (Date.now() - slideStartedAt >= slideDuration + 2000) {
+    console.warn("⏭ κεντρικό ρολόι: το slide ξεπέρασε τη διάρκειά του");
+    advanceSlide();
+  }
+}, 2000);
 
     // ===== 📊 LIVE ΣΤΑΤΙΣΤΙΚΑ ΟΘΟΝΗΣ =====
 const DOW_NAMES = ["Δευτέρα","Τρίτη","Τετάρτη","Πέμπτη","Παρασκευή","Σάββατο","Κυριακή"];
@@ -3269,8 +3283,16 @@ function xsRenderToday() {
            '</div>';
   }).join("");
  
-  document.getElementById("xsdList").innerHTML = '<div class="xsd-inner">' + rows + '</div>';
-  xsdFit(slide);
+    /* Το slide ξαναχτιζόταν κάθε 15΄΄ ακόμα κι όταν το περιεχόμενο ήταν
+     πανομοιότυπο. Πλήρης ανακατασκευή DOM + reflow + transform είναι
+     το βαρύτερο πράγμα που κάνει η σελίδα — και το μόνο που επαναλαμβάνεται
+     σε αυτό το slide. Σε επεξεργαστή τηλεόρασης αυτό είναι το πάγωμα. */
+  var sig = (isToday ? "T" : "F" + dayOffset) + "|" + mm + "|" + rows.length + "|" + rows;
+  if (slide.__lastSig !== sig) {
+    slide.__lastSig = sig;
+    document.getElementById("xsdList").innerHTML = '<div class="xsd-inner">' + rows + '</div>';
+    try { xsdFit(slide); } catch (e) { console.warn("xsdFit:", e); }
+  }
 }
 
 /* ═══════════ ΕΒΔΟΜΑΔΙΑΙΟ ΠΡΟΓΡΑΜΜΑ (δύο μέρη) ═══════════
