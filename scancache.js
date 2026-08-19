@@ -1,19 +1,14 @@
 /* ═══════════════════════════════════════════════════════════════════════
-   X-GYM · XScanCache — κοινό cache ιστορικού σκαναρισμάτων
+   X-GYM · XScanCache v1.1 — κοινό cache ιστορικού σκαναρισμάτων
    ───────────────────────────────────────────────────────────────────────
-   Κρατάει το ιστορικό του xgym_scans στο localStorage της συσκευής και
-   ζητάει από το Firestore ΜΟΝΟ τις ημέρες που λείπουν.
+   ΝΕΟ ΣΤΗ v1.1
+     Η loadStatsHistory και η xsyLoad καλούν ταυτόχρονα το load().
+     Καμία δεν είχε τελειώσει όταν ξεκινούσε η άλλη, οπότε κατέβαζαν
+     ΚΑΙ ΟΙ ΔΥΟ τα ίδια δεδομένα (διπλά reads, διπλή αίτηση).
 
-     Πρώτο άνοιγμα ανά συσκευή : 10.700 reads (μία φορά)
-     Κάθε επόμενο              : 0–150 reads
+     Τώρα η δεύτερη κλήση επιστρέφει την ίδια Promise με την πρώτη.
 
-   ΣΗΜΑΝΤΙΚΟ: το cache φτάνει μέχρι ΧΘΕΣ. Τα σημερινά τα φέρνουν οι
-   live listeners που ήδη υπάρχουν — έτσι δεν διπλομετρώνται.
-
-   Αν το localStorage είναι γεμάτο ή απενεργοποιημένο, όλα δουλεύουν
-   κανονικά· απλά χωρίς όφελος. Ποτέ χειρότερα από σήμερα.
-
-   ΑΡΧΕΙΟ: scancache.js — στη ΡΙΖΑ του repo, δίπλα στο schedule.js
+   ΑΝΤΙΚΑΤΑΣΤΑΣΗ: ολόκληρο το scancache.js στη ρίζα του repo
    ═══════════════════════════════════════════════════════════════════════ */
 
 (function (global) {
@@ -22,9 +17,10 @@
   var KEY = "xsc:v1";
   var COL = "xgym_scans";
 
-  var store = null;        /* { v, last, m:{id:[name,gender]}, d:{dateKey:[[id,time,period]]} } */
+  var store = null;
   var loaded = false;
   var canWrite = true;
+  var pending = null;        /* ✅ η Promise που τρέχει αυτή τη στιγμή */
 
   function todayKey() { return new Date().toLocaleDateString("sv-SE"); }
 
@@ -58,7 +54,6 @@
     }
   }
 
-  /* Προσθήκη ενός σκαναρίσματος στο store. Επιστρέφει true αν ήταν νέο. */
   function put(data) {
     var dk = String(data.dateKey || "").slice(0, 10);
     if (dk.length !== 10) return false;
@@ -71,7 +66,6 @@
 
     if (!store.d[dk]) store.d[dk] = [];
 
-    /* ίδιο id + ίδια ώρα = ίδιο σκανάρισμα */
     var arr = store.d[dk];
     for (var i = 0; i < arr.length; i++) {
       if (arr[i][0] === id && arr[i][1] === time) return false;
@@ -87,19 +81,19 @@
     return true;
   }
 
-  /* ═══ ΔΗΜΟΣΙΑ API ═══ */
 
   var API = {
 
-    /* Φορτώνει το cache και συμπληρώνει ό,τι λείπει από το Firestore.
-       db = το firebase.firestore() instance της σελίδας. */
     load: function (db) {
+      /* ✅ Ήδη τρέχει — δώσε την ίδια Promise αντί για δεύτερο κατέβασμα */
+      if (pending) return pending;
+
       store = read();
       var tKey = todayKey();
       var yKey = yesterdayKey();
       var t0 = Date.now();
 
-      /* ενήμερο — μηδέν reads */
+      /* ενήμερο — μηδέν reads, τίποτα ασύγχρονο */
       if (store.last && store.last >= yKey) {
         loaded = true;
         console.log("[cache] ενήμερο έως " + store.last + " · 0 reads · "
@@ -119,11 +113,11 @@
               .get();
       }
 
-      return q.then(function (snap) {
+      pending = q.then(function (snap) {
         var added = 0;
         snap.forEach(function (doc) {
           var d = doc.data() || {};
-          if (String(d.dateKey || "").slice(0, 10) >= tKey) return;  /* σήμερα → listener */
+          if (String(d.dateKey || "").slice(0, 10) >= tKey) return;
           if (put(d)) added++;
         });
 
@@ -137,13 +131,17 @@
 
       }).catch(function (e) {
         console.error("[cache] λήψη απέτυχε:", e.message);
-        loaded = true;                       /* συνεχίζουμε με ό,τι έχουμε */
+        loaded = true;
         return API;
+
+      }).then(function (r) {
+        pending = null;          /* ✅ ελευθέρωσε για μελλοντικές κλήσεις */
+        return r;
       });
+
+      return pending;
     },
 
-    /* Διατρέχει όλες τις καταγραφές ΜΕΧΡΙ ΧΘΕΣ.
-       cb(data, syntheticDocId) — ίδια υπογραφή με το snap.forEach */
     forEach: function (cb) {
       if (!store) store = read();
       for (var dk in store.d) {
@@ -172,7 +170,6 @@
 
     isLoaded: function () { return loaded; },
 
-    /* Διαγνωστικό — τρέξ' το στην κονσόλα */
     info: function () {
       if (!store) store = read();
       var days = Object.keys(store.d).sort();
@@ -186,12 +183,12 @@
       console.log("  έως        : " + (store.last || "—"));
       console.log("  μέγεθος    : " + Math.round(bytes / 1024) + " KB");
       console.log("  εγγραφή    : " + (canWrite ? "εντάξει" : "ΑΠΕΝΕΡΓΟΠΟΙΗΜΕΝΗ"));
+      console.log("  σε εξέλιξη : " + (pending ? "ναι" : "όχι"));
     },
 
-    /* Καθαρισμός — η επόμενη φόρτωση θα κάνει πλήρη λήψη */
     reset: function () {
       try { localStorage.removeItem(KEY); } catch (e) {}
-      store = blank(); loaded = false; canWrite = true;
+      store = blank(); loaded = false; canWrite = true; pending = null;
       console.log("[cache] καθαρίστηκε");
     }
   };
