@@ -2936,8 +2936,11 @@ function xsAfter(occ) {
   return null;
 }
 
-function xsRender() { xsRenderNext(); xsRenderToday(); xsRenderWeek(); }
-
+function xsRender() {
+  try { xsRenderNext();  } catch (e) { console.error("xsRenderNext:",  e); }
+  try { xsRenderToday(); } catch (e) { console.error("xsRenderToday:", e); }
+  try { xsRenderWeek();  } catch (e) { console.error("xsRenderWeek:",  e); }
+}
 /* ---------- slide 1: επόμενο / τώρα ---------- */
 /* ---------- slide 1: επόμενο / τώρα ---------- */
 /* ═══ ΡΥΘΜΙΣΕΙΣ ΧΡΟΝΟΥ ═══ */
@@ -3841,6 +3844,95 @@ function xlbMarkSeen() {
   };
 })();
  
+ 
+var XD_VERSION = "v4-20260819";
+ 
+(function remoteDiagnostics() {
+ 
+  var started   = Date.now();
+  var errors    = [];
+  var lastError = null;
+  var pushTimer = null;
+ 
+  /* ── Badge ── */
+  var el = document.createElement("div");
+  el.style.cssText =
+    "position:fixed; right:8px; bottom:6px; z-index:99999; max-width:60vw;" +
+    "font-family:monospace; font-size:10px; letter-spacing:.4px; text-align:right;" +
+    "color:rgba(255,255,255,.22); pointer-events:none; user-select:none;";
+  document.body.appendChild(el);
+ 
+  function paint() {
+    var h = (Date.now() - started) / 3600000;
+    var rev = window.__slideRevives || 0;
+ 
+    var line = XD_VERSION + " · " + h.toFixed(1) + "h";
+    if (rev) line += " · αν." + rev;
+    if (errors.length) line += " · σφ." + errors.length;
+ 
+    el.textContent = line;
+    el.style.color = errors.length ? "rgba(255,120,120,.6)"
+                   : rev           ? "rgba(255,200,120,.5)"
+                   :                 "rgba(255,255,255,.22)";
+ 
+    if (lastError) {
+      el.textContent = line + "\n" + lastError.slice(0, 90);
+      el.style.whiteSpace = "pre-line";
+    }
+  }
+ 
+  /* ── Καταγραφή ── */
+  function record(kind, msg, src, line) {
+    var txt = kind + ": " + msg + (src ? " @" + String(src).split("/").pop() + ":" + line : "");
+    lastError = txt;
+    errors.push({ t: new Date().toISOString(), txt: txt });
+    if (errors.length > 20) errors.shift();
+    paint();
+    schedulePush();
+  }
+ 
+  window.addEventListener("error", function (e) {
+    record("JS", e.message || "άγνωστο", e.filename, e.lineno);
+  });
+ 
+  window.addEventListener("unhandledrejection", function (e) {
+    var r = e.reason;
+    record("Promise", (r && (r.message || r)) || "άγνωστο");
+  });
+ 
+  /* ── Αποστολή στο Firestore (με φειδώ) ── */
+  function schedulePush() {
+    if (pushTimer) return;
+    pushTimer = setTimeout(function () { pushTimer = null; pushState(); }, 20000);
+  }
+ 
+  function pushState() {
+    if (typeof db === "undefined") return;
+    var slide = document.querySelector(".slide.active");
+    try {
+      db.collection("xgym_health").doc("xdisplay").set({
+        version   : XD_VERSION,
+        updatedAt : new Date().toISOString(),
+        uptimeH   : +((Date.now() - started) / 3600000).toFixed(2),
+        slide     : slide ? slide.className.replace("slide ", "") : "—",
+        revives   : window.__slideRevives || 0,
+        errorCount: errors.length,
+        lastError : lastError || "",
+        recent    : errors.slice(-5),
+        ua        : navigator.userAgent.slice(0, 160)
+      });
+    } catch (e) {}
+  }
+ 
+  /* καρδιακός παλμός ανά 5 λεπτά — αν σταματήσει, η σελίδα πάγωσε */
+  setInterval(pushState, 300000);
+  setTimeout(pushState, 15000);
+ 
+  setInterval(paint, 30000);
+  paint();
+ 
+  window.xdErrors = function () { console.table(errors); };
+})();
 
   </script>
 </body>
