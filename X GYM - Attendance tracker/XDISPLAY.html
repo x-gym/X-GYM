@@ -1883,82 +1883,109 @@ align-self: center;          /* κάθετα στο grid row */
 const DURATION_LEADERBOARD = 210000;  
 
     function showSlide(index, _hops) {
-        clearTimeout(slideTimer);
-
-        // 1. Καθαρισμός slides και βίντεο
-        slides.forEach(s => {
-            s.classList.remove('active');
-            const v = s.querySelector('video');
-            if (v) { 
-                v.pause(); 
-                v.currentTime = 0; 
-            }
-        });
-
-        const slideEl = slides[index];
-        if (!slideEl) return;
-
-        // slide χωρίς περιεχόμενο -> προσπερνιέται
-        if (slideEl.classList.contains("xsl-skip") && (_hops || 0) < slides.length) {
-            currentSlide = (index + 1) % slides.length;
-            return showSlide(currentSlide, (_hops || 0) + 1);
-        }
-
-        slideEl.classList.add('active');
-        if (slideEl.classList.contains("stats-slide")) {
-          setTimeout(() => {
-            if (typeof statChartH !== "undefined" && statChartH) statChartH.resize();
-            if (typeof statChartD !== "undefined" && statChartD) statChartD.resize();
-            if (typeof renderStatsSlide === "function") renderStatsSlide();
-          }, 80);
-        }
-
-        // 2. Υπολογισμός διάρκειας και έναρξη βίντεο
-        const video = slideEl.querySelector('video');
-        const isLeaderboard = slideEl.classList.contains("leaderboard-slide");
-        let duration = slideEl.dataset.duration
-                     ? +slideEl.dataset.duration
-                     : (isLeaderboard ? DURATION_LEADERBOARD : DURATION_DEFAULT);
-
-        if (video) {
-            video.muted = true;
-            video.play().catch(e => console.log("Video error:", e));
-
-            if (video.duration) {
-                duration = video.duration * 1000;
-            } else {
-                video.onloadedmetadata = function() {
-                    clearTimeout(slideTimer);
-                    startTimer(video.duration * 1000);
-                };
-                duration = 10000; // Fallback 10 δευτερόλεπτα
-            }
-        } else if (isLeaderboard) {
-            // Animation reset για το leaderboard
-            slideEl.style.setProperty('--rankDelay', '5s');
-            if (typeof retriggerRankAnims === 'function') {
-                setTimeout(() => retriggerRankAnims(slideEl), 80);
-            }
-        }
-
-        // 3. Διαχείριση Ρολογιού
-        const clock = document.getElementById("digitalClock");
-        if (clock) {
-            clock.style.display = isLeaderboard ? "none" : "block";
-        }
-
-        startTimer(duration);
+  clearTimeout(slideTimer);
+ 
+  try {
+    /* καθαρισμός */
+    slides.forEach(function (s) {
+      s.classList.remove('active');
+      var v = s.querySelector('video');
+      if (v) { try { v.pause(); v.currentTime = 0; } catch (e) {} }
+    });
+ 
+    /* ✅ άκυρος δείκτης — ΔΕΝ σταματάμε, γυρνάμε στην αρχή */
+    if (!slides.length) { startTimer(30000); return; }
+    if (!(index >= 0 && index < slides.length)) {
+      console.warn("slideshow: άκυρος δείκτης " + index + " — επαναφορά στο 0");
+      index = 0;
     }
-
-    function startTimer(ms) {
-        clearTimeout(slideTimer);
-        slideTimer = setTimeout(() => {
-            currentSlide = (typeof xsNextIndex === "function")
-                         ? xsNextIndex(currentSlide)
-                         : (currentSlide + 1) % slides.length;
-            showSlide(currentSlide);
-        }, ms);
+ 
+    var slideEl = slides[index];
+    if (!slideEl) { currentSlide = 0; startTimer(30000); return; }
+ 
+    /* slide χωρίς περιεχόμενο → προσπερνιέται */
+    if (slideEl.classList.contains("xsl-skip") && (_hops || 0) < slides.length) {
+      currentSlide = (index + 1) % slides.length;
+      return showSlide(currentSlide, (_hops || 0) + 1);
     }
+ 
+    slideEl.classList.add('active');
+    currentSlide = index;
+ 
+    if (slideEl.classList.contains("stats-slide")) {
+      setTimeout(function () {
+        try {
+          if (typeof statChartH !== "undefined" && statChartH) statChartH.resize();
+          if (typeof statChartD !== "undefined" && statChartD) statChartD.resize();
+          if (typeof renderStatsSlide === "function") renderStatsSlide();
+        } catch (e) { console.warn("stats slide:", e); }
+      }, 80);
+    }
+ 
+    /* διάρκεια */
+    var video = slideEl.querySelector('video');
+    var isLeaderboard = slideEl.classList.contains("leaderboard-slide");
+    var duration = slideEl.dataset.duration
+                 ? +slideEl.dataset.duration
+                 : (isLeaderboard ? DURATION_LEADERBOARD : DURATION_DEFAULT);
+ 
+    if (video) {
+      video.muted = true;
+      video.play().catch(function (e) { console.log("Video error:", e); });
+ 
+      if (video.duration) {
+        duration = video.duration * 1000;
+      } else {
+        video.onloadedmetadata = function () {
+          try { startTimer(video.duration * 1000); } catch (e) { startTimer(DURATION_DEFAULT); }
+        };
+        duration = 10000;
+      }
+    } else if (isLeaderboard) {
+      slideEl.style.setProperty('--rankDelay', '5s');
+      if (typeof retriggerRankAnims === 'function') {
+        setTimeout(function () {
+          try { retriggerRankAnims(slideEl); } catch (e) { console.warn("rankAnims:", e); }
+        }, 80);
+      }
+    }
+ 
+    var clock = document.getElementById("digitalClock");
+    if (clock) clock.style.display = isLeaderboard ? "none" : "block";
+ 
+    startTimer(duration);
+ 
+  } catch (err) {
+    /* ✅ ό,τι κι αν έγινε, η ροή ΔΕΝ σταματά */
+    console.error("❌ showSlide(" + index + "):", err);
+    startTimer(20000);
+  }
+}
+ 
+ 
+function startTimer(ms) {
+  clearTimeout(slideTimer);
+ 
+  /* λογική τιμή — προστασία από NaN ή παράλογες διάρκειες */
+  if (!(ms > 0) || ms > 900000) ms = DURATION_DEFAULT;
+ 
+  slideTimer = setTimeout(function () {
+    var next;
+    try {
+      next = (typeof xsNextIndex === "function")
+           ? xsNextIndex(currentSlide)
+           : (currentSlide + 1) % slides.length;
+    } catch (e) {
+      console.error("❌ xsNextIndex:", e);
+      next = (currentSlide + 1) % slides.length;
+    }
+ 
+    if (!(next >= 0 && next < slides.length)) next = (currentSlide + 1) % slides.length;
+ 
+    currentSlide = next;
+    showSlide(currentSlide);
+  }, ms);
+}
 
     // ===== 📊 LIVE ΣΤΑΤΙΣΤΙΚΑ ΟΘΟΝΗΣ =====
 const DOW_NAMES = ["Δευτέρα","Τρίτη","Τετάρτη","Πέμπτη","Παρασκευή","Σάββατο","Κυριακή"];
@@ -3051,36 +3078,26 @@ function xsRenderNext() {
 /* ═══ ΠΡΟΤΕΡΑΙΟΤΗΤΑ ΣΤΟ ΚΑΡΟΥΣΕΛ ═══
    Κοντά σε αλλαγή τμήματος, το slide «Επόμενο τμήμα» παρεμβάλλεται
    ανάμεσα στα υπόλοιπα, ώστε να εμφανίζεται διπλάσια συχνά. */
-var xsResume = 0;
-
-function xsHotIndex() {
-  for (var i = 0; i < slides.length; i++) {
-    if (slides[i].classList.contains("xsn-slide")) return i;
-  }
-  return -1;
-}
-
-function xsIsHot() {
-  if (typeof XSchedule === "undefined") return false;
-  var now = new Date(), C = xsClassesInUse();
-  var n = XSchedule.getNextClass(now, C, xsOverrides);
-  if (n && n.isToday && n.minutesUntil <= XS_HOT_BEFORE) return true;
-  var c = XSchedule.getCurrentClass(now, C, xsOverrides);
-  if (c && (c.duration - c.minutesLeft) <= XS_HOT_AFTER) return true;
-  return false;
-}
 
 function xsNextIndex(i) {
-  var normal = (i + 1) % slides.length;
-  var hot = xsHotIndex();
-  if (hot < 0 || slides.length < 3 || !xsIsHot()) return normal;
+  var n = slides.length;
+  if (!n) return 0;
 
-  if (i === hot) {                       /* μόλις το δείξαμε -> πίσω στη ροή */
-    return (xsResume === hot) ? (hot + 1) % slides.length : xsResume;
+  var normal = (i + 1) % n;
+  var hot = xsHotIndex();
+  if (hot < 0 || n < 3 || !xsIsHot()) return normal;
+
+  if (i === hot) {
+    /* Το xsResume μπορεί να μην έχει τεθεί ποτέ: αν φτάσαμε εδώ με
+       κανονική σειρά κι ΕΠΕΙΤΑ ξεκίνησε τμήμα, ήταν undefined —
+       και το undefined σκότωνε την αλυσίδα των χρονομέτρων. */
+    var r = xsResume;
+    if (!(r >= 0 && r < n) || r === hot) r = (hot + 1) % n;
+    xsResume = -1;
+    return r;
   }
-  /* Αν η επόμενη κανονική θέση είναι το ίδιο το slide, προσπέρασέ την —
-     αλλιώς το καρουσέλ κλειδώνει πάνω του. */
-  xsResume = (normal === hot) ? (normal + 1) % slides.length : normal;
+
+  xsResume = (normal === hot) ? (normal + 1) % n : normal;
   return hot;
 }
 
@@ -3104,20 +3121,6 @@ function xsIsHot() {
   var c = XSchedule.getCurrentClass(now, C, xsOverrides);
   if (c && (c.duration - c.minutesLeft) <= XS_HOT_AFTER) return true;
   return false;
-}
-
-function xsNextIndex(i) {
-  var normal = (i + 1) % slides.length;
-  var hot = xsHotIndex();
-  if (hot < 0 || slides.length < 3 || !xsIsHot()) return normal;
-
-  if (i === hot) {                       /* μόλις το δείξαμε -> πίσω στη ροή */
-    return (xsResume === hot) ? (hot + 1) % slides.length : xsResume;
-  }
-  /* Αν η επόμενη κανονική θέση είναι το ίδιο το slide, προσπέρασέ την —
-     αλλιώς το καρουσέλ κλειδώνει πάνω του. */
-  xsResume = (normal === hot) ? (normal + 1) % slides.length : normal;
-  return hot;
 }
 
 /* ---------- slide 2: το πρόγραμμα σήμερα ---------- */
@@ -3799,6 +3802,43 @@ function xlbMarkSeen() {
     localStorage.removeItem("deltaMemory");
     localStorage.setItem("xlbRankMonth", mk);
   }
+})();
+
+(function slideshowKeepalive() {
+  var lastEl = null, since = Date.now(), revives = 0;
+ 
+  setInterval(function () {
+    if (document.hidden) { since = Date.now(); return; }
+ 
+    var el = document.querySelector(".slide.active");
+    if (!el) return;
+ 
+    if (el !== lastEl) { lastEl = el; since = Date.now(); return; }
+ 
+    var dur = parseInt(el.dataset.duration, 10) || DURATION_DEFAULT;
+    if (Date.now() - since < dur + 30000) return;
+ 
+    revives++;
+    console.warn("♻️ Κόλλησε στο '" + el.className.replace("slide ", "")
+               + "' — επανεκκίνηση #" + revives);
+ 
+    since = Date.now();
+    try {
+      var all = [].slice.call(document.querySelectorAll(".slide"));
+      currentSlide = (all.indexOf(el) + 1) % all.length;
+      showSlide(currentSlide);
+    } catch (e) {
+      console.error("αποτυχία ανάνηψης — reload:", e);
+      location.reload();
+    }
+  }, 10000);
+ 
+  window.slideStatus = function () {
+    var el = document.querySelector(".slide.active");
+    console.log("τρέχον slide : " + (el ? el.className.replace("slide ", "") : "—"));
+    console.log("σταθερό για  : " + Math.round((Date.now() - since) / 1000) + "s");
+    console.log("ανανήψεις    : " + revives);
+  };
 })();
  
 
