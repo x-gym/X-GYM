@@ -2826,66 +2826,116 @@ slide.innerHTML = `
   });
 }
 // === Instant loading overlay ===
+var xdLoadingGuard = null;
+ 
 function showLoadingPopup() {
-  let el = document.getElementById("popup-loading");
-  if (el) return el; // μην το ξαναστήνεις αν υπάρχει ήδη
-
+  var el = document.getElementById("popup-loading");
+ 
+  /* Φύλακας: ό,τι κι αν συμβεί στη ροή, το loading φεύγει σε 15΄΄.
+     Χωρίς αυτό, ένα κολλημένο fetch το άφηνε για πάντα. */
+  if (xdLoadingGuard) clearTimeout(xdLoadingGuard);
+  xdLoadingGuard = setTimeout(function () {
+    xdLoadingGuard = null;
+    if (document.getElementById("popup-loading")) {
+      console.warn("⏱ Το loading έμεινε πάνω από 15΄΄ — αναγκαστικό κλείσιμο");
+      hideLoadingPopup();
+    }
+  }, 15000);
+ 
+  if (el) return el;
+ 
   el = document.createElement("div");
   el.id = "popup-loading";
-  el.innerHTML = `
-    <div class="loading-card">
-      <div class="loading-inner">
-        <div class="holo-logo">
-          <img
-            src="https://i.postimg.cc/Y9HZXm3q/f26ceef4-3445-4c9a-a15d-64ea3cac2a95-removalai-preview.png"
-            alt="Λογότυπο"
-            width="200" height="200"
-            decoding="async" loading="eager"
-          />
-        </div>
-        <div class="loading-title">Έλεγχος συνδρομής</div>
-        <div class="popup-line">Παρακαλώ περιμένετε...</div>
-      </div>
-    </div>
-  `;
+  el.innerHTML =
+    '<div class="loading-card">' +
+      '<div class="loading-inner">' +
+        '<div class="holo-logo">' +
+          '<img src="https://i.postimg.cc/Y9HZXm3q/f26ceef4-3445-4c9a-a15d-64ea3cac2a95-removalai-preview.png" ' +
+          'alt="Λογότυπο" width="200" height="200" decoding="async" loading="eager">' +
+        '</div>' +
+        '<div class="loading-title">Έλεγχος συνδρομής</div>' +
+        '<div class="popup-line">Παρακαλώ περιμένετε...</div>' +
+      '</div>' +
+    '</div>';
   document.body.appendChild(el);
   return el;
 }
-
+ 
+ 
 function hideLoadingPopup() {
-  const el = document.getElementById("popup-loading");
+  if (xdLoadingGuard) { clearTimeout(xdLoadingGuard); xdLoadingGuard = null; }
+ 
+  var el = document.getElementById("popup-loading");
   if (!el) return;
+ 
   el.style.opacity = "0";
   el.style.transition = "opacity 0.3s ease";
-  setTimeout(() => el.remove(), 300);
+  setTimeout(function () {
+    /* διπλή ασφάλεια — αν το remove αποτύχει, σβήνουμε ό,τι έμεινε */
+    try { el.remove(); } catch (e) {}
+    var leftover = document.getElementById("popup-loading");
+    if (leftover && leftover.parentNode) leftover.parentNode.removeChild(leftover);
+  }, 300);
 }
 
     // Subscription check
     // Subscription check
+var xdLastScan = { id: "", at: 0 };
+var xdScanBusy = false;
+ 
 async function checkSubscriptionForId(scannedId) {
   if (!scannedId) return;
-
-  const loading = showLoadingPopup();
-
+ 
+  var now = Date.now();
+ 
+  /* Ο listener ξαναστέλνει το ίδιο έγγραφο σε κάθε επανασύνδεση
+     του Firestore. Χωρίς αυτό, δύο popup ταυτόχρονα. */
+  if (xdLastScan.id === String(scannedId) && now - xdLastScan.at < 30000) {
+    console.log("↷ Διπλό σκανάρισμα " + scannedId + " — αγνοείται");
+    return;
+  }
+  if (xdScanBusy) {
+    console.log("↷ Σάρωση ήδη σε εξέλιξη — αγνοείται");
+    return;
+  }
+ 
+  xdLastScan = { id: String(scannedId), at: now };
+  xdScanBusy = true;
+ 
+  showLoadingPopup();
+ 
+  var ctrl = (typeof AbortController !== "undefined") ? new AbortController() : null;
+  var timeout = setTimeout(function () {
+    if (ctrl) ctrl.abort();
+  }, 12000);
+ 
   try {
-    const response = await fetch(
-      "https://script.google.com/macros/s/AKfycbzxFrrfTz9LGux2WxNJGdxAabKC5ca9fPNSYNLTejyMrVn2qCljaFb4_nPoNmSrE1TzUQ/exec?id=" + encodeURIComponent(scannedId),
-      { cache: "no-store" }
-    );
-
-    const data = await response.json();
-    hideLoadingPopup();
-
-    // ΠΑΝΤΑ από Sheet
-    const sheetName = String(data.name || "").trim();
-    const firstOnly = sheetName.split(/\s+/)[0] || "";
-    const displayedName = formatName(firstOnly); // ή βάλε κατευθείαν firstOnly αν δεν θες vocative
-
+    var opts = { cache: "no-store" };
+    if (ctrl) opts.signal = ctrl.signal;
+ 
+    var response = await fetch(
+      "https://script.google.com/macros/s/AKfycbzxFrrfTz9LGux2WxNJGdxAabKC5ca9fPNSYNLTejyMrVn2qCljaFb4_nPoNmSrE1TzUQ/exec?id="
+      + encodeURIComponent(scannedId), opts);
+ 
+    var data = await response.json();
+ 
+    var sheetName = String(data.name || "").trim();
+    var firstOnly = sheetName.split(/\s+/)[0] || "";
+    var displayedName = (typeof formatName === "function") ? formatName(firstOnly) : firstOnly;
+ 
     showPopup(displayedName, !!data.active, scannedId);
+ 
   } catch (error) {
-    console.error("❌ Σφάλμα κατά το fetch:", error);
+    var aborted = error && (error.name === "AbortError");
+    console.error(aborted ? "⏱ Λήξη χρόνου στον έλεγχο συνδρομής"
+                          : "❌ Σφάλμα κατά το fetch:", error);
+    showPopup(aborted ? "Δοκίμασε ξανά" : "⚠️ Σφάλμα", false, scannedId);
+ 
+  } finally {
+    /* ✅ Τρέχει ΠΑΝΤΑ — επιτυχία, σφάλμα ή λήξη χρόνου */
+    clearTimeout(timeout);
     hideLoadingPopup();
-    showPopup("⚠️ Σφάλμα", false);
+    xdScanBusy = false;
   }
 }
 
