@@ -1249,7 +1249,7 @@ align-self: center;          /* κάθετα στο grid row */
 .xsd-aura{ position:absolute; left:50%; top:60%; width:130vw; height:80vw;
   transform:translate(-50%,-50%); pointer-events:none; opacity:.09;
   background:radial-gradient(ellipse at center, currentColor 0%, transparent 58%);
-  filter:blur(2vw); }
+  }
 .xsd-wrap{ position:relative; height:100%; box-sizing:border-box; display:flex;
   flex-direction:column; justify-content:center; padding:9vh 7vw 2.5vh; }
 .xsd-title{ font-family:'Orbitron',sans-serif; font-weight:700; font-size:3.6vw;
@@ -4027,6 +4027,38 @@ var XD_VERSION = "v4-20260819";
   setInterval(paint, 30000);
   paint();
  
+  /* ── Μαύρο κουτί ──
+     Γράφει την κατάσταση τοπικά κάθε 10΄΄. Στην επόμενη φόρτωση τη
+     στέλνει στο Firestore. Έτσι βλέπουμε τι συνέβαινε τη στιγμή που
+     πάγωσε, ακόμα κι αν έγινε refresh. */
+  function snapshot() {
+    var slide = document.querySelector(".slide.active");
+    try {
+      localStorage.setItem("xdBlackBox", JSON.stringify({
+        t: new Date().toISOString(),
+        slide: slide ? slide.className.replace(/\bslide\b|\bactive\b/g, "").trim() : "—",
+        uptimeH: +((Date.now() - started) / 3600000).toFixed(2),
+        revives: window.__slideRevives || 0,
+        lastError: lastError || ""
+      }));
+    } catch (e) {}
+  }
+  setInterval(snapshot, 10000);
+
+  /* στείλε ό,τι βρήκες από την προηγούμενη ζωή */
+  setTimeout(function () {
+    try {
+      var prev = localStorage.getItem("xdBlackBox");
+      if (!prev || typeof db === "undefined") return;
+      db.collection("xgym_health").doc(deviceId + "-crash").set({
+        device: deviceId,
+        label: (localStorage.getItem("xdLabel") || ""),
+        reportedAt: new Date().toISOString(),
+        before: JSON.parse(prev)
+      });
+    } catch (e) {}
+  }, 20000);
+
   window.xdErrors = function () { console.table(errors); };
 })();
 
