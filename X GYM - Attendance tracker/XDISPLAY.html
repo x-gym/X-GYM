@@ -2901,6 +2901,7 @@ async function checkSubscriptionForId(scannedId) {
  
   xdLastScan = { id: String(scannedId), at: now };
   xdScanBusy = true;
+  window.__lastScanAt = Date.now();
  
   showLoadingPopup();
  
@@ -3471,7 +3472,6 @@ function xsyAdd(data, id) {
   if (dk.length !== 10) return false;
  
   xsySeen[id] = 1;
-  xsySeenRaw[id] = data;                 /* το χρειάζεται το popup πελάτη */
  
   var p = xsyPeople[k];
   if (!p) p = xsyPeople[k] = { name: "", days: {}, total: 0, months: {} };
@@ -3702,54 +3702,55 @@ function xspNorm(s) {
    τις ίδιες ημέρες (1..σήμερα), αλλιώς στις αρχές κάθε μήνα
    θα έβγαινε πτώση για όλους. */
 function xspStats(scanId) {
-  if (typeof xsySeenRaw === "undefined" || !scanId) return null;
+  if (typeof xsyPeople === "undefined" || !scanId) return null;
+ 
   var want = String(scanId).trim();
-
-  var now = new Date(), day = now.getDate();
-  var mk = now.toLocaleDateString("sv-SE").slice(0, 7);
-  var pv = new Date(now.getFullYear(), now.getMonth() - 1, 1)
-             .toLocaleDateString("sv-SE").slice(0, 7);
-
-var todayK = now.toLocaleDateString("sv-SE");
-  var year = 0, byMonth = {}, prevSame = 0, myName = null, lastBefore = null;
-
-  Object.keys(xsySeenRaw).forEach(function (k) {
-    var d = xsySeenRaw[k];
-    if (String(d.id || "").trim() !== want) return;
-    year++;
-    if (!myName) myName = d.name;
-    var dk = String(d.dateKey || ""), m = dk.slice(0, 7);
-    if (!m) return;
-    byMonth[m] = (byMonth[m] || 0) + 1;
-    if (m === pv && +dk.slice(8, 10) <= day) prevSame++;
-    /* τελευταία επίσκεψη ΠΡΙΝ από σήμερα */
+  var p = xsyPeople[want];
+  if (!p || !p.total) return null;                  /* ✅ άμεση αναζήτηση */
+ 
+  var now    = new Date();
+  var day    = now.getDate();
+  var todayK = now.toLocaleDateString("sv-SE");
+  var mk     = todayK.slice(0, 7);
+  var pv     = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+                 .toLocaleDateString("sv-SE").slice(0, 7);
+ 
+  var year     = p.total;
+  var month    = p.months[mk] || 0;
+  var prevFull = p.months[pv] || 0;
+ 
+  /* Οι ημέρες ενός ατόμου είναι δεκάδες, όχι δεκάδες χιλιάδες */
+  var prevSame = 0, lastBefore = null;
+  for (var dk in p.days) {
+    if (dk.slice(0, 7) === pv && +dk.slice(8, 10) <= day) {
+      prevSame += p.days[dk].n;
+    }
     if (dk < todayK && (!lastBefore || dk > lastBefore)) lastBefore = dk;
-  });
-  if (!year) return null;
-
-  var month = byMonth[mk] || 0;
-  var prevFull = byMonth[pv] || 0;
-
+  }
+ 
+  /* καλύτερος μήνας — μόνο 12 κλειδιά */
   var best = month >= 4;
-  Object.keys(byMonth).forEach(function (m) {
-    if (m !== mk && byMonth[m] >= month) best = false;
-  });
-
-  /* πόσες μέρες έλειψε */
+  for (var m in p.months) {
+    if (m !== mk && p.months[m] >= month) { best = false; break; }
+  }
+ 
   var away = null;
   if (lastBefore) {
-    var a = new Date(todayK), b = new Date(lastBefore);
-    away = Math.round((a - b) / 86400000);
+    away = Math.round((new Date(todayK) - new Date(lastBefore)) / 86400000);
   }
+ 
+  /* κατάταξη — 311 άτομα αντί για 10.842 σκαναρίσματα */
   var rank = 1, total = 0;
-  Object.keys(xsyCounts).forEach(function (n) {
+  for (var k in xsyPeople) {
     total++;
-    if (xsyCounts[n] > year) rank++;
-  });
-
-return { year: year, month: month, prevFull: prevFull, prevSame: prevSame,
-           diff: month - prevSame, best: best, day: day, away: away,
-           lastVisit: lastBefore, rank: rank, total: total, name: myName };
+    if (xsyPeople[k].total > year) rank++;
+  }
+ 
+  return {
+    year: year, month: month, prevFull: prevFull, prevSame: prevSame,
+    diff: month - prevSame, best: best, day: day, away: away,
+    lastVisit: lastBefore, rank: rank, total: total, name: p.name || null
+  };
 }
 
 /* Μία πρόταση, με σαφή προτεραιότητα. */
@@ -4062,6 +4063,26 @@ var XD_VERSION = "v4-20260819";
   window.xdErrors = function () { console.table(errors); };
 })();
 
+/* Επανεκκίνηση πριν προλάβει να καταρρεύσει.
+   Μόνο σε ασφαλή στιγμή: φωτογραφία στην οθόνη, κανένα σκανάρισμα
+   τα τελευταία 2 λεπτά. Μετά από 3,5 ώρες, αναγκαστικά. */
+(function preventiveReload() {
+  var born = Date.now();
+
+  setInterval(function () {
+    var hours = (Date.now() - born) / 3600000;
+    if (hours < 2.5) return;
+
+    var el = document.querySelector(".slide.active");
+    var isPhoto = el && /background-image/.test(el.getAttribute("style") || "");
+    var quiet = !window.__lastScanAt || (Date.now() - window.__lastScanAt > 120000);
+
+    if (hours >= 3.5 || (isPhoto && quiet)) {
+      console.warn("♻️ Προληπτική επανεκκίνηση στις " + hours.toFixed(1) + "h");
+      location.reload();
+    }
+  }, 60000);
+})();
   </script>
 </body>
 </html>
