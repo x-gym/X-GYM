@@ -6658,10 +6658,12 @@ function admConflictAt(dateK, time, dur, exceptId) {
 function admTimeOptions() {
   var t0 = admMoveTarget, dur = t0.duration || 60, h = "";
   for (var hh = 7; hh <= 22; hh++) {
-    var t = (hh < 10 ? "0" : "") + hh + ":00";
-    var c = admConflictAt(admPickSel, t, dur, t0.classId);
-    h += '<option value="' + t + '">' + t +
-         (c ? '  —  πιασμένη: ' + c.name + ' (' + c.trainer + ')' : '') + '</option>';
+    for (var mm = 0; mm < 60; mm += 30) {
+      var t = (hh < 10 ? "0" : "") + hh + ":" + (mm ? "30" : "00");
+      var c = admConflictAt(admPickSel, t, dur, t0.classId);
+      h += '<option value="' + t + '"' + (t === t0.time ? ' selected' : '') + '>' + t +
+           (c ? '  —  πιασμένη: ' + c.name + ' (' + c.trainer + ')' : '') + '</option>';
+    }
   }
   return h;
 }
