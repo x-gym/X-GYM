@@ -3946,6 +3946,9 @@ var XD_VERSION = "v4-20260819";
   document.body.appendChild(el);
  
   function paint() {
+    var lb = document.querySelector(".leaderboard-slide.active, .xsy-slide.active");
+    el.style.display = (lb && !errors.length) ? "none" : "block";
+    setInterval(paint, 3000);
     var h = (Date.now() - started) / 3600000;
     var rev = window.__slideRevives || 0;
  

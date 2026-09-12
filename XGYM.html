@@ -6851,10 +6851,12 @@ let admAdd = null;
 function admTimeOptionsFor(dateK, dur, exceptId, selected) {
   var h = "";
   for (var hh = 7; hh <= 22; hh++) {
-    var t = (hh < 10 ? "0" : "") + hh + ":00";
-    var c = admConflictAt(dateK, t, dur, exceptId);
-    h += '<option value="' + t + '"' + (t === selected ? ' selected' : '') + '>' + t +
-         (c ? '  —  πιασμένη: ' + c.name + ' (' + c.trainer + ')' : '') + '</option>';
+    for (var mm = 0; mm < 60; mm += 30) {
+      var t = (hh < 10 ? "0" : "") + hh + ":" + (mm ? "30" : "00");
+      var c = admConflictAt(dateK, t, dur, exceptId);
+      h += '<option value="' + t + '"' + (t === selected ? ' selected' : '') + '>' + t +
+           (c ? '  —  πιασμένη: ' + c.name + ' (' + c.trainer + ')' : '') + '</option>';
+    }
   }
   return h;
 }
