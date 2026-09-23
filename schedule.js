@@ -217,7 +217,7 @@
       name: c.label || displayName(c.type),
       color: c.color || t.color,
       kids: (c.kids !== undefined) ? c.kids : t.kids,
-      badge: t.badge,
+            badge: c.badge || t.badge,
       trainer: trainer,
       date: dateK,
       time: time,

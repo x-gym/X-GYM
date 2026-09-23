@@ -6934,7 +6934,7 @@ function admResolveType(text) {
 function admSheetAdd() {
   admSel = null;
   admResetMoveState();
- admAdd = { typeText: "", trainer: "", time: "18:00", duration: 60, perm: true };
+  admAdd = { typeText: "", trainer: "", time: "18:00", duration: 60, perm: true, tag: "" };
   var d = admDate;
   document.getElementById("admSheetTitle").textContent = "Νέο τμήμα";
   document.getElementById("admSheetSub").textContent =
@@ -6954,6 +6954,11 @@ function admDrawAdd() {
   [30, 45, 60, 90].forEach(function (n) {
     durs += '<option value="' + n + '"' + (n === a.duration ? ' selected' : '') + '>' + n + '΄</option>';
   });
+    var tagOpts = "";
+  [["", "—"], ["KIDS", "Kids"], ["MEN", "Men"]].forEach(function (t) {
+    tagOpts += '<option value="' + t[0] + '"' +
+               (t[0] === (a.tag || "") ? ' selected' : '') + '>' + t[1] + '</option>';
+  });
   document.getElementById("admSheetBody").innerHTML =
     '<div class="adm-field"><label>Τμήμα</label>' +
       '<input id="admAddType" list="admTypeList" autocomplete="off" placeholder="Διάλεξε ή γράψε νέο" value="' +
@@ -6965,7 +6970,8 @@ function admDrawAdd() {
       '<datalist id="admTrainerList">' + trOpts + '</datalist></div>' +
     '<div class="adm-field"><label>Ώρα</label><select id="admAddTime">' +
       admTimeOptionsFor(dk, a.duration, null, a.time) + '</select></div>' +
-    '<div class="adm-field"><label>Διάρκεια</label><select id="admAddDur">' + durs + '</select></div>' +
+        '<div class="adm-field"><label>Διάρκεια</label><select id="admAddDur">' + durs + '</select></div>' +
+    '<div class="adm-field"><label>Ετικέτα</label><select id="admAddTag">' + tagOpts + '</select></div>' +
     '<div class="adm-field"><label>Επανάληψη</label><div class="adm-seg">' +
       '<button class="' + (a.perm ? 'on' : '') + '" data-act="addperm">Κάθε ' +
         XSchedule.DAY_NAMES[d.getDay()] + '</button>' +
@@ -6977,11 +6983,15 @@ function admDrawAdd() {
   ["admAddTime", "admAddDur"].forEach(function (id) {
     document.getElementById(id).addEventListener("change", admAddSync);
   });
-  ["admAddType", "admAddTrainer"].forEach(function (id) {
+    ["admAddType", "admAddTrainer"].forEach(function (id) {
     var el = document.getElementById(id);
     el.addEventListener("input",  admAddCapture);
     el.addEventListener("change", admAddCapture);
   });
+
+  var tagEl = document.getElementById("admAddTag");
+  if (tagEl) tagEl.addEventListener("change", function () { admAdd.tag = tagEl.value; });
+
   admAddWarn();
 }
 
