@@ -1282,15 +1282,17 @@ align-self: center;          /* κάθετα στο grid row */
   color:#fff; line-height:1.08; letter-spacing:-.008em; }
 .xsd-trainer{ font-family:'Poppins',sans-serif; font-weight:300; font-size:1.45vw;
   color:rgba(255,255,255,.44); margin-top:.55vh; letter-spacing:.03em; }
-.tag-kids, .tag-men{ font-family:'Poppins',sans-serif; font-weight:600;
+.tag-kids, .tag-men, .tag-women{ font-family:'Poppins',sans-serif; font-weight:600;
   letter-spacing:.24em; border-radius:.55vh; white-space:nowrap; text-transform:uppercase; }
 .tag-kids{ color:#ff8fc7; background:rgba(255,143,199,.12);
   border:1px solid rgba(255,143,199,.32); box-shadow:0 0 1.6vh -.4vh rgba(255,143,199,.5); }
 .tag-men { color:#7cc4ff; background:rgba(124,196,255,.12);
   border:1px solid rgba(124,196,255,.32); box-shadow:0 0 1.6vh -.4vh rgba(124,196,255,.5); }
-.xsd-name .tag-kids, .xsd-name .tag-men{ font-size:.92vw; padding:.32vh .72vw;
+  .tag-women { color:#ff6b6b; background:rgba(255,107,107,.12);
+  border:1px solid rgba(255,107,107,.32); box-shadow:0 0 1.6vh -.4vh rgba(255,107,107,.5); }
+.xsd-name .tag-kids, .xsd-name .tag-men, .xsd-name .tag-women{ font-size:.92vw; padding:.32vh .72vw;
   margin-left:.95vw; vertical-align:.34em; }
-.xsn-name .tag-kids, .xsn-name .tag-men{ font-size:1.45vw; padding:.5vh 1vw;
+.xsn-name .tag-kids, .xsn-name .tag-men, .xsn-name .tag-women{ font-size:1.45vw; padding:.5vh 1vw;
   margin-left:1.3vw; vertical-align:.9em; letter-spacing:.28em; }
   .ampm{ font-family:'Poppins',sans-serif; font-weight:400; font-size:.44em;
   letter-spacing:.02em; text-transform:none; opacity:.5; margin-left:.38em;
@@ -1334,8 +1336,7 @@ align-self: center;          /* κάθετα στο grid row */
 .xsd-row.done .xsd-time{ color:rgba(255,255,255,.25); text-shadow:none; }
 .xsd-row.done .xsd-name{ color:rgba(255,255,255,.29); font-weight:400; }
 .xsd-row.done .xsd-trainer{ color:rgba(255,255,255,.16); }
-.xsd-row.done .tag-kids, .xsd-row.done .tag-men{ opacity:.35; box-shadow:none; }
-.xsd-row.off{ background:rgba(255,107,107,.028); border-color:rgba(255,107,107,.14); }
+.xsd-row.done .tag-kids, .xsd-row.done .tag-men, .xsd-row.done .tag-women{ opacity:.35; box-shadow:none; }.xsd-row.off{ background:rgba(255,107,107,.028); border-color:rgba(255,107,107,.14); }
 .xsd-row.off .xsd-bar{ opacity:.3; box-shadow:none; }
 .xsd-row.off .xsd-time,
 .xsd-row.off .xsd-name{ color:rgba(255,255,255,.3); text-decoration:line-through;
@@ -1388,8 +1389,7 @@ align-self: center;          /* κάθετα στο grid row */
   color:#fff; line-height:1.1; letter-spacing:-.008em; }
 .xsw-tr{ font-family:'Poppins',sans-serif; font-weight:300; font-size:1.25vw;
   color:rgba(255,255,255,.44); margin-top:.35vh; }
-.xsw-name .tag-kids, .xsw-name .tag-men{ font-size:.8vw; padding:.28vh .6vw;
-  margin-left:.8vw; vertical-align:.3em; }
+.xsw-name .tag-kids, .xsw-name .tag-men, .xsw-name .tag-women{ font-size:.8vw; padding:.28vh .6vw;  margin-left:.8vw; vertical-align:.3em; }
   /* ── αλλαγές μέσα στο εβδομαδιαίο ── */
 .xsw-day{ position:relative; }
 .xsw-dot{ position:absolute; top:50%; right:1vw; transform:translateY(-50%);
@@ -1408,7 +1408,7 @@ align-self: center;          /* κάθετα στο grid row */
 .xsw-row.off .xsw-name{ color:rgba(255,255,255,.32); text-decoration:line-through;
   text-decoration-thickness:.15vh; }
 .xsw-row.off .xsw-tr{ color:rgba(255,255,255,.2); }
-.xsw-row.off .tag-kids, .xsw-row.off .tag-men{ opacity:.4; box-shadow:none; }
+.xsw-row.off .tag-kids, .xsw-row.off .tag-men, .xsw-row.off .tag-women{ opacity:.4; box-shadow:none; }
 
   /* ═══════════════ QR ΠΡΟΓΡΑΜΜΑΤΟΣ ═══════════════ */
 .xsq-slide{ color:#fff;
@@ -3036,6 +3036,7 @@ function xsLabel(o) {
   var n = String(o.name).replace(" Kids", "").replace(" Men", ""), b = "";
   if (o.kids)            b += '<small class="tag-kids">kids</small>';
   if (o.badge === "MEN") b += '<small class="tag-men">men</small>';
+    if (o.badge === "WOMEN") b += '<small class="tag-women">women</small>';
   return n + b;
 }
 
@@ -3099,7 +3100,8 @@ function xsRenderNext() {
   } else {
     nameEl.innerHTML = xsUp(String(hero.name).replace(" Kids", "").replace(" Men", "")) +
       (hero.kids ? '<small class="tag-kids">kids</small>' : "") +
-      (hero.badge === "MEN" ? '<small class="tag-men">men</small>' : "");
+            (hero.badge === "MEN" ? '<small class="tag-men">men</small>' : "") +
+      (hero.badge === "WOMEN" ? '<small class="tag-women">women</small>' : "");
   }
 
   document.getElementById("xsnTrainer").innerHTML = resume
@@ -3411,7 +3413,8 @@ function xsRenderWeek() {
                    '<div class="xsw-name">' +
                      o.name.replace(" Kids", "").replace(" Men", "") +
                      (o.kids ? '<small class="tag-kids">kids</small>' :
-                      (o.badge === "MEN" ? '<small class="tag-men">men</small>' : "")) +
+                                            (o.badge === "MEN" ? '<small class="tag-men">men</small>' : "") +
+                      (o.badge === "WOMEN" ? '<small class="tag-women">women</small>' : "")) +
                    '</div>' +
                    '<div class="xsw-tr">' + o.trainer + '</div>' +
                  '</div>' + flag +
