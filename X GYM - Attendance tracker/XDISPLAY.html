@@ -3240,6 +3240,10 @@ function xsdFit(slide) {
 function xsRenderToday() {
   var slide = document.querySelector(".xsd-slide");
   if (!slide || typeof XSchedule === "undefined") return;
+
+  /* ΑΦΑΙΡΕΘΗΚΕ — το slide προσπερνιέται. Σβήσε αυτές τις δύο γραμμές
+     για να επανέλθει. */
+  slide.classList.add("xsl-skip"); return;
  
   var now  = new Date();
   var mins = now.getHours() * 60 + now.getMinutes();
