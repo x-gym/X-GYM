@@ -6900,14 +6900,23 @@ function admColorFor(slug) {
 
 /* slug -> ετικέτα, από τις προεπιλογές ΚΑΙ από ό,τι έχει δημιουργηθεί */
 function admKnownTypes() {
-  var m = {};
+  var m = {}, real = {};
   Object.keys(XSchedule.CLASS_TYPES).forEach(function (k) { m[k] = XSchedule.displayName(k); });
+
+  /* Πρώτο πέρασμα: μάζεψε ΜΟΝΟ τα πραγματικά labels, ώστε ένα έγγραφο
+     χωρίς label να μη γράψει ποτέ το slug πάνω από το σωστό όνομα. */
+  (admClasses || []).forEach(function (c) { if (c.type && c.label) real[c.type] = c.label; });
+  admOverrides.forEach(function (o) {
+    if (o.status === "added" && o.type && o.label) real[o.type] = o.label;
+  });
+
   (admClasses || []).forEach(function (c) {
-    if (c.type) m[c.type] = c.label || m[c.type] || c.type;
+    if (c.type) m[c.type] = real[c.type] || m[c.type] || c.type;
   });
   admOverrides.forEach(function (o) {
-    if (o.status === "added" && o.type) m[o.type] = o.label || m[o.type] || o.type;
+    if (o.status === "added" && o.type) m[o.type] = real[o.type] || m[o.type] || o.type;
   });
+
   return m;
 }
 
@@ -7041,8 +7050,19 @@ function admAddSave() {
                     ".\n\nΝα προστεθεί ούτως ή άλλως; Θα εμφανίζονται και τα δύο."))
     return;
 
-  /* Νέος τύπος -> κουβαλάει δικά του label/color ώστε να εμφανίζεται σωστά παντού */
-  var look = rt.isNew ? { label: rt.label, color: admColorFor(rt.type), kids: false } : {};
+  /* Το label πρέπει να γράφεται ΠΑΝΤΑ, όχι μόνο για νέο τύπο. Αλλιώς
+     το δεύτερο τμήμα ίδιου τύπου αποθηκεύεται χωρίς label και
+     εμφανίζεται με το slug αντί για το κανονικό όνομα. */
+  var prev = (admClasses || []).filter(function (x) {
+    return x.type === rt.type && x.label;
+  })[0];
+
+  var look = {
+        label: (prev && prev.label) || rt.label || "",
+    color: (prev && prev.color) || admColorFor(rt.type),
+    kids:  a.tag === "KIDS",
+    badge: a.tag === "MEN" ? "MEN" : ""
+  };
 
   var p;
   if (a.perm) {
