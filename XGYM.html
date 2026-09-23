@@ -2461,6 +2461,8 @@ body {
   background:rgba(199,125,255,.14); color:#c77dff; vertical-align:middle; }
   .adm-men{ font-size:9.5px; letter-spacing:.1em; padding:2px 6px; border-radius:5px; margin-left:7px;
   background:rgba(124,196,255,.14); color:#7cc4ff; vertical-align:middle; }
+  .adm-women{ font-size:9.5px; letter-spacing:.1em; padding:2px 6px; border-radius:5px; margin-left:7px;
+  background:rgba(255,107,107,.14); color:#ff6b6b; vertical-align:middle; }
 .adm-trainer{ font-size:12.5px; color:rgba(255,255,255,.45); margin-top:2px; }
 .adm-tag{ font-size:10px; letter-spacing:.12em; text-transform:uppercase;
   padding:4px 9px; border-radius:7px; white-space:nowrap; }
@@ -2612,6 +2614,7 @@ body {
   .adm-kids{ font-size:11px; padding:3px 8px; margin-left:10px; }  
   .adm-kids{ font-size:11px; padding:3px 8px; margin-left:10px; }
   .adm-men{ font-size:11px; padding:3px 8px; margin-left:10px; }
+    .adm-women{ font-size:11px; padding:3px 8px; margin-left:10px; }
   .adm-trainer{ font-size:14.5px; margin-top:4px; }
   .adm-tag{ font-size:11.5px; padding:6px 13px; border-radius:9px; }
 
@@ -6501,7 +6504,8 @@ function admRender() {
                '<div class="adm-body">' +
                  '<div class="adm-name">' + o.name.replace(" Kids", "") +
                     (o.kids ? '<span class="adm-kids">KIDS</span>' : '') +
-                   (o.badge === "MEN" ? '<span class="adm-men">MEN</span>' : '') + '</div>' +
+                                      (o.badge === "MEN" ? '<span class="adm-men">MEN</span>' : '') +
+                   (o.badge === "WOMEN" ? '<span class="adm-women">WOMEN</span>' : '') + '</div>' +
                  '<div class="adm-trainer">' + o.trainer + ' · ' + o.duration + '΄</div>' +
                '</div>' + tag +
              '</div>';
@@ -6969,7 +6973,7 @@ function admDrawAdd() {
     durs += '<option value="' + n + '"' + (n === a.duration ? ' selected' : '') + '>' + n + '΄</option>';
   });
     var tagOpts = "";
-  [["", "—"], ["KIDS", "Kids"], ["MEN", "Men"]].forEach(function (t) {
+    [["", "—"], ["KIDS", "Kids"], ["MEN", "Men"], ["WOMEN", "Women"]].forEach(function (t) {
     tagOpts += '<option value="' + t[0] + '"' +
                (t[0] === (a.tag || "") ? ' selected' : '') + '>' + t[1] + '</option>';
   });
@@ -7065,8 +7069,8 @@ function admAddSave() {
   var look = {
         label: (prev && prev.label) || rt.label || "",
     color: (prev && prev.color) || admColorFor(rt.type),
-    kids:  a.tag === "KIDS",
-    badge: a.tag === "MEN" ? "MEN" : ""
+        kids:  a.tag === "KIDS",
+    badge: (a.tag === "MEN" || a.tag === "WOMEN") ? a.tag : ""
   };
 
   var p;
