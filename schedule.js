@@ -26,14 +26,12 @@
   /* Τα χρώματα είναι σταθερά σε ΟΛΑ τα slides και στο ADMIN.
      Pilates = το κυανό της εφαρμογής (είναι το κυρίαρχο τμήμα).
      Pilates Men = ίδιο κυανό + badge, γιατί είναι το ίδιο μάθημα.        */
-  var CLASS_TYPES = {
+    var CLASS_TYPES = {
     pilates:     { label: "Pilates",       color: "#5ff0ff", kids: false, badge: null  },
-    pilates_men: { label: "Pilates Men",   color: "#5ff0ff", kids: false, badge: "MEN" },
     kykliki:     { label: "Κυκλική",       color: "#ffa94d", kids: false, badge: null  },
-    enorgani:    { label: "Ενόργανη",      color: "#c77dff", kids: true,  badge: null  },
+    enorgani:    { label: "Ενόργανη",      color: "#c77dff", kids: false, badge: null  },
     trx:         { label: "TRX",           color: "#51cf66", kids: false, badge: null  },
-    bjj:         { label: "BJJ",           color: "#ff6b6b", kids: false, badge: null  },
-    bjj_kids:    { label: "BJJ",           color: "#ff6b6b", kids: true,  badge: null  }
+    bjj:         { label: "BJJ",           color: "#ff6b6b", kids: false, badge: null  }
   };
 
   /* --------------------------------------------------------- προπονητές */
