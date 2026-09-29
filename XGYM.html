@@ -6617,7 +6617,7 @@ function admSheetMenu() {
   if (o.status !== "cancelled")
     h += '<button class="adm-act danger" data-act="cancel">Ακύρωση τμήματος</button>';
   h += '<button class="adm-act" data-act="move">Αλλαγή ώρας ή ημέρας</button>';
-  h += '<button class="adm-act" data-act="trainer">Αλλαγή προπονητή</button>';
+    h += '<button class="adm-act" data-act="type">Αλλαγή τμήματος</button>';
   if (changed)
     h += '<button class="adm-act ok" data-act="reset">Επαναφορά στο κανονικό</button>';
 
@@ -6790,12 +6790,16 @@ function admDrawCal() {
   document.getElementById("admCal").innerHTML = h + '</div>';
 }
 
-function admSheetTrainer() {
-  var o = admSel, h = "";
-  admKnownTrainers().forEach(function (t) {
-    h += '<button class="adm-act' + (t === o.trainer ? " current" : "") +
-         '" data-act="trainerset" data-name="' + t + '">' + t + '</button>';
+function admSheetType() {
+  var o = admSel, types = admKnownTypes(), h = "";
+
+  /* Το χρώμα/ετικέτα του επιλεγμένου τύπου παίρνονται από τον πρώτο
+     πραγματικό τύπο που ταιριάζει — ίδιο μοτίβο με τη προσθήκη. */
+  Object.keys(types).forEach(function (k) {
+    h += '<button class="adm-act' + (k === o.type ? " current" : "") +
+         '" data-act="typeset" data-type="' + k + '">' + types[k] + '</button>';
   });
+
   h += '<button class="adm-act" data-act="back">Πίσω</button>';
   document.getElementById("admSheetBody").innerHTML = h;
 }
@@ -6825,12 +6829,26 @@ function admSheetClick(e) {
   if (act === "dispcancel") return admCommitCancel(admPendingA, { occ: admDisplaced });
   if (act === "move")    return admSheetMove();
   if (act === "trainer") return admSheetTrainer();
+    if (act === "type") return admSheetType();
   if (act === "cancel")  return admWrite(admSel, { status: "cancelled" });
   if (act === "delone")   return admDeleteOneOff(admSel);
   if (act === "delperm")  return admDeletePermanent(admSel);
   if (act === "reset")   return admReset(admSel);
   if (act === "trainerset")
     return admWrite(admSel, { status: "trainer", newTrainer: b.getAttribute("data-name") });
+    if (act === "typeset") {
+    var nt = b.getAttribute("data-type");
+    var src = (admClasses || []).filter(function (x) { return x.type === nt; })[0] || {};
+    var def = XSchedule.CLASS_TYPES[nt] || {};
+    return admWrite(admSel, {
+      status:   "type",
+      newType:  nt,
+      newLabel: src.label || def.label || nt,
+      newColor: src.color || def.color || null,
+      newKids:  (src.kids !== undefined) ? !!src.kids : !!def.kids,
+      newBadge: src.badge || def.badge || ""
+    });
+  }
   if (act === "movesave") {
     var nd = admPickSel;
     var nt = document.getElementById("admMoveTime").value;
